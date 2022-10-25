@@ -17,10 +17,7 @@ public class DescopeSDK {
 
 public struct DescopeConfig {
     public var projectId: String
-    
-    public init(projectId: String) {
-        self.projectId = projectId
-    }
+    public var baseURL: String = "https://api.descope.com"
     
     static public let empty = DescopeConfig(projectId: "")
 }

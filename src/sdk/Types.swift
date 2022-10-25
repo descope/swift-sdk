@@ -20,3 +20,8 @@ public struct MeResponse {
     public var email: (value: String, isVerified: Bool)?
     public var phone: (value: String, isVerified: Bool)?
 }
+
+public struct TOTPResponse {
+    public var provisioningURL: String
+    public var key: String
+}

@@ -5,6 +5,7 @@ class Auth: DescopeAuth {
     let client: DescopeClient
     var accessKey: DescopeAccessKey
     var otp: DescopeOTP
+    var totp: DescopeTOTP
 
     convenience init(config: DescopeConfig) {
         self.init(client: DescopeClient(config: config))
@@ -14,6 +15,7 @@ class Auth: DescopeAuth {
         self.client = client
         self.accessKey = AccessKey(client: client)
         self.otp = OTP(client: client)
+        self.totp = TOTP(client: client)
     }
     
     func me(token: String) async throws -> MeResponse {

@@ -15,11 +15,14 @@ private let osSysctl = "hw.model"
 /// Creates a user agent string with details about the system, operating system,
 /// host application, and the SDK itself.
 func makeUserAgent() -> String {
-    var string = "\(sdkName)/\(sdkVersion)"
-    if case let info = collectInfo().map(escape), !info.isEmpty {
-        string += " ("
-        string += info.joined(separator: "; ")
-        string += ")"
+    var string = sdkProduct()
+    if let sdkComment = sdkComment() {
+        string += " "
+        string += sdkComment
+    }
+    if let appProduct = appProduct() {
+        string += " "
+        string += appProduct
     }
     return string
 }
@@ -29,16 +32,25 @@ private func escape(_ str: String) -> String {
     return str.replacingOccurrences(of: "[^0-9a-zA-Z .,_-]", with: "_", options: .regularExpression)
 }
 
-private func collectInfo() -> [String] {
-    return [appInfo(), osInfo(), systemInfo()].compactMap { $0 }
+/// Returns details about the SDK
+private func sdkProduct() -> String {
+    return "\(sdkName)/\(sdkVersion)"
 }
 
 /// Returns details about the host application that uses the SDK
-private func appInfo() -> String? {
+private func appProduct() -> String? {
     guard let appName = Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as? String else { return nil }
     let appVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
     let appBuild = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as? String ?? "0"
-    return "\(appName) \(appVersion).\(appBuild)"
+    return "\(appName)/\(appVersion).\(appBuild)"
+}
+
+/// Combines the system and operating system info into one comment fragment
+private func sdkComment() -> String? {
+    let info = [osInfo(), systemInfo()].compactMap { $0 }
+    let merged = info.map(escape).joined(separator: "; ")
+    guard !merged.isEmpty else { return nil }
+    return "(" + merged + ")"
 }
 
 /// Returns the name and version of the operating system

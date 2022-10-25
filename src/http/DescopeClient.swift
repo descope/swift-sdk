@@ -4,15 +4,15 @@ import Foundation
 class DescopeClient: HttpClient {
     let config: DescopeConfig
     
-    init(config: DescopeConfig) {
+    init(config: DescopeConfig, session: URLSession? = nil) {
         self.config = config
-        super.init(baseURL: "\(config.baseURL)/v1")
+        super.init(baseURL: config.baseURL, session: session)
     }
     
     // MARK: - OTP
     
     func otpSignUp(with method: DeliveryMethod, identifier: String, user: User) async throws {
-        try await post("auth/otp/signin/\(method.name)", body: [
+        try await post("v1/auth/otp/signin/\(method.name)", body: [
             "externalId": identifier,
             "user": [
                 "name": user.name,
@@ -23,33 +23,33 @@ class DescopeClient: HttpClient {
     }
     
     func otpSignIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("auth/otp/signin/\(method.name)", body: [
+        try await post("v1/auth/otp/signin/\(method.name)", body: [
             "externalId": identifier
         ])
     }
     
     func otpSignUpIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("auth/otp/signup-in/\(method.name)", body: [
+        try await post("v1/auth/otp/signup-in/\(method.name)", body: [
             "externalId": identifier
         ])
     }
     
     func otpVerify(with method: DeliveryMethod, identifier: String, code: String) async throws -> JWTResponse {
-        return try await post("auth/otp/verify/\(method.name)", body: [
+        return try await post("v1/auth/otp/verify/\(method.name)", body: [
             "externalId": identifier,
             "code": code,
         ])
     }
     
     func otpUpdateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
-        try await post("auth/otp/update/email", headers: authorization(with: refreshToken), body: [
+        try await post("v1/auth/otp/update/email", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "email": email,
         ])
     }
     
     func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await post("auth/otp/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
+        try await post("v1/auth/otp/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "phone": phone,
         ])
@@ -64,7 +64,7 @@ class DescopeClient: HttpClient {
     }
     
     func totpSignUp(identifier: String, user: User) async throws -> TOTPResponse {
-        return try await post("auth/totp/signup", body: [
+        return try await post("v1/auth/totp/signup", body: [
             "externalId": identifier,
             "user": [
                 "name": user.name,
@@ -75,14 +75,14 @@ class DescopeClient: HttpClient {
     }
     
     func totpVerify(identifier: String, code: String) async throws -> JWTResponse {
-        return try await post("auth/totp/verify", body: [
+        return try await post("v1/auth/totp/verify", body: [
             "externalId": identifier,
             "code": code,
         ])
     }
     
     func totpUpdate(identifier: String, refreshToken: String) async throws {
-        try await post("auth/totp/update", headers: authorization(with: refreshToken), body: [
+        try await post("v1/auth/totp/update", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
         ])
     }
@@ -94,13 +94,13 @@ class DescopeClient: HttpClient {
     }
     
     func accessKeyExchange(_ accessKey: String) async throws -> AccessKeyExchangeResponse {
-        return try await get("auth/accesskey/exchange", headers: authorization(with: accessKey))
+        return try await get("v1/auth/accesskey/exchange", headers: authorization(with: accessKey))
     }
     
     // MARK: - Others
     
     func me(_ token: String) async throws -> UserResponse {
-        return try await get("auth/me", headers: authorization(with: token))
+        return try await get("v1/auth/me", headers: authorization(with: token))
     }
     
     // MARK: - Shared

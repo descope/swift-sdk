@@ -2,10 +2,9 @@
 import XCTest
 @testable import DescopeKit
 
-let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN3aWZ0eSBNY0FwcGxlcyIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiUDEyMyIsImV4cCI6MTYwMzE3NjYxNCwicGVybWlzc2lvbnMiOlsiZCIsImUiXSwicm9sZXMiOlsidXNlciJdLCJ0ZW5hbnRzIjp7InRlbmFudCI6eyJwZXJtaXNzaW9ucyI6WyJhIiwiYiIsImMiXSwicm9sZXMiOlsiYWRtaW4iXX19fQ.kY-MLyIv1qhPzcCxyI2_1vP2lmKfqLvcEIwQZFPON10"
+private let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlN3aWZ0eSBNY0FwcGxlcyIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiUDEyMyIsImV4cCI6MTYwMzE3NjYxNCwicGVybWlzc2lvbnMiOlsiZCIsImUiXSwicm9sZXMiOlsidXNlciJdLCJ0ZW5hbnRzIjp7InRlbmFudCI6eyJwZXJtaXNzaW9ucyI6WyJhIiwiYiIsImMiXSwicm9sZXMiOlsiYWRtaW4iXX19fQ.kY-MLyIv1qhPzcCxyI2_1vP2lmKfqLvcEIwQZFPON10"
 
-final class TokenTests: XCTestCase {
-
+class TestToken: XCTestCase {
     func testTokenDecoding() throws {
         let token: Token = try _Token(jwt: jwt)
         // Basic Fields
@@ -37,7 +36,6 @@ final class TokenTests: XCTestCase {
         XCTAssertEqual(["admin"], tenantRoles)
         XCTAssertEqual([], token.permissions(forTenant: "no-such-tenant"))
     }
-
 }
 
 

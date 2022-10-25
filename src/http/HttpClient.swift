@@ -5,9 +5,9 @@ class HttpClient {
     let baseURL: String
     let session: URLSession
     
-    init(baseURL: String) {
+    init(baseURL: String, session: URLSession? = nil) {
         self.baseURL = baseURL
-        self.session = makeURLSession()
+        self.session = session ?? makeURLSession()
     }
     
     deinit {
@@ -87,7 +87,7 @@ class HttpClient {
 
 /// JSON Handling
 
-private extension Dictionary where Value == Any? {
+extension Dictionary where Value == Any? {
     func compacted() -> Dictionary<Key, Any> {
         return compactMapValues { value in
             if let dict = value as? [String: Any?] {

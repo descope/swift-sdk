@@ -91,7 +91,7 @@ private extension Dictionary where Value == Any? {
     func compacted() -> Dictionary<Key, Any> {
         return compactMapValues { value in
             if let dict = value as? [String: Any?] {
-                return dict.compacted
+                return dict.compacted()
             }
             return value
         }

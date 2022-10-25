@@ -55,6 +55,38 @@ class DescopeClient: HttpClient {
         ])
     }
     
+    // MARK: - TOTP
+    
+    struct TOTPResponse: Decodable {
+        var provisioningURL: String
+        var image: String // This is a base64 encoded image
+        var key: String
+    }
+    
+    func totpSignUp(identifier: String, user: User) async throws -> TOTPResponse {
+        return try await post("auth/totp/signup", body: [
+            "externalId": identifier,
+            "user": [
+                "name": user.name,
+                "phone": user.phone,
+                "email": user.email,
+            ],
+        ])
+    }
+    
+    func totpVerify(identifier: String, code: String) async throws -> JWTResponse {
+        return try await post("auth/totp/verify", body: [
+            "externalId": identifier,
+            "code": code,
+        ])
+    }
+    
+    func totpUpdate(identifier: String, refreshToken: String) async throws {
+        try await post("auth/totp/update", headers: authorization(with: refreshToken), body: [
+            "externalId": identifier,
+        ])
+    }
+    
     // MARK: - Access Key
     
     struct AccessKeyExchangeResponse: Decodable {

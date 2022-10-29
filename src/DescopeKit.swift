@@ -19,7 +19,7 @@ public struct DescopeConfig {
     public var projectId: String
     public var baseURL: String = "https://api.descope.com"
     
-    init(projectId: String, baseURL: String? = nil) {
+    public init(projectId: String, baseURL: String? = nil) {
         self.projectId = projectId
         self.baseURL = baseURL ?? self.baseURL
     }

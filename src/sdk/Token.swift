@@ -81,6 +81,19 @@ class _Token: Token {
     }
 }
 
+/// Description
+
+extension _Token: CustomStringConvertible {
+    var description: String {
+        var expires = "expires=Never"
+        if let expiresAt {
+            let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
+            expires = "\(tag)=\(expiresAt)"
+        }
+        return "DescopeToken(id=\(id) project=\(projectId) \(expires))"
+    }
+}
+
 /// Claims
 
 private enum Claim: String {

@@ -23,4 +23,3 @@ class TOTP: DescopeTOTP {
         try await client.totpUpdate(identifier: identifier, refreshToken: refreshToken)
     }
 }
-

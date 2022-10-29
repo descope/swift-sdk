@@ -76,13 +76,13 @@ class MagicLink: DescopeMagicLink {
     
     private func pollForSession(_ pendingRef: String) async throws -> [Token] {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
-        while pollingEndsAt > .now {
+        while pollingEndsAt > Date() {
             do {
                 let response = try await client.magicLinkPendingSession(pendingRef: pendingRef)
                 let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
                 return try jwts.map { try _Token(jwt: $0) }
             } catch {}
-            try await Task.sleep(nanoseconds: 1_000_000_000) // Sleep for 1 seconds
+            try await Task.sleep(nanoseconds: NSEC_PER_SEC)
         }
         
         throw NetworkError.timeout // TODO: This should be a different error once we have our public errors ready

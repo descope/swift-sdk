@@ -10,6 +10,10 @@ public class DescopeSDK {
         self.config = .empty
     }
     
+    public convenience init(projectId: String) {
+        self.init(config: DescopeConfig(projectId: projectId))
+    }
+    
     public init(config: DescopeConfig) {
         self.config = config
     }

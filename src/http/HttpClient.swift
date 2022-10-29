@@ -119,7 +119,7 @@ private func makeURLSession() -> URLSession {
     #if DEBUG
     return URLSession(configuration: URLSessionConfiguration.default, delegate: CerificateErrorIgnorer(), delegateQueue: nil)
     #else
-    return URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
+    return URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
     #endif
 }
 

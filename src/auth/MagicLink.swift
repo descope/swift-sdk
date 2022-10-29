@@ -76,7 +76,7 @@ class MagicLink: DescopeMagicLink {
     
     private func pollForSession(_ pendingRef: String) async throws -> [Token] {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
-        while (pollingEndsAt > .now) {
+        while pollingEndsAt > .now {
             do {
                 let response = try await client.magicLinkPendingSession(pendingRef: pendingRef)
                 let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }

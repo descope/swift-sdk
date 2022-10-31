@@ -1,27 +1,17 @@
 
 import Foundation
 
-public enum TokenError: Error {
+enum TokenError: Error {
     case invalidFormat
     case invalidEncoding
     case invalidData
-    case missingClaim
-    case invalidClaim
-    case other
+    case missingClaim(String)
+    case invalidClaim(String)
+    case missingTenant(String)
+    case invalidTenant(String)
 }
 
-public protocol Token {
-    var jwt: String { get }
-    var id: String { get }
-    var projectId: String { get }
-    var expiresAt: Date? { get }
-    var isExpired: Bool { get }
-    var claims: [String: Any] { get }
-    func permissions(forTenant tenant: String?) -> [String]
-    func roles(forTenant tenant: String?) -> [String]
-}
-
-class _Token: Token {
+class Token: DescopeToken {
     let jwt: String
     let id: String
     let projectId: String
@@ -29,6 +19,7 @@ class _Token: Token {
     let claims: [String: Any]
     let allClaims: [String: Any]
     
+    // TODO wrap error in DescopeError?
     init(jwt: String) throws {
         let dict = try decodeJWT(jwt)
         self.jwt = jwt
@@ -54,10 +45,6 @@ class _Token: Token {
         return items ?? []
     }
     
-    static func collect(jwts: [String]) throws -> [Token] {
-        return [] // TODO
-    }
-    
     private func authorizationItems(forTenant tenant: String?, claim: Claim) throws -> [String] {
         let items: [String]
         if let tenant {
@@ -70,9 +57,9 @@ class _Token: Token {
     
     private func getValueForTenant<T>(_ tenant: String, key: String) throws -> T {
         let tenants = try getTenants()
-        guard let object = tenants[tenant] else { throw TokenError.missingClaim }
-        guard let info = object as? [String: Any] else { throw TokenError.invalidClaim }
-        guard let value = info[key] as? T else { throw TokenError.invalidClaim }
+        guard let object = tenants[tenant] else { throw TokenError.missingTenant(tenant) }
+        guard let info = object as? [String: Any] else { throw TokenError.invalidTenant(tenant) }
+        guard let value = info[key] as? T else { throw TokenError.invalidTenant(tenant) }
         return value
     }
     
@@ -81,9 +68,9 @@ class _Token: Token {
     }
 }
 
-/// Description
+// Description
 
-extension _Token: CustomStringConvertible {
+extension Token: CustomStringConvertible {
     var description: String {
         var expires = "expires=Never"
         if let expiresAt {
@@ -94,7 +81,21 @@ extension _Token: CustomStringConvertible {
     }
 }
 
-/// Claims
+extension TokenError: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .invalidFormat: return "Invalid token format"
+        case .invalidEncoding: return "Invalid token encoding"
+        case .invalidData: return "Invalid token data"
+        case .missingClaim(let claim): return "Missing \(claim) claim in token"
+        case .invalidClaim(let claim): return "Invalid \(claim) claim in token"
+        case .missingTenant(let tenant): return "Tenant \(tenant) not found in token"
+        case .invalidTenant(let tenant): return "Invalid data for tenant \(tenant) in token"
+        }
+    }
+}
+
+// Claims
 
 private enum Claim: String {
     case audience = "aud"
@@ -116,12 +117,12 @@ private func getClaim<T>(_ claim: Claim, in dict: [String: Any]) throws -> T {
 }
 
 private func getClaim<T>(_ claim: String, in dict: [String: Any]) throws -> T {
-    guard let object = dict[claim] else { throw TokenError.missingClaim }
-    guard let value = object as? T else { throw TokenError.invalidClaim }
+    guard let object = dict[claim] else { throw TokenError.missingClaim(claim) }
+    guard let value = object as? T else { throw TokenError.invalidClaim(claim) }
     return value
 }
 
-/// JWT Decoding
+// JWT Decoding
 
 private func decodeEncodedFragment(_ string: String) throws -> Data {
     let length = 4 * ((string.count + 3) / 4)
@@ -135,7 +136,7 @@ private func decodeEncodedFragment(_ string: String) throws -> Data {
 
 private func decodeFragment(_ string: String) throws -> [String: Any] {
     let data = try decodeEncodedFragment(string)
-    let json = try JSONSerialization.jsonObject(with: data)
+    guard let json = try? JSONSerialization.jsonObject(with: data) else { throw TokenError.invalidData }
     guard let dict = json as? [String: Any] else { throw TokenError.invalidData }
     return dict
 }

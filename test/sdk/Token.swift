@@ -6,7 +6,8 @@ private let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkw
 
 class TestToken: XCTestCase {
     func testTokenDecoding() throws {
-        let token: Token = try _Token(jwt: jwt)
+        let token: Token = try Token(jwt: jwt)
+        
         // Basic Fields
         XCTAssertEqual(jwt, token.jwt)
         XCTAssertEqual("1234567890", token.id)

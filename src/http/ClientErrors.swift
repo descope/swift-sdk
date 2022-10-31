@@ -23,10 +23,7 @@ extension DescopeError {
 
 extension DescopeError {
     init(networkError: Error) {
-        let err = networkError as NSError
-        let desc = err.localizedDescription + " [\(err.code)]"
-        let message = err.description
-        self.init(code: DescopeError.networkError.code, desc: desc, message: message, cause: networkError)
+        self.init(code: DescopeError.networkError.code, desc: nil, message: nil, cause: networkError)
     }
 }
 

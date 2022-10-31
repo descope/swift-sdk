@@ -25,9 +25,47 @@ public extension DescopeError {
     static let magicLinkExpired = DescopeError(code: "C000003")
 }
 
-public extension DescopeError {
-    static func ~= (lhs: DescopeError, rhs: Error) -> Bool {
-        guard let rhs = rhs as? DescopeError else { return false }
+extension DescopeError: Equatable {
+    public static func == (lhs: DescopeError, rhs: DescopeError) -> Bool {
         return lhs.code == rhs.code
+    }
+
+    public static func ~= (lhs: DescopeError, rhs: Error) -> Bool {
+        guard let rhs = rhs as? DescopeError else { return false }
+        return lhs == rhs
+    }
+}
+
+extension DescopeError: CustomStringConvertible {
+    public var description: String {
+        var str = "DescopeError(code: \"\(code)\""
+        if let desc {
+            str += ", description: \"\(desc)\""
+        }
+        if let message {
+            str += ", message: \"\(message)\""
+        }
+        if let cause {
+            str += ", cause: {\(cause)}"
+        }
+        str += ")"
+        return str
+    }
+}
+
+extension DescopeError: LocalizedError {
+    public var errorDescription: String? {
+        var str: String
+        if let desc {
+            str = "\(desc) [\(code)]"
+        } else if let cause = cause as? NSError {
+            str = "\(cause.localizedDescription) [\(code); \(cause.code)]"
+        } else {
+            str = "Descope error [\(code)]"
+        }
+        if let message {
+            str += ": \"\(message)\""
+        }
+        return str
     }
 }

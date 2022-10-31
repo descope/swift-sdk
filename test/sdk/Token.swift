@@ -8,6 +8,14 @@ class TestToken: XCTestCase {
     func testTokenDecoding() throws {
         let token: Token = try Token(jwt: jwt)
         
+        // Token Error
+        do {
+            _ = try Token(jwt: "")
+            XCTFail("Expected an error to be thrown")
+        } catch {
+            guard error is DescopeError else { return XCTFail("Unexpected error: \(error)") }
+        }
+        
         // Basic Fields
         XCTAssertEqual(jwt, token.jwt)
         XCTAssertEqual("1234567890", token.id)

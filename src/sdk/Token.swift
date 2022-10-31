@@ -19,15 +19,18 @@ class Token: DescopeToken {
     let claims: [String: Any]
     let allClaims: [String: Any]
     
-    // TODO wrap error in DescopeError?
     init(jwt: String) throws {
-        let dict = try decodeJWT(jwt)
-        self.jwt = jwt
-        self.id = try getClaim(.subject, in: dict)
-        self.projectId = try getClaim(.issuer, in: dict)
-        self.expiresAt = try? Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
-        self.claims = dict.filter { Claim.isCustom($0.key) }
-        self.allClaims = dict
+        do {
+            let dict = try decodeJWT(jwt)
+            self.jwt = jwt
+            self.id = try getClaim(.subject, in: dict)
+            self.projectId = try getClaim(.issuer, in: dict)
+            self.expiresAt = try? Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
+            self.claims = dict.filter { Claim.isCustom($0.key) }
+            self.allClaims = dict
+        } catch {
+            throw DescopeError(code: "C000004", cause: error)
+        }
     }
     
     var isExpired: Bool {
@@ -72,17 +75,25 @@ class Token: DescopeToken {
 
 extension Token: CustomStringConvertible {
     var description: String {
-        var expires = "expires=Never"
+        var expires = "expires: Never"
         if let expiresAt {
             let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
-            expires = "\(tag)=\(expiresAt)"
+            expires = "\(tag): \(expiresAt)"
         }
-        return "DescopeToken(id=\(id) project=\(projectId) \(expires))"
+        return "Token(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
     }
 }
 
-extension TokenError: CustomStringConvertible {
+extension TokenError: CustomStringConvertible, LocalizedError {
     var description: String {
+        return "TokenError(description: \(desc))"
+    }
+    
+    var errorDescription: String? {
+        return desc
+    }
+    
+    private var desc: String {
         switch self {
         case .invalidFormat: return "Invalid token format"
         case .invalidEncoding: return "Invalid token encoding"

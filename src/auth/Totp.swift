@@ -1,6 +1,4 @@
 
-import Foundation
-
 class TOTP: DescopeTOTP {
     let client: DescopeClient
     

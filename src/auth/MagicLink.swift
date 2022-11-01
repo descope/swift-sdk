@@ -1,6 +1,5 @@
 
 import Foundation
-import Combine
 
 class MagicLink: DescopeMagicLink {
     let client: DescopeClient
@@ -31,25 +30,25 @@ class MagicLink: DescopeMagicLink {
         try await client.magicLinkUpdatePhone(phone, with: method, identifier: identifier, refreshToken: refreshToken)
     }
     
-    func verify(token: String) async throws -> [Token] {
+    func verify(token: String) async throws -> [DescopeToken] {
         let response = try await client.magicLinkVerify(token: token)
         let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-        return try jwts.map { try _Token(jwt: $0) }
+        return try jwts.map { try Token(jwt: $0) }
     }
 
     // MARK: - Cross-Device
     
-    func signUpCrossDevice(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> [Token] {
+    func signUpCrossDevice(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> [DescopeToken] {
         let pendingRef = try await callSignUp(with: method, identifier: identifier, user: user, uri: uri)
         return try await pollForSession(pendingRef)
     }
     
-    func signInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [Token] {
+    func signInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken] {
         let pendingRef = try await callSignIn(with: method, identifier: identifier, uri: uri)
         return try await pollForSession(pendingRef)
     }
     
-    func signUpOrInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [Token] {
+    func signUpOrInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken] {
         let pendingRef = try await callSignUpOrIn(with: method, identifier: identifier, uri: uri)
         return try await pollForSession(pendingRef)
     }
@@ -74,17 +73,17 @@ class MagicLink: DescopeMagicLink {
         return response.pendingRef
     }
     
-    private func pollForSession(_ pendingRef: String) async throws -> [Token] {
+    private func pollForSession(_ pendingRef: String) async throws -> [DescopeToken] {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
-        while pollingEndsAt > .now {
+        while pollingEndsAt > Date() {
             do {
                 let response = try await client.magicLinkPendingSession(pendingRef: pendingRef)
                 let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-                return try jwts.map { try _Token(jwt: $0) }
+                return try jwts.map { try Token(jwt: $0) }
             } catch {}
-            try await Task.sleep(nanoseconds: 1_000_000_000) // Sleep for 1 seconds
+            try await Task.sleep(nanoseconds: NSEC_PER_SEC)
         }
         
-        throw NetworkError.timeout // TODO: This should be a different error once we have our public errors ready
+        throw DescopeError.magicLinkExpired
     }
 }

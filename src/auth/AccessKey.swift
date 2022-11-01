@@ -8,13 +8,13 @@ class AccessKey: DescopeAccessKey {
         self.client = client
     }
     
-    func exchange(accessKey: String) async throws -> Token {
+    func exchange(accessKey: String) async throws -> DescopeToken {
         return try await client.accessKeyExchange(accessKey).convert()
     }
 }
 
 private extension DescopeClient.AccessKeyExchangeResponse {
-    func convert() throws -> Token {
-        return try _Token(jwt: sessionJwt)
+    func convert() throws -> DescopeToken {
+        return try Token(jwt: sessionJwt)
     }
 }

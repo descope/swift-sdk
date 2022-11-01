@@ -175,8 +175,7 @@ class DescopeClient: HttpClient {
     }
     
     override func errorForResponseData(_ data: Data) -> Error? {
-        guard let userInfo = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-        return ServerError(errorCode: 0, errorUserInfo: userInfo)
+        return DescopeError.from(responseData: data)
     }
     
     private func authorization(with token: String) -> [String: String] {

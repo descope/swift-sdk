@@ -30,7 +30,7 @@ class TestHttpMethods: XCTestCase {
             try await client.get("route")
             XCTFail("No error thrown")
         } catch {
-            guard case HttpError.badRequest = error else { return XCTFail("Unexpected error: \(error)") }
+            guard case DescopeError.clientError = error else { return XCTFail("Unexpected error: \(error)") }
         }
         
         do {
@@ -39,7 +39,7 @@ class TestHttpMethods: XCTestCase {
             try await client.get("route")
             XCTFail("No error thrown")
         } catch {
-            guard case NetworkError.offline = error else { return XCTFail("Unexpected error: \(error)") }
+            guard case DescopeError.networkError = error else { return XCTFail("Unexpected error: \(error)") }
         }
     }
 }

@@ -58,15 +58,15 @@ class HttpClient {
     private func call(_ route: String, method: String, headers: [String: String], body: Data?) async throws -> Data {
         let request = try makeRequest(route: route, method: method, headers: headers, body: body)
         let (data, response) = try await sendRequest(request)
-        guard let response = response as? HTTPURLResponse else { throw HttpError.invalidResponse }
-        if let httpError = HttpError(response.statusCode) {
-            throw errorForResponseData(data) ?? httpError
+        guard let response = response as? HTTPURLResponse else { throw DescopeError(clientError: .invalidResponse) }
+        if let error = DescopeError.from(statusCode: response.statusCode) {
+            throw errorForResponseData(data) ?? error
         }
         return data
     }
     
     private func makeRequest(route: String, method: String, headers: [String: String], body: Data?) throws -> URLRequest {
-        guard let url = URL(string: baseURL)?.appendingPathComponent(route) else { throw HttpError.invalidRoute }
+        guard let url = URL(string: baseURL)?.appendingPathComponent(route) else { throw DescopeError(clientError: .invalidRoute) }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: defaultTimeout)
         request.httpMethod = method
         request.httpBody = body
@@ -80,7 +80,7 @@ class HttpClient {
         do {
             return try await session.data(for: request)
         } catch {
-            throw NetworkError(error)
+            throw DescopeError(networkError: error)
         }
     }
 }
@@ -119,7 +119,7 @@ private func makeURLSession() -> URLSession {
     #if DEBUG
     return URLSession(configuration: URLSessionConfiguration.default, delegate: CerificateErrorIgnorer(), delegateQueue: nil)
     #else
-    return URLSession(configuration: URLSessionConfiguration.default, delegate: delegate, delegateQueue: nil)
+    return URLSession(configuration: URLSessionConfiguration.default, delegate: nil, delegateQueue: nil)
     #endif
 }
 

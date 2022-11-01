@@ -34,3 +34,12 @@ public struct TOTPResponse {
     public var provisioningURL: String
     public var key: String
 }
+
+public enum OAuthProvider: String {
+    case facebook
+    case github
+    case google
+    case microsoft
+    case gitlab
+    case apple
+}

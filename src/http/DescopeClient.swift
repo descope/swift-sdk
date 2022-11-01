@@ -133,6 +133,26 @@ class DescopeClient: HttpClient {
         ])
     }
     
+    // MARK: - OAuth
+    
+    struct OAuthResponse: Decodable {
+        var url: String
+    }
+    
+    func oauthStart(provider: OAuthProvider, redirectUrl: String?) async throws -> OAuthResponse {
+        return try await post("/v1/auth/oauth/authorize", params: [
+            "provider": provider.rawValue,
+            "redirectURL": redirectUrl,
+        ].compactMapValues{ $0 }, body: [:
+        ])
+    }
+    
+    func oauthExchange(code: String) async throws -> JWTResponse {
+        return try await post("/v1/auth/oauth/exchange", body: [
+            "code": code
+        ])
+    }
+
     // MARK: - Access Key
     
     struct AccessKeyExchangeResponse: Decodable {

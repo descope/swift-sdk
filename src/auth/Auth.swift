@@ -8,6 +8,7 @@ class Auth: DescopeAuth {
     var totp: DescopeTOTP
     var magicLink: DescopeMagicLink
     var oauth: DescopeOAuth
+    var sso: DescopeSSO
 
     convenience init(config: DescopeConfig) {
         self.init(client: DescopeClient(config: config))
@@ -20,6 +21,7 @@ class Auth: DescopeAuth {
         self.totp = TOTP(client: client)
         self.magicLink = MagicLink(client: client)
         self.oauth = OAuth(client: client)
+        self.sso = SSO(client: client)
     }
     
     func me(token: String) async throws -> MeResponse {

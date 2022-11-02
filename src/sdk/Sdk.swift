@@ -2,13 +2,6 @@
 import Foundation
 
 public protocol DescopeAuth {
-    var accessKey: DescopeAccessKey { get }
-    var otp: DescopeOTP { get }
-    var totp: DescopeTOTP { get }
-    var magicLink: DescopeMagicLink { get }
-    var oauth: DescopeOAuth { get }
-    var sso: DescopeSSO { get }
-    
     func me(token: String) async throws -> MeResponse
 }
 

@@ -80,3 +80,11 @@ class TestHttpMethods: XCTestCase {
         }
     }
 }
+
+struct MockResponse: Decodable, Equatable {
+    var id: Int
+    var st: String
+    
+    static let instance = MockResponse(id: 7, st: "foo")
+    static let json: [String: Any] = ["id": instance.id, "st": instance.st]
+}

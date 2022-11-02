@@ -1,9 +1,6 @@
 
 import Foundation
 
-private let sdkName = "DescopeKit"
-private let sdkVersion = "1.0.0"
-
 #if os(iOS)
 private let osName = "iOS"
 private let osSysctl = "hw.machine"
@@ -34,7 +31,7 @@ private func escape(_ str: String) -> String {
 
 /// Returns details about the SDK
 private func sdkProduct() -> String {
-    return "\(sdkName)/\(sdkVersion)"
+    return "\(Descope.name)/\(Descope.version)"
 }
 
 /// Returns details about the host application that uses the SDK

@@ -6,6 +6,7 @@ public protocol DescopeAuth {
     var otp: DescopeOTP { get }
     var totp: DescopeTOTP { get }
     var magicLink: DescopeMagicLink { get }
+    var oauth: DescopeOAuth { get }
     
     func me(token: String) async throws -> MeResponse
 }
@@ -39,4 +40,9 @@ public protocol DescopeMagicLink {
     func signUpCrossDevice(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> [DescopeToken]
     func signInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken]
     func signUpOrInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken]
+}
+
+public protocol DescopeOAuth {
+    func start(provider: OAuthProvider, redirectUrl: String?) async throws -> String
+    func exchange(code: String) async throws -> [DescopeToken]
 }

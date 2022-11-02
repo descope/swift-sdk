@@ -7,6 +7,7 @@ class Auth: DescopeAuth {
     var otp: DescopeOTP
     var totp: DescopeTOTP
     var magicLink: DescopeMagicLink
+    var oauth: DescopeOAuth
 
     convenience init(config: DescopeConfig) {
         self.init(client: DescopeClient(config: config))
@@ -18,6 +19,7 @@ class Auth: DescopeAuth {
         self.otp = OTP(client: client)
         self.totp = TOTP(client: client)
         self.magicLink = MagicLink(client: client)
+        self.oauth = OAuth(client: client)
     }
     
     func me(token: String) async throws -> MeResponse {
@@ -35,5 +37,12 @@ private extension DescopeClient.UserResponse {
             me.phone = (value: value, isVerified: verifiedPhone)
         }
         return me
+    }
+}
+
+extension DescopeClient.JWTResponse {
+    func tokens() throws -> [DescopeToken] {
+        let jwts = [self.sessionJwt, self.refreshJwt].compactMap { $0 }
+        return try jwts.map { try Token(jwt: $0) }
     }
 }

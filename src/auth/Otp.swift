@@ -22,9 +22,7 @@ class OTP: DescopeOTP {
     }
     
     func verify(with method: DeliveryMethod, identifier: String, code: String) async throws -> [DescopeToken] {
-        let response = try await client.otpVerify(with: method, identifier: identifier, code: code)
-        let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-        return try jwts.map { try Token(jwt: $0) }
+        return try await client.otpVerify(with: method, identifier: identifier, code: code).tokens()
     }
     
     func updateEmail(_ email: String, identifier: String, refreshToken: String) async throws {

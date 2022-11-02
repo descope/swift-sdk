@@ -1,6 +1,4 @@
 
-import Foundation
-
 class TOTP: DescopeTOTP {
     let client: DescopeClient
     
@@ -14,9 +12,7 @@ class TOTP: DescopeTOTP {
     }
     
     func verify(identifier: String, code: String) async throws -> [DescopeToken] {
-        let response = try await client.totpVerify(identifier: identifier, code: code)
-        let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-        return try jwts.map { try Token(jwt: $0) }
+        return try await client.totpVerify(identifier: identifier, code: code).tokens()
     }
     
     func update(identifier: String, refreshToken: String) async throws {

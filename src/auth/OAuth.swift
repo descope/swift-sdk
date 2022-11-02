@@ -7,8 +7,7 @@ class OAuth: DescopeOAuth {
     }
     
     func start(provider: OAuthProvider, redirectUrl: String?) async throws -> String {
-        let res = try await client.oauthStart(provider: provider, redirectUrl: redirectUrl)
-        return res.url
+        return try await client.oauthStart(provider: provider, redirectUrl: redirectUrl).url
     }
     
     func exchange(code: String) async throws -> [DescopeToken] {

@@ -153,6 +153,26 @@ class DescopeClient: HttpClient {
         ])
     }
 
+    // MARK: - SSO
+    
+    struct SSOResponse: Decodable {
+        var url: String
+    }
+    
+    func ssoStart(emailOrTenantName: String, redirectUrl: String?) async throws -> OAuthResponse {
+        return try await post("/v1/auth/saml/authorize", params: [
+            "tenant": emailOrTenantName,
+            "redirectURL": redirectUrl,
+        ].compactMapValues{ $0 }, body: [:
+        ])
+    }
+    
+    func ssoExchange(code: String) async throws -> JWTResponse {
+        return try await post("/v1/auth/saml/exchange", body: [
+            "code": code
+        ])
+    }
+    
     // MARK: - Access Key
     
     struct AccessKeyExchangeResponse: Decodable {

@@ -7,6 +7,7 @@ public protocol DescopeAuth {
     var totp: DescopeTOTP { get }
     var magicLink: DescopeMagicLink { get }
     var oauth: DescopeOAuth { get }
+    var sso: DescopeSSO { get }
     
     func me(token: String) async throws -> MeResponse
 }
@@ -44,5 +45,10 @@ public protocol DescopeMagicLink {
 
 public protocol DescopeOAuth {
     func start(provider: OAuthProvider, redirectUrl: String?) async throws -> String
+    func exchange(code: String) async throws -> [DescopeToken]
+}
+
+public protocol DescopeSSO {
+    func start(emailOrTenantName: String, redirectUrl: String?) async throws -> String
     func exchange(code: String) async throws -> [DescopeToken]
 }

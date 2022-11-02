@@ -6,8 +6,8 @@ class SSO: DescopeSSO {
         self.client = client
     }
     
-    func start(emailOrTenantName: String, redirectUrl: String?) async throws -> String {
-        return try await client.ssoStart(emailOrTenantName: emailOrTenantName, redirectUrl: redirectUrl).url
+    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String {
+        return try await client.ssoStart(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL).url
     }
     
     func exchange(code: String) async throws -> [DescopeToken] {

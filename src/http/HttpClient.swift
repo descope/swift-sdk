@@ -16,12 +16,12 @@ class HttpClient {
     
     /// Convenience response functions
 
-    final func get<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String] = [:]) async throws -> T {
+    final func get<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> T {
         let data = try await get(route, headers: headers, params: params)
         return try JSONDecoder().decode(T.self, from: data)
     }
     
-    final func post<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String] = [:], body: [String: Any?]) async throws -> T {
+    final func post<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> T {
         let data = try await post(route, headers: headers, params: params, body: body)
         return try JSONDecoder().decode(T.self, from: data)
     }
@@ -29,17 +29,21 @@ class HttpClient {
     /// Convenience data functions
     
     @discardableResult
-    final func get(_ route: String, headers: [String: String] = [:], params: [String: String] = [:]) async throws -> Data {
+    final func get(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> Data {
         return try await call(route, method: "GET", headers: headers, params: params, body: nil)
     }
     
     @discardableResult
-    final func post(_ route: String, headers: [String: String] = [:], params: [String: String] = [:], body: [String: Any?]) async throws -> Data {
+    final func post(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> Data {
         let data = try JSONSerialization.data(withJSONObject: body.compacted(), options: [])
         return try await call(route, method: "POST", headers: headers, params: params, body: data)
     }
     
     /// Override points
+    
+    var basePath: String {
+        return "/"
+    }
     
     var defaultHeaders: [String: String] {
         return [:]
@@ -55,7 +59,7 @@ class HttpClient {
     
     /// Private
     
-    private func call(_ route: String, method: String, headers: [String: String], params: [String: String], body: Data?) async throws -> Data {
+    private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> Data {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
         let (data, response) = try await sendRequest(request)
         guard let response = response as? HTTPURLResponse else { throw DescopeError(clientError: .invalidResponse) }
@@ -65,11 +69,8 @@ class HttpClient {
         return data
     }
     
-    private func makeRequest(route: String, method: String, headers: [String: String], params: [String: String], body: Data?) throws -> URLRequest {
-        var components = URLComponents(string: baseURL)
-        components?.path = route
-        components?.queryItems = params.map{ URLQueryItem(name: $0, value: $1)}
-        guard let url = components?.url else { throw DescopeError(clientError: .invalidRoute) }
+    private func makeRequest(route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) throws -> URLRequest {
+        let url = try makeURL(route: route, params: params)
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData, timeoutInterval: defaultTimeout)
         request.httpMethod = method
         request.httpBody = body
@@ -77,6 +78,18 @@ class HttpClient {
             request.setValue(value, forHTTPHeaderField: key)
         }
         return request
+    }
+    
+    private func makeURL(route: String, params: [String: String?]) throws -> URL {
+        guard var url = URL(string: baseURL) else { throw DescopeError(clientError: .invalidRoute) }
+        url.appendPathComponent(basePath, isDirectory: false)
+        url.appendPathComponent(route, isDirectory: false)
+        guard var components = URLComponents(string: url.absoluteString) else { throw DescopeError(clientError: .invalidRoute) }
+        if case let params = params.compacted(), !params.isEmpty {
+            components.queryItems = params.map(URLQueryItem.init)
+        }
+        guard let url = components.url else { throw DescopeError(clientError: .invalidRoute) }
+        return url
     }
     
     private func sendRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
@@ -90,11 +103,11 @@ class HttpClient {
 
 /// JSON Handling
 
-extension Dictionary where Value == Any? {
-    func compacted() -> Dictionary<Key, Any> {
+private extension Dictionary {
+    func compacted<T>() -> Dictionary<Key, T> where Value == T? {
         return compactMapValues { value in
-            if let dict = value as? [String: Any?] {
-                return dict.compacted()
+            if let dict = value as? Self {
+                return dict.compacted() as? T
             }
             return value
         }

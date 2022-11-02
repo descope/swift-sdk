@@ -64,7 +64,7 @@ extension MockHTTP {
         
         let (statusCode, data, error, validator) = MockHTTP.responses.removeFirst()
         if let validator {
-            validator(request)
+            validator(request.withHTTPBody())
         }
         if let error {
             throw error
@@ -74,5 +74,36 @@ extension MockHTTP {
         guard let url = request.url else { preconditionFailure("Missing request URL") }
         guard let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: nil) else { preconditionFailure("Failed to create response") }
         return (response, data)
+    }
+}
+
+private extension URLRequest {
+    func withHTTPBody() -> URLRequest {
+        var request = self
+        request.httpBody = httpBody ?? httpBodyStream?.readAll()
+        return request
+    }
+}
+
+private extension InputStream {
+    func readAll() -> Data {
+        open()
+        defer {
+            close()
+        }
+
+        let bufferSize = 1024
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer {
+            buffer.deallocate()
+        }
+        
+        var data = Data()
+        while hasBytesAvailable {
+            guard case let readCount = read(buffer, maxLength: bufferSize), readCount > 0 else { break }
+            data.append(buffer, count: readCount)
+        }
+        
+        return data
     }
 }

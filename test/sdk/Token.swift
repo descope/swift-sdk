@@ -46,5 +46,3 @@ class TestToken: XCTestCase {
         XCTAssertEqual([], token.permissions(forTenant: "no-such-tenant"))
     }
 }
-
-

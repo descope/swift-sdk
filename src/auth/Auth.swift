@@ -3,25 +3,9 @@ import Foundation
 
 class Auth: DescopeAuth {
     let client: DescopeClient
-    var accessKey: DescopeAccessKey
-    var otp: DescopeOTP
-    var totp: DescopeTOTP
-    var magicLink: DescopeMagicLink
-    var oauth: DescopeOAuth
-    var sso: DescopeSSO
-
-    convenience init(config: DescopeConfig) {
-        self.init(client: DescopeClient(config: config))
-    }
     
     init(client: DescopeClient) {
         self.client = client
-        self.accessKey = AccessKey(client: client)
-        self.otp = OTP(client: client)
-        self.totp = TOTP(client: client)
-        self.magicLink = MagicLink(client: client)
-        self.oauth = OAuth(client: client)
-        self.sso = SSO(client: client)
     }
     
     func me(token: String) async throws -> MeResponse {

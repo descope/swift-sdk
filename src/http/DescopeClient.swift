@@ -178,7 +178,7 @@ class DescopeClient: HttpClient {
     }
     
     func accessKeyExchange(_ accessKey: String) async throws -> AccessKeyExchangeResponse {
-        return try await get("accesskey/exchange", headers: authorization(with: accessKey))
+        return try await post("accesskey/exchange", headers: authorization(with: accessKey))
     }
     
     // MARK: - Others
@@ -213,7 +213,11 @@ class DescopeClient: HttpClient {
     }
     
     override var defaultHeaders: [String: String] {
-        return ["Authorization": "Bearer \(config.projectId)"]
+        return [
+            "Authorization": "Bearer \(config.projectId)",
+            "x-descope-sdk-name": "swift",
+            "x-descope-sdk-version": Descope.version,
+        ]
     }
     
     override func errorForResponseData(_ data: Data) -> Error? {

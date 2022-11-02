@@ -2,14 +2,6 @@
 import Foundation
 @testable import DescopeKit
 
-struct MockResponse: Decodable, Equatable {
-    var id: Int
-    var st: String
-    
-    static let instance = MockResponse(id: 7, st: "foo")
-    static let json: [String: Any] = ["id": instance.id, "st": instance.st]
-}
-
 class MockHTTP: URLProtocol {
     override class func canInit(with request: URLRequest) -> Bool {
         return true
@@ -40,15 +32,17 @@ class MockHTTP: URLProtocol {
 }
 
 extension MockHTTP {
-    typealias RequestValidator = (URLRequest) -> ()
-    
     static var session: URLSession = {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [MockHTTP.self]
         return URLSession(configuration: sessionConfig)
     }()
+}
     
-    private static var responses: [(statusCode: Int, data: Data?, error: Error?, validate: RequestValidator?)] = []
+extension MockHTTP {
+    typealias RequestValidator = (URLRequest) -> ()
+    
+    static var responses: [(statusCode: Int, data: Data?, error: Error?, validate: RequestValidator?)] = []
     
     static func push(statusCode: Int = 400, error: Error, validator: RequestValidator? = nil) {
         responses.append((statusCode, nil, error, validator))

@@ -4,14 +4,18 @@ import Foundation
 class HttpClient {
     let baseURL: String
     let session: URLSession
+    let shouldInvalidateSession: Bool
     
     init(baseURL: String, session: URLSession? = nil) {
         self.baseURL = baseURL
         self.session = session ?? makeURLSession()
+        self.shouldInvalidateSession = session == nil
     }
     
     deinit {
-        session.finishTasksAndInvalidate()
+        if shouldInvalidateSession {
+            session.finishTasksAndInvalidate()
+        }
     }
     
     /// Convenience response functions

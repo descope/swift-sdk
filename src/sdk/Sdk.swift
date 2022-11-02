@@ -44,11 +44,11 @@ public protocol DescopeMagicLink {
 }
 
 public protocol DescopeOAuth {
-    func start(provider: OAuthProvider, redirectUrl: String?) async throws -> String
+    func start(provider: OAuthProvider, redirectURL: String?) async throws -> String
     func exchange(code: String) async throws -> [DescopeToken]
 }
 
 public protocol DescopeSSO {
-    func start(emailOrTenantName: String, redirectUrl: String?) async throws -> String
+    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String
     func exchange(code: String) async throws -> [DescopeToken]
 }

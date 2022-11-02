@@ -12,40 +12,40 @@ class DescopeClient: HttpClient {
     // MARK: - OTP
     
     func otpSignUp(with method: DeliveryMethod, identifier: String, user: User) async throws {
-        try await post("/v1/auth/otp/signup/\(method.name)", body: [
+        try await post("otp/signup/\(method.name)", body: [
             "externalId": identifier,
             "user": user.dictValue,
         ])
     }
     
     func otpSignIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("/v1/auth/otp/signin/\(method.name)", body: [
+        try await post("otp/signin/\(method.name)", body: [
             "externalId": identifier
         ])
     }
     
     func otpSignUpIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("/v1/auth/otp/signup-in/\(method.name)", body: [
+        try await post("otp/signup-in/\(method.name)", body: [
             "externalId": identifier
         ])
     }
     
     func otpVerify(with method: DeliveryMethod, identifier: String, code: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/otp/verify/\(method.name)", body: [
+        return try await post("otp/verify/\(method.name)", body: [
             "externalId": identifier,
             "code": code,
         ])
     }
     
     func otpUpdateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
-        try await post("/v1/auth/otp/update/email", headers: authorization(with: refreshToken), body: [
+        try await post("otp/update/email", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "email": email,
         ])
     }
     
     func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await post("/v1/auth/otp/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
+        try await post("otp/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "phone": phone,
         ])
@@ -60,21 +60,21 @@ class DescopeClient: HttpClient {
     }
     
     func totpSignUp(identifier: String, user: User) async throws -> TOTPResponse {
-        return try await post("/v1/auth/totp/signup", body: [
+        return try await post("totp/signup", body: [
             "externalId": identifier,
             "user": user.dictValue,
         ])
     }
     
     func totpVerify(identifier: String, code: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/totp/verify", body: [
+        return try await post("totp/verify", body: [
             "externalId": identifier,
             "code": code,
         ])
     }
     
     func totpUpdate(identifier: String, refreshToken: String) async throws {
-        try await post("/v1/auth/totp/update", headers: authorization(with: refreshToken), body: [
+        try await post("totp/update", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
         ])
     }
@@ -86,7 +86,7 @@ class DescopeClient: HttpClient {
     }
     
     func magicLinkSignUp(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> MagicLinkResponse {
-        return try await post("/v1/auth/magiclink/signup/\(method.name)", body: [
+        return try await post("magiclink/signup/\(method.name)", body: [
             "externalId": identifier,
             "user": user.dictValue,
             "uri": uri,
@@ -94,41 +94,41 @@ class DescopeClient: HttpClient {
     }
     
     func magicLinkSignIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
-        try await post("/v1/auth/magiclink/signin/\(method.name)", body: [
+        try await post("magiclink/signin/\(method.name)", body: [
             "externalId": identifier,
             "uri": uri,
         ])
     }
     
     func magicLinkSignUpOrIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
-        try await post("/v1/auth/magiclink/signup-in/\(method.name)", body: [
+        try await post("magiclink/signup-in/\(method.name)", body: [
             "externalId": identifier,
             "uri": uri,
         ])
     }
     
     func magicLinkVerify(token: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/magiclink/verify", body: [
+        return try await post("magiclink/verify", body: [
             "token": token,
         ])
     }
     
     func magicLinkUpdateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
-        try await post("/v1/auth/magiclink/update/email", headers: authorization(with: refreshToken), body: [
+        try await post("magiclink/update/email", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "email": email,
         ])
     }
     
     func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await post("/v1/auth/magiclink/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
+        try await post("magiclink/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "phone": phone,
         ])
     }
     
     func magicLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/magiclink/pending-session", body: [
+        return try await post("magiclink/pending-session", body: [
             "pendingRef": pendingRef,
         ])
     }
@@ -139,16 +139,15 @@ class DescopeClient: HttpClient {
         var url: String
     }
     
-    func oauthStart(provider: OAuthProvider, redirectUrl: String?) async throws -> OAuthResponse {
-        return try await post("/v1/auth/oauth/authorize", params: [
+    func oauthStart(provider: OAuthProvider, redirectURL: String?) async throws -> OAuthResponse {
+        return try await post("oauth/authorize", params: [
             "provider": provider.rawValue,
-            "redirectURL": redirectUrl,
-        ].compactMapValues{ $0 }, body: [:
+            "redirectURL": redirectURL,
         ])
     }
     
     func oauthExchange(code: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/oauth/exchange", body: [
+        return try await post("oauth/exchange", body: [
             "code": code
         ])
     }
@@ -159,11 +158,10 @@ class DescopeClient: HttpClient {
         var url: String
     }
     
-    func ssoStart(emailOrTenantName: String, redirectUrl: String?) async throws -> OAuthResponse {
+    func ssoStart(emailOrTenantName: String, redirectURL: String?) async throws -> OAuthResponse {
         return try await post("/v1/auth/saml/authorize", params: [
             "tenant": emailOrTenantName,
-            "redirectURL": redirectUrl,
-        ].compactMapValues{ $0 }, body: [:
+            "redirectURL": redirectURL,
         ])
     }
     
@@ -180,13 +178,13 @@ class DescopeClient: HttpClient {
     }
     
     func accessKeyExchange(_ accessKey: String) async throws -> AccessKeyExchangeResponse {
-        return try await get("/v1/auth/accesskey/exchange", headers: authorization(with: accessKey))
+        return try await get("accesskey/exchange", headers: authorization(with: accessKey))
     }
     
     // MARK: - Others
     
     func me(_ token: String) async throws -> UserResponse {
-        return try await get("/v1/auth/me", headers: authorization(with: token))
+        return try await get("me", headers: authorization(with: token))
     }
     
     // MARK: - Shared
@@ -209,6 +207,10 @@ class DescopeClient: HttpClient {
     }
     
     // MARK: - Internal
+    
+    override var basePath: String {
+        return "v1/auth"
+    }
     
     override var defaultHeaders: [String: String] {
         return ["Authorization": "Bearer \(config.projectId)"]

@@ -31,9 +31,7 @@ class MagicLink: DescopeMagicLink {
     }
     
     func verify(token: String) async throws -> [DescopeToken] {
-        let response = try await client.magicLinkVerify(token: token)
-        let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-        return try jwts.map { try Token(jwt: $0) }
+        return try await client.magicLinkVerify(token: token).tokens()
     }
 
     // MARK: - Cross-Device
@@ -77,9 +75,7 @@ class MagicLink: DescopeMagicLink {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
         while pollingEndsAt > Date() {
             do {
-                let response = try await client.magicLinkPendingSession(pendingRef: pendingRef)
-                let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-                return try jwts.map { try Token(jwt: $0) }
+                return try await client.magicLinkPendingSession(pendingRef: pendingRef).tokens()
             } catch {}
             try await Task.sleep(nanoseconds: NSEC_PER_SEC)
         }

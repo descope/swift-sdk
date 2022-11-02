@@ -44,5 +44,5 @@ public protocol DescopeMagicLink {
 
 public protocol DescopeOAuth {
     func start(provider: OAuthProvider, redirectUrl: String?) async throws -> String
-    func exchange(code: String) async throws -> [Token]
+    func exchange(code: String) async throws -> [DescopeToken]
 }

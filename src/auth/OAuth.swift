@@ -11,10 +11,7 @@ class OAuth: DescopeOAuth {
         return res.url
     }
     
-    func exchange(code: String) async throws -> [Token] {
-        let response = try await client.oauthExchange(code: code)
-        let jwts = [response.sessionJwt, response.refreshJwt].compactMap { $0 }
-        return try jwts.map { try _Token(jwt: $0) }
+    func exchange(code: String) async throws -> [DescopeToken] {
+        return try await client.oauthExchange(code: code).tokens()
     }
-    
 }

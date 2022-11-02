@@ -39,3 +39,10 @@ private extension DescopeClient.UserResponse {
         return me
     }
 }
+
+extension DescopeClient.JWTResponse {
+    func tokens() throws -> [DescopeToken] {
+        let jwts = [self.sessionJwt, self.refreshJwt].compactMap { $0 }
+        return try jwts.map { try Token(jwt: $0) }
+    }
+}

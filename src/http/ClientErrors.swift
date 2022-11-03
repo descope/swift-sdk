@@ -27,12 +27,6 @@ extension DescopeError {
     }
 }
 
-private let networkErrorDescriptions: [Int: String] = [
-    NSURLErrorTimedOut: "The request timed out",
-    NSURLErrorNetworkConnectionLost: "The request was aborted",
-    NSURLErrorNotConnectedToInternet: "The internet connection appears to be offline",
-]
-
 // Client errors
 
 extension DescopeError {

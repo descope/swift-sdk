@@ -13,7 +13,7 @@ class TestAccessKey: XCTestCase {
         MockHTTP.push(json: ["sessionJwt": jwt]) { request in
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer foo:bar")
-            XCTAssertEqual(request.httpBody, "{}".data(using: .utf8))
+            XCTAssertEqual(request.httpBody, Data("{}".utf8))
         }
         
         let token = try await descope.accessKey.exchange(accessKey: "bar")

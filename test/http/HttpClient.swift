@@ -66,8 +66,10 @@ class TestHttpMethods: XCTestCase {
             MockHTTP.push(statusCode: 400, json: [:])
             try await client.get("route")
             XCTFail("No error thrown")
+        } catch DescopeError.clientError {
+            // ok
         } catch {
-            guard case DescopeError.clientError = error else { return XCTFail("Unexpected error: \(error)") }
+            XCTFail("Unexpected error: \(error)")
         }
         
         do {
@@ -75,8 +77,10 @@ class TestHttpMethods: XCTestCase {
             MockHTTP.push(error: error)
             try await client.get("route")
             XCTFail("No error thrown")
+        } catch DescopeError.networkError {
+            // ok
         } catch {
-            guard case DescopeError.networkError = error else { return XCTFail("Unexpected error: \(error)") }
+            XCTFail("Unexpected error: \(error)")
         }
     }
 }

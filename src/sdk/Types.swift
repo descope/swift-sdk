@@ -12,7 +12,7 @@ public protocol DescopeToken {
     func roles(forTenant tenant: String?) -> [String]
 }
 
-public enum DeliveryMethod {
+public enum DeliveryMethod: String {
     case whatsapp, sms, email
 }
 

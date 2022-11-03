@@ -9,8 +9,8 @@ public struct DescopeError: Error {
 }
 
 public extension DescopeError {
-    static let networkError = DescopeError(code: "C000001")
-    static let clientError = DescopeError(code: "C000002")
+    static let networkError = DescopeError(code: "C010001")
+    static let clientError = DescopeError(code: "C010002")
     
     static let badRequest = DescopeError(code: "E011001")
     static let missingArguments = DescopeError(code: "E011002")
@@ -22,7 +22,7 @@ public extension DescopeError {
     static let invalidOTPCode = DescopeError(code: "E061102")
     static let tooManyOTPAttempts = DescopeError(code: "E061103")
     
-    static let magicLinkExpired = DescopeError(code: "C000003")
+    static let magicLinkExpired = DescopeError(code: "C010003")
 }
 
 extension DescopeError: Equatable {
@@ -55,13 +55,9 @@ extension DescopeError: CustomStringConvertible {
 
 extension DescopeError: LocalizedError {
     public var errorDescription: String? {
-        var str: String
-        if let desc {
-            str = "\(desc) [\(code)]"
-        } else if let cause = cause as? NSError {
-            str = "\(cause.localizedDescription) [\(code); \(cause.code)]"
-        } else {
-            str = "Descope error [\(code)]"
+        var str = "\(desc ?? "Descope error") [\(code)]"
+        if let cause = cause as? NSError {
+            str = "\(cause.localizedDescription) (\(cause.code))"
         }
         if let message {
             str += ": \"\(message)\""

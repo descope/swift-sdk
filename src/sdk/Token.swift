@@ -1,6 +1,10 @@
 
 import Foundation
 
+extension DescopeError {
+    static let tokenError = DescopeError(code: "C010004")
+}
+
 enum TokenError: Error {
     case invalidFormat
     case invalidEncoding
@@ -29,7 +33,7 @@ class Token: DescopeToken {
             self.claims = dict.filter { Claim.isCustom($0.key) }
             self.allClaims = dict
         } catch {
-            throw DescopeError(code: "C000004", cause: error)
+            throw DescopeError(code: DescopeError.tokenError.code, cause: error)
         }
     }
     

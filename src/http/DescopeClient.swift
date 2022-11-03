@@ -12,26 +12,26 @@ class DescopeClient: HttpClient {
     // MARK: - OTP
     
     func otpSignUp(with method: DeliveryMethod, identifier: String, user: User) async throws {
-        try await post("otp/signup/\(method.name)", body: [
+        try await post("otp/signup/\(method.rawValue)", body: [
             "externalId": identifier,
             "user": user.dictValue,
         ])
     }
     
     func otpSignIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("otp/signin/\(method.name)", body: [
+        try await post("otp/signin/\(method.rawValue)", body: [
             "externalId": identifier
         ])
     }
     
     func otpSignUpIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await post("otp/signup-in/\(method.name)", body: [
+        try await post("otp/signup-in/\(method.rawValue)", body: [
             "externalId": identifier
         ])
     }
     
     func otpVerify(with method: DeliveryMethod, identifier: String, code: String) async throws -> JWTResponse {
-        return try await post("otp/verify/\(method.name)", body: [
+        return try await post("otp/verify/\(method.rawValue)", body: [
             "externalId": identifier,
             "code": code,
         ])
@@ -45,7 +45,7 @@ class DescopeClient: HttpClient {
     }
     
     func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await post("otp/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
+        try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "phone": phone,
         ])
@@ -86,7 +86,7 @@ class DescopeClient: HttpClient {
     }
     
     func magicLinkSignUp(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> MagicLinkResponse {
-        return try await post("magiclink/signup/\(method.name)", body: [
+        return try await post("magiclink/signup/\(method.rawValue)", body: [
             "externalId": identifier,
             "user": user.dictValue,
             "uri": uri,
@@ -94,14 +94,14 @@ class DescopeClient: HttpClient {
     }
     
     func magicLinkSignIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
-        try await post("magiclink/signin/\(method.name)", body: [
+        try await post("magiclink/signin/\(method.rawValue)", body: [
             "externalId": identifier,
             "uri": uri,
         ])
     }
     
     func magicLinkSignUpOrIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
-        try await post("magiclink/signup-in/\(method.name)", body: [
+        try await post("magiclink/signup-in/\(method.rawValue)", body: [
             "externalId": identifier,
             "uri": uri,
         ])
@@ -121,7 +121,7 @@ class DescopeClient: HttpClient {
     }
     
     func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await post("magiclink/update/phone/\(method.name)", headers: authorization(with: refreshToken), body: [
+        try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
             "externalId": identifier,
             "phone": phone,
         ])
@@ -226,16 +226,6 @@ class DescopeClient: HttpClient {
     
     private func authorization(with token: String) -> [String: String] {
         return ["Authorization": "Bearer \(config.projectId):\(token)"]
-    }
-}
-
-private extension DeliveryMethod {
-    var name: String {
-        switch self {
-        case .email: return "email"
-        case .sms: return "sms"
-        case .whatsapp: return "whatsapp"
-        }
     }
 }
 

@@ -31,16 +31,16 @@ extension DescopeError {
 
 extension DescopeError {
     static func from(statusCode: Int) -> DescopeError? {
-        guard let clientError = ClientError(statusCode: statusCode) else { return nil }
-        return DescopeError(clientError: clientError)
+        guard let serverError = ServerError(statusCode: statusCode) else { return nil }
+        return DescopeError(serverError: serverError)
     }
     
-    init(clientError: ClientError) {
-        self.init(code: DescopeError.clientError.code, desc: clientError.description, message: nil, cause: nil)
+    init(serverError: ServerError) {
+        self.init(code: DescopeError.serverError.code, desc: serverError.description, message: nil, cause: nil)
     }
 }
 
-enum ClientError: Error {
+enum ServerError: Error {
     case invalidRoute
     case invalidResponse
     case unexpectedResponse(Int)
@@ -52,7 +52,7 @@ enum ClientError: Error {
     case serverUnreachable
 }
 
-extension ClientError {
+extension ServerError {
     init?(statusCode: Int) {
         switch statusCode {
         case 200...299: return nil
@@ -67,7 +67,7 @@ extension ClientError {
     }
 }
 
-extension ClientError: CustomStringConvertible {
+extension ServerError: CustomStringConvertible {
     var description: String {
         switch self {
         case .invalidRoute: return "The request URL was invalid"

@@ -10,7 +10,7 @@ public struct DescopeError: Error {
 
 public extension DescopeError {
     static let networkError = DescopeError(code: "C010001")
-    static let clientError = DescopeError(code: "C010002")
+    static let serverError = DescopeError(code: "C010002")
     
     static let badRequest = DescopeError(code: "E011001")
     static let missingArguments = DescopeError(code: "E011002")
@@ -55,9 +55,13 @@ extension DescopeError: CustomStringConvertible {
 
 extension DescopeError: LocalizedError {
     public var errorDescription: String? {
-        var str = "\(desc ?? "Descope error") [\(code)]"
-        if let cause = cause as? NSError {
+        var str: String
+        if let desc {
+            str = "\(desc) [\(code)]"
+        } else if let cause = cause as? NSError {
             str = "\(cause.localizedDescription) (\(cause.code))"
+        } else {
+            str = "Descope error [\(code)]"
         }
         if let message {
             str += ": \"\(message)\""

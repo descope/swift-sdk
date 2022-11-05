@@ -1,7 +1,7 @@
 
 import Foundation
 
-class DescopeClient: HttpClient {
+class DescopeClient: HTTPClient {
     let config: DescopeConfig
     
     init(config: DescopeConfig, session: URLSession? = nil) {

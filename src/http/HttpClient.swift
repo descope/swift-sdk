@@ -1,7 +1,7 @@
 
 import Foundation
 
-class HttpClient {
+class HTTPClient {
     let baseURL: String
     let session: URLSession
     let shouldInvalidateSession: Bool
@@ -18,7 +18,7 @@ class HttpClient {
         }
     }
     
-    /// Convenience response functions
+    // Convenience response functions
 
     final func get<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> T {
         let data = try await get(route, headers: headers, params: params)
@@ -30,7 +30,7 @@ class HttpClient {
         return try JSONDecoder().decode(T.self, from: data)
     }
     
-    /// Convenience data functions
+    // Convenience data functions
     
     @discardableResult
     final func get(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> Data {
@@ -43,7 +43,7 @@ class HttpClient {
         return try await call(route, method: "POST", headers: headers, params: params, body: data)
     }
     
-    /// Override points
+    // Override points
     
     var basePath: String {
         return "/"
@@ -61,12 +61,12 @@ class HttpClient {
         return nil
     }
     
-    /// Private
+    // Private
     
     private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> Data {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
         let (data, response) = try await sendRequest(request)
-        guard let response = response as? HTTPURLResponse else { throw DescopeError(clientError: .invalidResponse) }
+        guard let response = response as? HTTPURLResponse else { throw DescopeError(serverError: .invalidResponse) }
         if let error = DescopeError.from(statusCode: response.statusCode) {
             throw errorForResponseData(data) ?? error
         }
@@ -85,14 +85,14 @@ class HttpClient {
     }
     
     private func makeURL(route: String, params: [String: String?]) throws -> URL {
-        guard var url = URL(string: baseURL) else { throw DescopeError(clientError: .invalidRoute) }
+        guard var url = URL(string: baseURL) else { throw DescopeError(serverError: .invalidRoute) }
         url.appendPathComponent(basePath, isDirectory: false)
         url.appendPathComponent(route, isDirectory: false)
-        guard var components = URLComponents(string: url.absoluteString) else { throw DescopeError(clientError: .invalidRoute) }
+        guard var components = URLComponents(string: url.absoluteString) else { throw DescopeError(serverError: .invalidRoute) }
         if case let params = params.compacted(), !params.isEmpty {
             components.queryItems = params.map(URLQueryItem.init)
         }
-        guard let url = components.url else { throw DescopeError(clientError: .invalidRoute) }
+        guard let url = components.url else { throw DescopeError(serverError: .invalidRoute) }
         return url
     }
     
@@ -105,7 +105,7 @@ class HttpClient {
     }
 }
 
-/// JSON Handling
+// JSON Handling
 
 private extension Dictionary {
     func compacted<T>() -> Dictionary<Key, T> where Value == T? {
@@ -118,7 +118,7 @@ private extension Dictionary {
     }
 }
 
-/// HTTP Headers
+// HTTP Headers
 
 private let userAgent = makeUserAgent()
 
@@ -133,7 +133,7 @@ private func mergeHeaders(_ headers: [String: String], with defaults: [String: S
     return result
 }
 
-/// URLSession
+// URLSession
 
 private func makeURLSession() -> URLSession {
     #if DEBUG

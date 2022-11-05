@@ -30,23 +30,23 @@ class MagicLink: DescopeMagicLink {
         try await client.magicLinkUpdatePhone(phone, with: method, identifier: identifier, refreshToken: refreshToken)
     }
     
-    func verify(token: String) async throws -> [DescopeToken] {
-        return try await client.magicLinkVerify(token: token).tokens()
+    func verify(token: String) async throws -> DescopeSession {
+        return try await client.magicLinkVerify(token: token).convert()
     }
 
     // MARK: - Cross-Device
     
-    func signUpCrossDevice(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> [DescopeToken] {
+    func signUpCrossDevice(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> DescopeSession {
         let pendingRef = try await callSignUp(with: method, identifier: identifier, user: user, uri: uri)
         return try await pollForSession(pendingRef)
     }
     
-    func signInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken] {
+    func signInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> DescopeSession {
         let pendingRef = try await callSignIn(with: method, identifier: identifier, uri: uri)
         return try await pollForSession(pendingRef)
     }
     
-    func signUpOrInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> [DescopeToken] {
+    func signUpOrInCrossDevice(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> DescopeSession {
         let pendingRef = try await callSignUpOrIn(with: method, identifier: identifier, uri: uri)
         return try await pollForSession(pendingRef)
     }
@@ -71,11 +71,11 @@ class MagicLink: DescopeMagicLink {
         return response.pendingRef
     }
     
-    private func pollForSession(_ pendingRef: String) async throws -> [DescopeToken] {
+    private func pollForSession(_ pendingRef: String) async throws -> DescopeSession {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
         while pollingEndsAt > Date() {
             do {
-                return try await client.magicLinkPendingSession(pendingRef: pendingRef).tokens()
+                return try await client.magicLinkPendingSession(pendingRef: pendingRef).convert()
             } catch {}
             try await Task.sleep(nanoseconds: NSEC_PER_SEC)
         }

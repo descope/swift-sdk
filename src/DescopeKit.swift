@@ -21,6 +21,18 @@ public enum Descope {
         }
     }
     
+    // TODO remove if not needed
+    /// The configuration of the Descope SDK. You will most likely want to set this
+    /// value during your application's initialization flow.
+    public static var config: DescopeConfig = .init(projectId: "") {
+        willSet {
+            precondition(config.projectId == "", "Config should not be set more than once")
+        }
+        didSet {
+            precondition(config.projectId != "", "Config projectId should not be an empty string")
+        }
+    }
+    
     /// General functions
     public static var auth: DescopeAuth { sdk.auth }
     

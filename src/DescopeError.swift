@@ -8,21 +8,26 @@ public struct DescopeError: Error {
     var cause: Error?
 }
 
-public extension DescopeError {
-    static let networkError = DescopeError(code: "C010001")
-    static let serverError = DescopeError(code: "C010002")
+extension DescopeError {
+    public static let networkError = DescopeError(code: "C010001")
     
-    static let badRequest = DescopeError(code: "E011001")
-    static let missingArguments = DescopeError(code: "E011002")
-    static let invalidRequest = DescopeError(code: "E011003")
+    public static let badRequest = DescopeError(code: "E011001")
+    public static let missingArguments = DescopeError(code: "E011002")
+    public static let invalidRequest = DescopeError(code: "E011003")
 
-    static let missingAccessKey = DescopeError(code: "E062802")
-    static let invalidAccessKey = DescopeError(code: "E062803")
+    public static let missingAccessKey = DescopeError(code: "E062802")
+    public static let invalidAccessKey = DescopeError(code: "E062803")
     
-    static let invalidOTPCode = DescopeError(code: "E061102")
-    static let tooManyOTPAttempts = DescopeError(code: "E061103")
+    public static let invalidOTPCode = DescopeError(code: "E061102")
+    public static let tooManyOTPAttempts = DescopeError(code: "E061103")
     
-    static let magicLinkExpired = DescopeError(code: "C010003")
+    public static let magicLinkExpired = DescopeError(code: "C020001")
+    
+    // internal
+    static let serverError = DescopeError(code: "C010002")
+    static let decodeError = DescopeError(code: "C010003")
+    static let encodeError = DescopeError(code: "C010004")
+    static let tokenError = DescopeError(code: "C010005")
 }
 
 extension DescopeError: Equatable {
@@ -59,7 +64,7 @@ extension DescopeError: LocalizedError {
         if let desc {
             str = "\(desc) [\(code)]"
         } else if let cause = cause as? NSError {
-            str = "\(cause.localizedDescription) (\(cause.code))"
+            str = "\(cause.localizedDescription) (\(code):\(cause.code))"
         } else {
             str = "Descope error [\(code)]"
         }
@@ -67,5 +72,15 @@ extension DescopeError: LocalizedError {
             str += ": \"\(message)\""
         }
         return str
+    }
+}
+
+extension DescopeError {
+    func with(desc: String) -> DescopeError {
+        return DescopeError(code: code, desc: desc, message: message, cause: cause)
+    }
+    
+    func with(cause: Error) -> DescopeError {
+        return DescopeError(code: code, desc: desc, message: message, cause: cause)
     }
 }

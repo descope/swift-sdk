@@ -21,8 +21,8 @@ class OTP: DescopeOTP {
         try await client.otpSignUpIn(with: method, identifier: identifier)
     }
     
-    func verify(with method: DeliveryMethod, identifier: String, code: String) async throws -> [DescopeToken] {
-        return try await client.otpVerify(with: method, identifier: identifier, code: code).tokens()
+    func verify(with method: DeliveryMethod, identifier: String, code: String) async throws -> DescopeSession {
+        return try await client.otpVerify(with: method, identifier: identifier, code: code).convert()
     }
     
     func updateEmail(_ email: String, identifier: String, refreshToken: String) async throws {

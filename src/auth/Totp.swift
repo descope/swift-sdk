@@ -11,8 +11,8 @@ class TOTP: DescopeTOTP {
         return TOTPResponse(provisioningURL: resp.provisioningURL, key: resp.key)
     }
     
-    func verify(identifier: String, code: String) async throws -> [DescopeToken] {
-        return try await client.totpVerify(identifier: identifier, code: code).tokens()
+    func verify(identifier: String, code: String) async throws -> DescopeSession {
+        return try await client.totpVerify(identifier: identifier, code: code).convert()
     }
     
     func update(identifier: String, refreshToken: String) async throws {

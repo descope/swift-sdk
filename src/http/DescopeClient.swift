@@ -53,7 +53,7 @@ class DescopeClient: HTTPClient {
     
     // MARK: - TOTP
     
-    struct TOTPResponse: Decodable {
+    struct TOTPResponse: JSONResponse {
         var provisioningURL: String
         var image: String // This is a base64 encoded image
         var key: String
@@ -81,7 +81,7 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Magic Link
     
-    struct MagicLinkResponse: Decodable {
+    struct MagicLinkResponse: JSONResponse {
         var pendingRef: String
     }
     
@@ -135,7 +135,7 @@ class DescopeClient: HTTPClient {
     
     // MARK: - OAuth
     
-    struct OAuthResponse: Decodable {
+    struct OAuthResponse: JSONResponse {
         var url: String
     }
     
@@ -154,7 +154,7 @@ class DescopeClient: HTTPClient {
 
     // MARK: - SSO
     
-    struct SSOResponse: Decodable {
+    struct SSOResponse: JSONResponse {
         var url: String
     }
     
@@ -173,7 +173,7 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Access Key
     
-    struct AccessKeyExchangeResponse: Decodable {
+    struct AccessKeyExchangeResponse: JSONResponse {
         var sessionJwt: String
     }
     
@@ -183,20 +183,30 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Others
     
-    func me(_ token: String) async throws -> UserResponse {
-        return try await get("me", headers: authorization(with: token))
+    func me(_ refreshToken: String) async throws -> UserResponse {
+        return try await get("me", headers: authorization(with: refreshToken))
     }
     
     // MARK: - Shared
     
-    struct JWTResponse: Decodable {
+    static let refreshCookieName = "DSR"
+    
+    struct JWTResponse: JSONResponse {
         var sessionJwt: String
         var refreshJwt: String?
         var user: UserResponse?
         var firstSeen: Bool
+        
+        mutating func setValues(from response: HTTPURLResponse) {
+            guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
+            let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+            for cookie in cookies where cookie.name == refreshCookieName {
+                refreshJwt = cookie.value
+            }
+        }
     }
     
-    struct UserResponse: Decodable {
+    struct UserResponse: JSONResponse {
         var userId: String
         var externalIds: [String]
         var name: String?

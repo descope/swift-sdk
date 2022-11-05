@@ -85,7 +85,7 @@ class TestHttpMethods: XCTestCase {
     }
 }
 
-struct MockResponse: Decodable, Equatable {
+struct MockResponse: JSONResponse, Equatable {
     var id: Int
     var st: String
     

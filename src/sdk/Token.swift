@@ -1,19 +1,20 @@
 
 import Foundation
 
-extension DescopeError {
-    static let tokenError = DescopeError(code: "C010004")
+public protocol DescopeToken {
+    var jwt: String { get }
+    var id: String { get }
+    var projectId: String { get }
+    var expiresAt: Date? { get }
+    var isExpired: Bool { get }
+    var claims: [String: Any] { get }
+    func permissions(forTenant tenant: String?) -> [String]
+    func roles(forTenant tenant: String?) -> [String]
 }
 
-enum TokenError: Error {
-    case invalidFormat
-    case invalidEncoding
-    case invalidData
-    case missingClaim(String)
-    case invalidClaim(String)
-    case missingTenant(String)
-    case invalidTenant(String)
-}
+//
+// Internal
+//
 
 class Token: DescopeToken {
     let jwt: String
@@ -33,7 +34,7 @@ class Token: DescopeToken {
             self.claims = dict.filter { Claim.isCustom($0.key) }
             self.allClaims = dict
         } catch {
-            throw DescopeError(code: DescopeError.tokenError.code, cause: error)
+            throw DescopeError.tokenError.with(cause: error)
         }
     }
     
@@ -84,8 +85,20 @@ extension Token: CustomStringConvertible {
             let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
             expires = "\(tag): \(expiresAt)"
         }
-        return "Token(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
+        return "DescopeToken(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
     }
+}
+
+// Error
+
+enum TokenError: Error {
+    case invalidFormat
+    case invalidEncoding
+    case invalidData
+    case missingClaim(String)
+    case invalidClaim(String)
+    case missingTenant(String)
+    case invalidTenant(String)
 }
 
 extension TokenError: CustomStringConvertible, LocalizedError {

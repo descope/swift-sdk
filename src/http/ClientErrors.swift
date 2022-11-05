@@ -1,7 +1,7 @@
 
 import Foundation
 
-// Server errors
+// API errors
 
 extension DescopeError {
     static func from(responseData data: Data) -> DescopeError? {
@@ -19,24 +19,16 @@ extension DescopeError {
     }
 }
 
-// Network errors
-
-extension DescopeError {
-    init(networkError: Error) {
-        self.init(code: DescopeError.networkError.code, desc: nil, message: nil, cause: networkError)
-    }
-}
-
-// Client errors
+// Server errors
 
 extension DescopeError {
     static func from(statusCode: Int) -> DescopeError? {
-        guard let serverError = ServerError(statusCode: statusCode) else { return nil }
-        return DescopeError(serverError: serverError)
+        guard let err = ServerError(statusCode: statusCode) else { return nil }
+        return DescopeError(serverError: err)
     }
-    
+
     init(serverError: ServerError) {
-        self.init(code: DescopeError.serverError.code, desc: serverError.description, message: nil, cause: nil)
+        self = DescopeError.serverError.with(desc: serverError.description)
     }
 }
 

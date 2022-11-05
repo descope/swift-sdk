@@ -20,27 +20,26 @@ class HTTPClient {
     
     // Convenience response functions
 
-    final func get<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> T {
-        let data = try await get(route, headers: headers, params: params)
-        return try JSONDecoder().decode(T.self, from: data)
+    final func get<T: JSONResponse>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> T {
+        let (data, response) = try await get(route, headers: headers, params: params)
+        return try decodeJSON(data: data, response: response)
     }
     
-    final func post<T: Decodable>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> T {
-        let data = try await post(route, headers: headers, params: params, body: body)
-        return try JSONDecoder().decode(T.self, from: data)
+    final func post<T: JSONResponse>(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> T {
+        let (data, response) = try await post(route, headers: headers, params: params, body: body)
+        return try decodeJSON(data: data, response: response)
     }
     
     // Convenience data functions
     
     @discardableResult
-    final func get(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> Data {
+    final func get(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:]) async throws -> (Data, HTTPURLResponse) {
         return try await call(route, method: "GET", headers: headers, params: params, body: nil)
     }
     
     @discardableResult
-    final func post(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> Data {
-        let data = try JSONSerialization.data(withJSONObject: body.compacted(), options: [])
-        return try await call(route, method: "POST", headers: headers, params: params, body: data)
+    final func post(_ route: String, headers: [String: String] = [:], params: [String: String?] = [:], body: [String: Any?] = [:]) async throws -> (Data, HTTPURLResponse) {
+        return try await call(route, method: "POST", headers: headers, params: params, body: encodeJSON(body))
     }
     
     // Override points
@@ -63,14 +62,14 @@ class HTTPClient {
     
     // Private
     
-    private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> Data {
+    private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> (Data, HTTPURLResponse) {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
         let (data, response) = try await sendRequest(request)
         guard let response = response as? HTTPURLResponse else { throw DescopeError(serverError: .invalidResponse) }
         if let error = DescopeError.from(statusCode: response.statusCode) {
             throw errorForResponseData(data) ?? error
         }
-        return data
+        return (data, response)
     }
     
     private func makeRequest(route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) throws -> URLRequest {
@@ -100,12 +99,44 @@ class HTTPClient {
         do {
             return try await session.data(for: request)
         } catch {
-            throw DescopeError(networkError: error)
+            throw DescopeError.networkError.with(cause: error)
         }
     }
 }
 
-// JSON Handling
+// JSON Response
+
+protocol JSONResponse: Decodable {
+    mutating func setValues(from response: HTTPURLResponse)
+}
+
+extension JSONResponse {
+    mutating func setValues(from response: HTTPURLResponse) {
+        // nothing by default
+    }
+}
+
+private func decodeJSON<T: JSONResponse>(data: Data, response: HTTPURLResponse) throws -> T {
+    do {
+        var val = try JSONDecoder().decode(T.self, from: data)
+        val.setValues(from: response)
+        return val
+    } catch {
+        throw DescopeError.decodeError.with(cause: error)
+    }
+}
+
+// JSON Request
+
+private func encodeJSON(_ body: [String: Any?]) throws -> Data {
+    do {
+        let compact = body.compacted()
+        let data = try JSONSerialization.data(withJSONObject: compact, options: [])
+        return data
+    } catch {
+        throw DescopeError.encodeError.with(cause: error)
+    }
+}
 
 private extension Dictionary {
     func compacted<T>() -> Dictionary<Key, T> where Value == T? {

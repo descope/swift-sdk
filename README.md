@@ -50,3 +50,31 @@ let tokens = try await Descope.otp.verify(with: .email, identifier: "desmond_c@m
 ```
 
 After this call, `tokens` contain the session and refresh tokens that can be used to communicate with your backend securely.
+
+### OAuth & SSO Example
+
+Whether you want to use OAuth or SSO, the usage principal is quite similar, albeit the setup and configuration differs between both methods.
+
+First you must generate a URL for the auth provider you wish to use. Take that URL and using `ASWebAuthenticationSession` (read more about it [here](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)) you can use it to authenticate using your, or the user's, preferred authentication provider. Once the authentication is successful, exchange the code to receive a valid session. Something along the lines of:
+
+```swift
+// Generate the URL
+let url = try await Descope.oauth.start(provider: .github, redirectURL: "exampleauthschema://yoursite.com")
+    guard let authURL = URL(string: url) else { return }
+
+// Start the authentication session
+let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "exampleauthschema")
+{ callbackURL, error in
+
+    // Extract the returned code
+    guard let url = callbackURL else {return}
+    let component = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    guard let code = component?.queryItems?.first(where: {$0.name == "code"})?.value else { return }
+
+    // ... Trigger asynchronously
+
+    // Exchange code for session
+    let session = try await Descope.oauth.exchange(code: code)
+
+}
+```

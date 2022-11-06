@@ -3,7 +3,7 @@ import XCTest
 @testable import DescopeKit
 
 class TestHttpMethods: XCTestCase {
-    let client = HttpClient(baseURL: "http://example", session: MockHTTP.session)
+    let client = HTTPClient(baseURL: "http://example", session: MockHTTP.session)
     
     func testGet() async throws {
         MockHTTP.push(json: MockResponse.json) { request in
@@ -66,8 +66,10 @@ class TestHttpMethods: XCTestCase {
             MockHTTP.push(statusCode: 400, json: [:])
             try await client.get("route")
             XCTFail("No error thrown")
+        } catch DescopeError.serverError {
+            // ok
         } catch {
-            guard case DescopeError.clientError = error else { return XCTFail("Unexpected error: \(error)") }
+            XCTFail("Unexpected error: \(error)")
         }
         
         do {
@@ -75,13 +77,15 @@ class TestHttpMethods: XCTestCase {
             MockHTTP.push(error: error)
             try await client.get("route")
             XCTFail("No error thrown")
+        } catch DescopeError.networkError {
+            // ok
         } catch {
-            guard case DescopeError.networkError = error else { return XCTFail("Unexpected error: \(error)") }
+            XCTFail("Unexpected error: \(error)")
         }
     }
 }
 
-struct MockResponse: Decodable, Equatable {
+struct MockResponse: JSONResponse, Equatable {
     var id: Int
     var st: String
     

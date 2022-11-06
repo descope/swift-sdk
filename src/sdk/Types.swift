@@ -1,19 +1,10 @@
 
 import Foundation
 
-public protocol DescopeToken {
-    var jwt: String { get }
-    var id: String { get }
-    var projectId: String { get }
-    var expiresAt: Date? { get }
-    var isExpired: Bool { get }
-    var claims: [String: Any] { get }
-    func permissions(forTenant tenant: String?) -> [String]
-    func roles(forTenant tenant: String?) -> [String]
-}
-
-public enum DeliveryMethod {
-    case whatsapp, sms, email
+public enum DeliveryMethod: String {
+    case whatsapp
+    case sms
+    case email
 }
 
 public struct User {

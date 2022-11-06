@@ -8,8 +8,8 @@ class Auth: DescopeAuth {
         self.client = client
     }
     
-    func me(token: String) async throws -> MeResponse {
-        return try await client.me(token).convert()
+    func me(refreshToken: String) async throws -> MeResponse {
+        return try await client.me(refreshToken).convert()
     }
 }
 
@@ -23,12 +23,5 @@ private extension DescopeClient.UserResponse {
             me.phone = (value: value, isVerified: verifiedPhone)
         }
         return me
-    }
-}
-
-extension DescopeClient.JWTResponse {
-    func tokens() throws -> [DescopeToken] {
-        let jwts = [self.sessionJwt, self.refreshJwt].compactMap { $0 }
-        return try jwts.map { try Token(jwt: $0) }
     }
 }

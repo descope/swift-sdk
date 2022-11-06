@@ -1,7 +1,7 @@
 
 import Foundation
 
-// Server errors
+// API errors
 
 extension DescopeError {
     static func from(responseData data: Data) -> DescopeError? {
@@ -19,34 +19,20 @@ extension DescopeError {
     }
 }
 
-// Network errors
-
-extension DescopeError {
-    init(networkError: Error) {
-        self.init(code: DescopeError.networkError.code, desc: nil, message: nil, cause: networkError)
-    }
-}
-
-private let networkErrorDescriptions: [Int: String] = [
-    NSURLErrorTimedOut: "The request timed out",
-    NSURLErrorNetworkConnectionLost: "The request was aborted",
-    NSURLErrorNotConnectedToInternet: "The internet connection appears to be offline",
-]
-
-// Client errors
+// Server errors
 
 extension DescopeError {
     static func from(statusCode: Int) -> DescopeError? {
-        guard let clientError = ClientError(statusCode: statusCode) else { return nil }
-        return DescopeError(clientError: clientError)
+        guard let err = ServerError(statusCode: statusCode) else { return nil }
+        return DescopeError(serverError: err)
     }
-    
-    init(clientError: ClientError) {
-        self.init(code: DescopeError.clientError.code, desc: clientError.description, message: nil, cause: nil)
+
+    init(serverError: ServerError) {
+        self = DescopeError.serverError.with(desc: serverError.description)
     }
 }
 
-enum ClientError: Error {
+enum ServerError: Error {
     case invalidRoute
     case invalidResponse
     case unexpectedResponse(Int)
@@ -58,7 +44,7 @@ enum ClientError: Error {
     case serverUnreachable
 }
 
-extension ClientError {
+extension ServerError {
     init?(statusCode: Int) {
         switch statusCode {
         case 200...299: return nil
@@ -73,7 +59,7 @@ extension ClientError {
     }
 }
 
-extension ClientError: CustomStringConvertible {
+extension ServerError: CustomStringConvertible {
     var description: String {
         switch self {
         case .invalidRoute: return "The request URL was invalid"

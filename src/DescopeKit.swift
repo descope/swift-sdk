@@ -14,10 +14,22 @@ public enum Descope {
     /// value during your application's initialization flow.
     public static var projectId: String = "" {
         willSet {
-            precondition(projectId == "", "ProjectId must not be set more than once")
+            precondition(projectId == "", "ProjectId should not be set more than once")
         }
         didSet {
-            precondition(projectId != "", "ProjectId must not be an empty string")
+            precondition(projectId != "", "ProjectId should not be an empty string")
+        }
+    }
+    
+    // TODO remove if not needed
+    /// The configuration of the Descope SDK. You will most likely want to set this
+    /// value during your application's initialization flow.
+    public static var config: DescopeConfig = .init(projectId: "") {
+        willSet {
+            precondition(config.projectId == "", "Config should not be set more than once")
+        }
+        didSet {
+            precondition(config.projectId != "", "Config projectId should not be an empty string")
         }
     }
     
@@ -44,5 +56,4 @@ public enum Descope {
 
     /// Internal SDK object
     static let sdk = DescopeSDK(projectId: projectId)
-    
 }

@@ -6,7 +6,7 @@ class TestHttpMethods: XCTestCase {
     let client = HTTPClient(baseURL: "http://example", session: MockHTTP.session)
     
     func testGet() async throws {
-        MockHTTP.push(json: MockResponse.json) { request in
+        MockHTTP.push(json: MockResponse.json, headers: MockResponse.headers) { request in
             XCTAssertEqual(request.httpMethod, "GET")
             XCTAssertEqual(request.url?.absoluteString, "http://example/route?param=spaced%20value")
             XCTAssertEqual(request.allHTTPHeaderFields?["User-Agent"], makeUserAgent())
@@ -18,15 +18,15 @@ class TestHttpMethods: XCTestCase {
     }
     
     func testPost() async throws {
-        MockHTTP.push(json: MockResponse.json) { request in
+        MockHTTP.push(json: MockResponse.json, headers: MockResponse.headers) { request in
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.url?.absoluteString, "http://example/route")
-            guard let data = request.httpBody, let body = String(bytes: data, encoding: .utf8) else { return XCTFail("Invalid body") }
-            XCTAssertEqual(body, #"{"foo":4}"#)
-            XCTAssertEqual(request.allHTTPHeaderFields?["Content-Length"], String(body.count))
+            XCTAssertEqual(request.allHTTPHeaderFields?["Content-Length"], String(mockBodyString.count))
             XCTAssertEqual(request.allHTTPHeaderFields?["Content-Type"], "application/json")
+            guard let data = request.httpBody, let body = String(bytes: data, encoding: .utf8) else { return XCTFail("Invalid body") }
+            XCTAssertEqual(body, mockBodyString)
         }
-        let resp: MockResponse = try await client.post("route", body: ["foo": 4])
+        let resp: MockResponse = try await client.post("route", body: mockBodyJSON)
         XCTAssertEqual(resp, MockResponse.instance)
     }
     
@@ -43,7 +43,7 @@ class TestHttpMethods: XCTestCase {
             "g": ["h": nil, "i": [:]],
         ]
 
-        MockHTTP.push(json: MockResponse.json) { request in
+        MockHTTP.push(json: MockResponse.json, headers: MockResponse.headers) { request in
             XCTAssertEqual(request.httpMethod, "POST")
             XCTAssertEqual(request.url?.absoluteString, "http://example/route?a=b")
             guard let data = request.httpBody, let json = try? JSONSerialization.jsonObject(with: data) else { return XCTFail("Invalid body") }
@@ -85,10 +85,22 @@ class TestHttpMethods: XCTestCase {
     }
 }
 
-struct MockResponse: JSONResponse, Equatable {
+private let mockBodyJSON: [String: Any?] = ["foo": 4]
+private let mockBodyString = #"{"foo":4}"#
+
+private struct MockResponse: JSONResponse, Equatable {
     var id: Int
     var st: String
-    
-    static let instance = MockResponse(id: 7, st: "foo")
+    var hd: String?
+
+    static let instance = MockResponse(id: 7, st: "foo", hd: "bar")
     static let json: [String: Any] = ["id": instance.id, "st": instance.st]
+    static let headers: [String: String] = ["hd": instance.hd!]
+    
+    mutating func setValues(from response: HTTPURLResponse) {
+        guard let headers = response.allHeaderFields as? [String: String] else { return }
+        for (name, value) in headers where name == "hd" {
+            hd = value
+        }
+    }
 }

@@ -64,7 +64,7 @@ extension DescopeError: LocalizedError {
         if let desc {
             str = "\(desc) [\(code)]"
         } else if let cause = cause as? NSError {
-            str = "\(cause.localizedDescription) (\(code):\(cause.code))"
+            str = "\(cause.localizedDescription) [\(code): \(cause.code)]"
         } else {
             str = "Descope error [\(code)]"
         }

@@ -1,6 +1,4 @@
 
-import Foundation
-
 /// Provides functions for working with Descope API.
 public enum Descope {
     
@@ -18,18 +16,6 @@ public enum Descope {
         }
         didSet {
             precondition(projectId != "", "ProjectId should not be an empty string")
-        }
-    }
-    
-    // TODO remove if not needed
-    /// The configuration of the Descope SDK. You will most likely want to set this
-    /// value during your application's initialization flow.
-    public static var config: DescopeConfig = .init(projectId: "") {
-        willSet {
-            precondition(config.projectId == "", "Config should not be set more than once")
-        }
-        didSet {
-            precondition(config.projectId != "", "Config projectId should not be an empty string")
         }
     }
     

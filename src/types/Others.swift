@@ -1,6 +1,4 @@
 
-import Foundation
-
 public enum DeliveryMethod: String {
     case whatsapp
     case sms

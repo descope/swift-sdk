@@ -1,6 +1,4 @@
 
-import Foundation
-
 public protocol DescopeAuth {
     func me(refreshToken: String) async throws -> MeResponse
 }

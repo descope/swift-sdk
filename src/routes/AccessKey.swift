@@ -1,6 +1,4 @@
 
-import Foundation
-
 class AccessKey: DescopeAccessKey {
     let client: DescopeClient
     

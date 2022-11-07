@@ -1,6 +1,4 @@
 
-import Foundation
-
 extension DescopeClient.JWTResponse {
     func convert() throws -> DescopeSession {
         let sessionToken = try Token(jwt: sessionJwt)

@@ -10,9 +10,7 @@ public protocol DescopeSession: DescopeToken {
     var refreshJWT: String? { get }
 }
 
-//
-// Internal
-//
+// Implementation
 
 class Session: DescopeSession {
     let sessionToken: DescopeToken

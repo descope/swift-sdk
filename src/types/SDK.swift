@@ -1,6 +1,4 @@
 
-import Foundation
-
 public class DescopeSDK {
     public let config: DescopeConfig
     
@@ -33,12 +31,10 @@ public class DescopeSDK {
     }
 }
 
-public struct DescopeConfig {
-    public var projectId: String
-    public var baseURL: String = "https://api.descope.com"
-    
-    public init(projectId: String, baseURL: String? = nil) {
-        self.projectId = projectId
-        self.baseURL = baseURL ?? self.baseURL
+// Description
+
+extension DescopeSDK: CustomStringConvertible {
+    public var description: String {
+        return "DescopeSDK(project: \"\(config.projectId)\")"
     }
 }

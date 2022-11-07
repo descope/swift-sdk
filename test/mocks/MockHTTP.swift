@@ -42,21 +42,21 @@ extension MockHTTP {
 extension MockHTTP {
     typealias RequestValidator = (URLRequest) -> ()
     
-    static var responses: [(statusCode: Int, data: Data?, error: Error?, validate: RequestValidator?)] = []
+    static var responses: [(statusCode: Int, data: Data?, headers: [String: String]?, error: Error?, validate: RequestValidator?)] = []
     
     static func push(statusCode: Int = 400, error: Error, validator: RequestValidator? = nil) {
-        responses.append((statusCode, nil, error, validator))
+        responses.append((statusCode, nil, nil, error, validator))
     }
     
-    static func push(statusCode: Int = 200, json: [String: Any], validator: RequestValidator? = nil) {
+    static func push(statusCode: Int = 200, json: [String: Any], headers: [String: String]? = nil, validator: RequestValidator? = nil) {
         guard let data = try? JSONSerialization.data(withJSONObject: json) else { preconditionFailure("Failed to serialize JSON") }
-        responses.append((statusCode, data, nil, validator))
+        responses.append((statusCode, data, headers, nil, validator))
     }
     
     func pop() throws -> (response: URLResponse, data: Data) {
         precondition(!MockHTTP.responses.isEmpty, "No mock network responses")
         
-        let (statusCode, data, error, validator) = MockHTTP.responses.removeFirst()
+        let (statusCode, data, headers, error, validator) = MockHTTP.responses.removeFirst()
         if let validator {
             validator(request.withHTTPBody())
         }
@@ -66,7 +66,7 @@ extension MockHTTP {
         
         guard let data else { preconditionFailure("Mock response must provide either data or error") }
         guard let url = request.url else { preconditionFailure("Missing request URL") }
-        guard let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: nil) else { preconditionFailure("Failed to create response") }
+        guard let response = HTTPURLResponse(url: url, statusCode: statusCode, httpVersion: "HTTP/1.1", headerFields: headers) else { preconditionFailure("Failed to create response") }
         return (response, data)
     }
 }

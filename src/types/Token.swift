@@ -12,9 +12,7 @@ public protocol DescopeToken {
     func roles(forTenant tenant: String?) -> [String]
 }
 
-//
-// Internal
-//
+// Implementation
 
 class Token: DescopeToken {
     let jwt: String

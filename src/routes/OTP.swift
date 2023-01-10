@@ -6,27 +6,27 @@ class OTP: DescopeOTP {
         self.client = client
     }
 
-    func signUp(with method: DeliveryMethod, identifier: String, user: User) async throws {
-        try await client.otpSignUp(with: method, identifier: identifier, user: user)
+    func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws {
+        try await client.otpSignUp(with: method, loginId: loginId, user: user)
     }
     
-    func signIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await client.otpSignIn(with: method, identifier: identifier)
+    func signIn(with method: DeliveryMethod, loginId: String) async throws {
+        try await client.otpSignIn(with: method, loginId: loginId)
     }
     
-    func signUpOrIn(with method: DeliveryMethod, identifier: String) async throws {
-        try await client.otpSignUpIn(with: method, identifier: identifier)
+    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws {
+        try await client.otpSignUpIn(with: method, loginId: loginId)
     }
     
-    func verify(with method: DeliveryMethod, identifier: String, code: String) async throws -> DescopeSession {
-        return try await client.otpVerify(with: method, identifier: identifier, code: code).convert()
+    func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> DescopeSession {
+        return try await client.otpVerify(with: method, loginId: loginId, code: code).convert()
     }
     
-    func updateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
-        try await client.otpUpdateEmail(email, identifier: identifier, refreshToken: refreshToken)
+    func updateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
+        try await client.otpUpdateEmail(email, loginId: loginId, refreshToken: refreshToken)
     }
     
-    func updatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
-        try await client.otpUpdatePhone(phone, with: method, identifier: identifier, refreshToken: refreshToken)
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
+        try await client.otpUpdatePhone(phone, with: method, loginId: loginId, refreshToken: refreshToken)
     }
 }

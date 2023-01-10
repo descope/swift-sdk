@@ -13,7 +13,7 @@ public struct User {
 
 public struct MeResponse {
     public var userId: String
-    public var externalIds: [String]
+    public var loginIds: [String]
     public var name: String?
     public var email: (value: String, isVerified: Bool)?
     public var phone: (value: String, isVerified: Bool)?

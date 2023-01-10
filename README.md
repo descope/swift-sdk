@@ -36,7 +36,7 @@ Let's look at some specific examples:
 To register a user using via one-time passcode sent to their email you would call:
 
 ```swift
-try await Descope.otp.signUp(with: .email, identifier: "desmond_c@mail.com", user: User(
+try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: User(
     name: "Desmond Copeland"
 ))
 ```
@@ -46,7 +46,7 @@ You can use a different authentication method according to user needs, such as `
 Once the user enters their code call:
 
 ```swift
-let tokens = try await Descope.otp.verify(with: .email, identifier: "desmond_c@mail.com", code: "123456")
+let tokens = try await Descope.otp.verify(with: .email, loginId: "desmond_c@mail.com", code: "123456")
 ```
 
 After this call, `tokens` contain the session and refresh tokens that can be used to communicate with your backend securely.

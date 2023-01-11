@@ -1,7 +1,7 @@
 # DescopeKit
 
-DescopeKit, the Descope SDK for Swift provides convenient access to the Descope user management and authentication API
-for a applications written in Swift. You can read more on the [Descope Website](https://descope.com).
+DescopeKit is the Descope SDK for Swift. It provides convenient access to the Descope user management and authentication APIs
+for applications written in Swift. You can read more on the [Descope Website](https://descope.com).
 
 ## Requirements
 

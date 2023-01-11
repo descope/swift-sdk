@@ -5,7 +5,7 @@ for a applications written in Swift. You can read more on the [Descope Website](
 
 ## Requirements
 
-The SDK supports iOS 13 and above, and MacOS 12 and above.
+The SDK supports iOS 13 and above, and macOS 12 and above.
 
 ## Installing the SDK
 

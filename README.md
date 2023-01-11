@@ -22,7 +22,6 @@ import DescopeKit
 // ...
 
 Descope.projectId = "<Your-Project-ID>"
-
 ```
 
 ## Usage

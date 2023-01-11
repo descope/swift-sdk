@@ -138,7 +138,6 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
 
     // Exchange code for session
     let descopeSession = try await Descope.sso.exchange(code: code)
-
 }
 ```
 

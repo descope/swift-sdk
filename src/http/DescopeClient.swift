@@ -11,42 +11,42 @@ class DescopeClient: HTTPClient {
     
     // MARK: - OTP
     
-    func otpSignUp(with method: DeliveryMethod, identifier: String, user: User) async throws {
+    func otpSignUp(with method: DeliveryMethod, loginId: String, user: User) async throws {
         try await post("otp/signup/\(method.rawValue)", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "user": user.dictValue,
         ])
     }
     
-    func otpSignIn(with method: DeliveryMethod, identifier: String) async throws {
+    func otpSignIn(with method: DeliveryMethod, loginId: String) async throws {
         try await post("otp/signin/\(method.rawValue)", body: [
-            "externalId": identifier
+            "loginId": loginId
         ])
     }
     
-    func otpSignUpIn(with method: DeliveryMethod, identifier: String) async throws {
+    func otpSignUpIn(with method: DeliveryMethod, loginId: String) async throws {
         try await post("otp/signup-in/\(method.rawValue)", body: [
-            "externalId": identifier
+            "loginId": loginId
         ])
     }
     
-    func otpVerify(with method: DeliveryMethod, identifier: String, code: String) async throws -> JWTResponse {
+    func otpVerify(with method: DeliveryMethod, loginId: String, code: String) async throws -> JWTResponse {
         return try await post("otp/verify/\(method.rawValue)", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "code": code,
         ])
     }
     
-    func otpUpdateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
+    func otpUpdateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
         try await post("otp/update/email", headers: authorization(with: refreshToken), body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "email": email,
         ])
     }
     
-    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
+    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
         try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "phone": phone,
         ])
     }
@@ -59,23 +59,23 @@ class DescopeClient: HTTPClient {
         var key: String
     }
     
-    func totpSignUp(identifier: String, user: User) async throws -> TOTPResponse {
+    func totpSignUp(loginId: String, user: User) async throws -> TOTPResponse {
         return try await post("totp/signup", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "user": user.dictValue,
         ])
     }
     
-    func totpVerify(identifier: String, code: String) async throws -> JWTResponse {
+    func totpVerify(loginId: String, code: String) async throws -> JWTResponse {
         return try await post("totp/verify", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "code": code,
         ])
     }
     
-    func totpUpdate(identifier: String, refreshToken: String) async throws {
+    func totpUpdate(loginId: String, refreshToken: String) async throws {
         try await post("totp/update", headers: authorization(with: refreshToken), body: [
-            "externalId": identifier,
+            "loginId": loginId,
         ])
     }
     
@@ -85,24 +85,24 @@ class DescopeClient: HTTPClient {
         var pendingRef: String
     }
     
-    func magicLinkSignUp(with method: DeliveryMethod, identifier: String, user: User, uri: String?) async throws -> MagicLinkResponse {
+    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> MagicLinkResponse {
         return try await post("magiclink/signup/\(method.rawValue)", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "user": user.dictValue,
             "uri": uri,
         ])
     }
     
-    func magicLinkSignIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
+    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MagicLinkResponse {
         try await post("magiclink/signin/\(method.rawValue)", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "uri": uri,
         ])
     }
     
-    func magicLinkSignUpOrIn(with method: DeliveryMethod, identifier: String, uri: String?) async throws -> MagicLinkResponse {
+    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MagicLinkResponse {
         try await post("magiclink/signup-in/\(method.rawValue)", body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "uri": uri,
         ])
     }
@@ -113,16 +113,16 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, identifier: String, refreshToken: String) async throws {
+    func magicLinkUpdateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
         try await post("magiclink/update/email", headers: authorization(with: refreshToken), body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "email": email,
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, identifier: String, refreshToken: String) async throws {
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
         try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
-            "externalId": identifier,
+            "loginId": loginId,
             "phone": phone,
         ])
     }
@@ -208,7 +208,7 @@ class DescopeClient: HTTPClient {
     
     struct UserResponse: JSONResponse {
         var userId: String
-        var externalIds: [String]
+        var loginIds: [String]
         var name: String?
         var email: String?
         var verifiedEmail: Bool = false

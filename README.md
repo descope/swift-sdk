@@ -93,8 +93,7 @@ The user will authenticate with the authentication provider, and will be redirec
 
 ```swift
 // Start the authentication session
-let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "exampleauthschema")
-{ callbackURL, error in
+let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "exampleauthschema") { callbackURL, error in
 
     // Extract the returned code
     guard let url = callbackURL else {return}

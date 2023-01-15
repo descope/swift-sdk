@@ -27,7 +27,7 @@ class Token: DescopeToken {
             let dict = try decodeJWT(jwt)
             self.jwt = jwt
             self.id = try getClaim(.subject, in: dict)
-            self.projectId = try getClaim(.issuer, in: dict)
+            self.projectId = try decodeIssuer(getClaim(.issuer, in: dict))
             self.expiresAt = try? Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
             self.claims = dict.filter { Claim.isCustom($0.key) }
             self.allClaims = dict
@@ -170,4 +170,9 @@ private func decodeFragment(_ string: String) throws -> [String: Any] {
 private func decodeJWT(_ jwt: String) throws -> [String: Any] {
     guard case let fragments = jwt.components(separatedBy: "."), fragments.count == 3 else { throw TokenError.invalidFormat }
     return try decodeFragment(fragments[1])
+}
+
+private func decodeIssuer(_ issuer: String) -> String {
+    guard let projectId = issuer.split(separator: "/").last else { return issuer }
+    return String(projectId)
 }

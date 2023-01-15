@@ -210,6 +210,7 @@ class DescopeClient: HTTPClient {
         var userId: String
         var loginIds: [String]
         var name: String?
+        var picture: String?
         var email: String?
         var verifiedEmail: Bool = false
         var phone: String?

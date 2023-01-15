@@ -13,7 +13,7 @@ class Auth: DescopeAuth {
 
 private extension DescopeClient.UserResponse {
     func convert() -> MeResponse {
-        var me = MeResponse(userId: userId, loginIds: loginIds, name: name)
+        var me = MeResponse(userId: userId, loginIds: loginIds, name: name, picture: picture)
         if let value = email {
             me.email = (value: value, isVerified: verifiedEmail)
         }

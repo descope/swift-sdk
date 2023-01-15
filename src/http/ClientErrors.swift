@@ -53,7 +53,7 @@ extension ServerError {
         case 403: self = .forbidden
         case 404: self = .notFound
         case 500, 503: self = .serverFailure(statusCode)
-        case 502, 504: self = .serverUnreachable
+        case 500...: self = .serverUnreachable
         default: self = .unexpectedResponse(statusCode)
         }
     }

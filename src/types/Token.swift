@@ -3,13 +3,23 @@ import Foundation
 
 public protocol DescopeToken {
     var jwt: String { get }
+    
     var id: String { get }
     var projectId: String { get }
+    
     var expiresAt: Date? { get }
     var isExpired: Bool { get }
+    
     var claims: [String: Any] { get }
+    
     func permissions(forTenant tenant: String?) -> [String]
     func roles(forTenant tenant: String?) -> [String]
+}
+
+extension URLRequest {
+    mutating func addAuthorizationHeaderValue(token: DescopeToken) {
+        addValue("Bearer \(token.projectId):\(token.jwt)", forHTTPHeaderField: "Authorization")
+    }
 }
 
 // Implementation

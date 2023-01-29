@@ -12,7 +12,7 @@ extension DescopeError {
             desc = value
         }
         var message: String? = nil
-        if let value = dict["message"] as? String, !value.isEmpty {
+        if let value = dict["errorMessage"] as? String, !value.isEmpty {
             message = value
         }
         return DescopeError(code: code, desc: desc, message: message)

@@ -1,35 +1,50 @@
 
 import Foundation
 
-// TODO should this conform to DescopeToken? or just duplicate?
-public protocol DescopeSession: DescopeToken {
-    // TODO do we need the above? or the below? or both?
-    var sessionToken: DescopeToken { get }
-    var refreshToken: DescopeToken? { get }
+public protocol DescopeSession {
+    var jwt: String { get }
+    var refreshJwt: String { get }
     
-    var refreshJWT: String? { get }
+    var id: String { get }
+    var projectId: String { get }
+    
+    var expiresAt: Date? { get }
+    var isExpired: Bool { get }
+    
+    var claims: [String: Any] { get }
+    
+    func permissions(forTenant tenant: String?) -> [String]
+    func roles(forTenant tenant: String?) -> [String]
+}
+
+extension URLRequest {
+    mutating func addAuthorizationHeaderValue(session: DescopeSession) {
+        addValue("Bearer \(session.projectId):\(session.jwt)", forHTTPHeaderField: "Authorization")
+    }
 }
 
 // Implementation
 
 class Session: DescopeSession {
     let sessionToken: DescopeToken
-    let refreshToken: DescopeToken?
+    let refreshToken: DescopeToken
     
-    init(sessionToken: DescopeToken, refreshToken: DescopeToken?) {
+    init(sessionToken: DescopeToken, refreshToken: DescopeToken) {
         self.sessionToken = sessionToken
         self.refreshToken = refreshToken
     }
     
     var jwt: String { sessionToken.jwt }
-    var refreshJWT: String? { refreshToken?.jwt }
+    var refreshJwt: String { refreshToken.jwt }
+    
     var id: String { sessionToken.id }
     var projectId: String { sessionToken.projectId }
+    
+    var expiresAt: Date? { refreshToken.expiresAt }
+    var isExpired: Bool { refreshToken.isExpired }
+
     var claims: [String: Any] { sessionToken.claims }
-
-    var expiresAt: Date? { refreshToken?.expiresAt ?? sessionToken.expiresAt }
-    var isExpired: Bool { refreshToken?.isExpired ?? sessionToken.isExpired }
-
+    
     func permissions(forTenant tenant: String?) -> [String] { sessionToken.permissions(forTenant: tenant) }
     func roles(forTenant tenant: String?) -> [String] { sessionToken.roles(forTenant: tenant) }
 }
@@ -40,8 +55,8 @@ extension Session: CustomStringConvertible {
     var description: String {
         var expires = "expires: Never"
         if let expiresAt {
-            let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
-            expires = "\(tag): \(expiresAt)"
+            let label = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
+            expires = "\(label): \(expiresAt)"
         }
         return "DescopeSession(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
     }

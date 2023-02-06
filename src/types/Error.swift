@@ -9,7 +9,7 @@ public struct DescopeError: Error {
 }
 
 extension DescopeError {
-    public static let networkError = DescopeError(code: "C010001")
+    public static let networkError = DescopeError(code: "S010001", desc: "Network error")
     
     public static let badRequest = DescopeError(code: "E011001")
     public static let missingArguments = DescopeError(code: "E011002")
@@ -21,13 +21,13 @@ extension DescopeError {
     public static let invalidOTPCode = DescopeError(code: "E061102")
     public static let tooManyOTPAttempts = DescopeError(code: "E061103")
     
-    public static let magicLinkExpired = DescopeError(code: "C020001")
+    public static let magicLinkExpired = DescopeError(code: "S020001")
     
     // internal
-    static let serverError = DescopeError(code: "C010002")
-    static let decodeError = DescopeError(code: "C010003")
-    static let encodeError = DescopeError(code: "C010004")
-    static let tokenError = DescopeError(code: "C010005")
+    static let serverError = DescopeError(code: "S010002") // description added when used
+    static let decodeError = DescopeError(code: "S010003", desc: "Failed to decode response")
+    static let encodeError = DescopeError(code: "S010004", desc: "Failed to encode request")
+    static let tokenError = DescopeError(code: "S010005", desc: "Failed to parse token")
 }
 
 extension DescopeError: Equatable {
@@ -77,6 +77,10 @@ extension DescopeError: LocalizedError {
 
 extension DescopeError {
     func with(desc: String) -> DescopeError {
+        return DescopeError(code: code, desc: desc, message: message, cause: cause)
+    }
+    
+    func with(message: String) -> DescopeError {
         return DescopeError(code: code, desc: desc, message: message, cause: cause)
     }
     

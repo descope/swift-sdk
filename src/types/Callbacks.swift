@@ -8,7 +8,7 @@
 // Convenience functions for working with completion handlers.
 
 public extension DescopeAccessKey {
-    func exchange(accessKey: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    func exchange(accessKey: String, completion: @escaping (Result<DescopeToken, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await exchange(accessKey: accessKey)))
@@ -20,10 +20,10 @@ public extension DescopeAccessKey {
 }
 
 public extension DescopeAuth {
-    func me(refreshToken: String, completion: @escaping (Result<MeResponse, Error>) -> Void) {
+    func me(refreshJwt: String, completion: @escaping (Result<MeResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await me(refreshToken: refreshToken)))
+                completion(.success(try await me(refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }

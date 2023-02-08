@@ -17,9 +17,15 @@ public protocol DescopeSession {
     func roles(forTenant tenant: String?) -> [String]
 }
 
-extension URLRequest {
-    mutating func addAuthorizationHeaderValue(session: DescopeSession) {
-        addValue("Bearer \(session.projectId):\(session.jwt)", forHTTPHeaderField: "Authorization")
+extension DescopeSession {
+    static func serialize(_ session: DescopeSession) -> (jwt: String, refreshJwt: String) {
+        return (session.jwt, session.refreshJwt)
+    }
+    
+    static func deserialize(jwt: String, refreshJwt: String) throws -> DescopeSession {
+        let sessionToken = try Token(jwt: jwt)
+        let refreshToken = try Token(jwt: refreshJwt)
+        return Session(sessionToken: sessionToken, refreshToken: refreshToken)
     }
 }
 

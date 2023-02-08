@@ -16,12 +16,6 @@ public protocol DescopeToken {
     func roles(forTenant tenant: String?) -> [String]
 }
 
-extension URLRequest {
-    mutating func addAuthorizationHeaderValue(token: DescopeToken) {
-        addValue("Bearer \(token.projectId):\(token.jwt)", forHTTPHeaderField: "Authorization")
-    }
-}
-
 // Implementation
 
 class Token: DescopeToken {

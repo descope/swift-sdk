@@ -34,6 +34,9 @@ public enum Descope {
     /// Authentication with magic links
     public static var magicLink: DescopeMagicLink { sdk.magicLink }
     
+    /// Authentication with enchanted links
+    public static var enchantedLink: DescopeEnchantedLink { sdk.enchantedLink }
+    
     /// Authentication with OAuth
     public static var oauth: DescopeOAuth { sdk.oauth }
     

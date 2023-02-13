@@ -3,7 +3,7 @@
 
 // Regenerate by running:
 //     brew install sourcery
-//     sourcery --sources src/types/Routes.swift --templates src/types/Callbacks.stencil --output src/types/Callbacks.swift
+//     sourcery --sources src/sdk/Routes.swift --templates src/sdk/Callbacks.stencil --output src/sdk/Callbacks.swift
 
 // Convenience functions for working with completion handlers.
 
@@ -24,6 +24,38 @@ public extension DescopeAuth {
         Task {
             do {
                 completion(.success(try await me(refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+}
+
+public extension DescopeEnchantedLink {
+    func signUp(loginId: String, user: User, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signUp(loginId: loginId, user: user, uri: uri)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    func signIn(loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signIn(loginId: loginId, uri: uri)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    func signUpOrIn(loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signUpOrIn(loginId: loginId, uri: uri)))
             } catch {
                 completion(.failure(error))
             }
@@ -62,20 +94,20 @@ public extension DescopeMagicLink {
         }
     }
 
-    func updateEmail(_ email: String, loginId: String, refreshToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, refreshToken: refreshToken)))
+                completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
         }
     }
 
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshToken: refreshToken)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
@@ -86,36 +118,6 @@ public extension DescopeMagicLink {
         Task {
             do {
                 completion(.success(try await verify(token: token)))
-            } catch {
-                completion(.failure(error))
-            }
-        }
-    }
-
-    func signUpCrossDevice(with method: DeliveryMethod, loginId: String, user: User, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
-        Task {
-            do {
-                completion(.success(try await signUpCrossDevice(with: method, loginId: loginId, user: user, uri: uri)))
-            } catch {
-                completion(.failure(error))
-            }
-        }
-    }
-
-    func signInCrossDevice(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
-        Task {
-            do {
-                completion(.success(try await signInCrossDevice(with: method, loginId: loginId, uri: uri)))
-            } catch {
-                completion(.failure(error))
-            }
-        }
-    }
-
-    func signUpOrInCrossDevice(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
-        Task {
-            do {
-                completion(.success(try await signUpOrInCrossDevice(with: method, loginId: loginId, uri: uri)))
             } catch {
                 completion(.failure(error))
             }
@@ -186,20 +188,20 @@ public extension DescopeOTP {
         }
     }
 
-    func updateEmail(_ email: String, loginId: String, refreshToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, refreshToken: refreshToken)))
+                completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
         }
     }
 
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshToken: refreshToken)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
@@ -240,10 +242,10 @@ public extension DescopeTOTP {
         }
     }
 
-    func update(loginId: String, refreshToken: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func update(loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await update(loginId: loginId, refreshToken: refreshToken)))
+                completion(.success(try await update(loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }

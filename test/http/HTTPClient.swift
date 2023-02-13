@@ -77,7 +77,7 @@ class TestHttpMethods: XCTestCase {
             MockHTTP.push(error: error)
             try await client.get("route")
             XCTFail("No error thrown")
-        } catch DescopeError.networkError {
+        } catch let err as DescopeError where err == .networkError {
             // ok
         } catch {
             XCTFail("Unexpected error: \(error)")

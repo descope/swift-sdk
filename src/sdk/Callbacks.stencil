@@ -1,6 +1,6 @@
 // Regenerate by running:
 //     brew install sourcery
-//     sourcery --sources src/types/Routes.swift --templates src/types/Callbacks.stencil --output src/types/Callbacks.swift
+//     sourcery --sources src/sdk/Routes.swift --templates src/sdk/Callbacks.stencil --output src/sdk/Callbacks.swift
 
 // Convenience functions for working with completion handlers.
 

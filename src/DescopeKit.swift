@@ -1,5 +1,9 @@
 
 /// Provides functions for working with Descope API.
+///
+/// This singleton object is provided as a convenience that should be suitable for
+/// usage in most app architectures. If you prefer a different approach you can also
+/// create an instance of the `DescopeSDK` class instead.
 public enum Descope {
     
     /// The Descope SDK name

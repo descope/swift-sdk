@@ -9,6 +9,14 @@ class Auth: DescopeAuth {
     func me(refreshJwt: String) async throws -> MeResponse {
         return try await client.me(refreshJwt: refreshJwt).convert()
     }
+
+    func refreshSession(refreshJwt: String) async throws -> DescopeSession {
+        return try await client.refresh(refreshJwt: refreshJwt).convert()
+    }
+
+    func logout(refreshJwt: String) async throws {
+        try await client.logout(refreshJwt: refreshJwt)
+    }
 }
 
 private extension DescopeClient.UserResponse {

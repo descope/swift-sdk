@@ -191,14 +191,14 @@ class DescopeClient: HTTPClient {
     }
     
     func ssoStart(emailOrTenantName: String, redirectURL: String?) async throws -> OAuthResponse {
-        return try await post("/v1/auth/saml/authorize", params: [
+        return try await post("saml/authorize", params: [
             "tenant": emailOrTenantName,
             "redirectURL": redirectURL,
         ])
     }
     
     func ssoExchange(code: String) async throws -> JWTResponse {
-        return try await post("/v1/auth/saml/exchange", body: [
+        return try await post("saml/exchange", body: [
             "code": code
         ])
     }
@@ -217,6 +217,14 @@ class DescopeClient: HTTPClient {
     
     func me(refreshJwt: String) async throws -> UserResponse {
         return try await get("me", headers: authorization(with: refreshJwt))
+    }
+    
+    func refresh(refreshJwt: String) async throws -> JWTResponse {
+        return try await post("refresh", headers: authorization(with: refreshJwt))
+    }
+    
+    func logout(refreshJwt: String) async throws {
+        try await post("logout", headers: authorization(with: refreshJwt))
     }
     
     // MARK: - Shared

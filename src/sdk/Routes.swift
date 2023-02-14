@@ -12,13 +12,13 @@ public protocol DescopeOTP {
     func signIn(with method: DeliveryMethod, loginId: String) async throws
     func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws
     func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> DescopeSession
-    func updateEmail(_ email: String, loginId: String, refreshToken: String) async throws
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws
 }
 
 public protocol DescopeTOTP {
     func signUp(loginId: String, user: User) async throws -> TOTPResponse
-    func update(loginId: String, refreshToken: String) async throws
+    func update(loginId: String, refreshJwt: String) async throws
     func verify(loginId: String, code: String) async throws -> DescopeSession
 }
 
@@ -26,12 +26,16 @@ public protocol DescopeMagicLink {
     func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws
     func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws
     func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws
-    func updateEmail(_ email: String, loginId: String, refreshToken: String) async throws
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws
     func verify(token: String) async throws -> DescopeSession
-    func signUpCrossDevice(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> DescopeSession
-    func signInCrossDevice(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> DescopeSession
-    func signUpOrInCrossDevice(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> DescopeSession
+}
+
+public protocol DescopeEnchantedLink {
+    func signUp(loginId: String, user: User, uri: String?) async throws -> DescopeSession
+    func signIn(loginId: String, uri: String?) async throws -> DescopeSession
+    func signUpOrIn(loginId: String, uri: String?) async throws -> DescopeSession
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws
 }
 
 public protocol DescopeOAuth {

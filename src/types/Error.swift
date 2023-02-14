@@ -14,17 +14,19 @@ extension DescopeError {
     public static let badRequest = DescopeError(code: "E011001")
     public static let missingArguments = DescopeError(code: "E011002")
     public static let invalidRequest = DescopeError(code: "E011003")
+    public static let invalidArguments = DescopeError(code: "E011004")
 
     public static let missingAccessKey = DescopeError(code: "E062802")
     public static let invalidAccessKey = DescopeError(code: "E062803")
     
-    public static let invalidOTPCode = DescopeError(code: "E061102")
+    public static let wrongOTPCode = DescopeError(code: "E061102")
     public static let tooManyOTPAttempts = DescopeError(code: "E061103")
     
-    public static let magicLinkExpired = DescopeError(code: "S020001")
+    public static let enchantedLinkPending = DescopeError(code: "E062503")
+    public static let enchantedLinkExpired = DescopeError(code: "S060001", desc: "Enchanted link expired")
     
     // internal
-    static let serverError = DescopeError(code: "S010002") // description added when used
+    static let serverError = DescopeError(code: "S010002", desc: "Server error")
     static let decodeError = DescopeError(code: "S010003", desc: "Failed to decode response")
     static let encodeError = DescopeError(code: "S010004", desc: "Failed to encode request")
     static let tokenError = DescopeError(code: "S010005", desc: "Failed to parse token")

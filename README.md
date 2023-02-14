@@ -183,7 +183,7 @@ On the server side, it will validate the session and also refresh it in the even
 Every request should receive the given session token if it's still valid, or a new one if it was refreshed.
 Make sure to save the returned session as it might have been refreshed.
 
-The `refreshToken` is optional here to validate a session, but is required to refresh the session in the event it has expired.
+The `refreshJwt` is optional here to validate a session, but is required to refresh the session in the event it has expired.
 
 Usually, the tokens can be passed in and out via HTTP headers or via a cookie.
 The implementation can defer according to your server implementation.

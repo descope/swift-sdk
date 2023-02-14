@@ -37,15 +37,15 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func otpUpdateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
-        try await post("otp/update/email", headers: authorization(with: refreshToken), body: [
+    func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws {
+        try await post("otp/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
         ])
     }
     
-    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
-        try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
+    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws {
+        try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
         ])
@@ -73,34 +73,30 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func totpUpdate(loginId: String, refreshToken: String) async throws {
-        try await post("totp/update", headers: authorization(with: refreshToken), body: [
+    func totpUpdate(loginId: String, refreshJwt: String) async throws {
+        try await post("totp/update", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
         ])
     }
     
     // MARK: - Magic Link
     
-    struct MagicLinkResponse: JSONResponse {
-        var pendingRef: String
-    }
-    
-    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> MagicLinkResponse {
-        return try await post("magiclink/signup/\(method.rawValue)", body: [
+    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws {
+        try await post("magiclink/signup/\(method.rawValue)", body: [
             "loginId": loginId,
             "user": user.dictValue,
             "uri": uri,
         ])
     }
     
-    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MagicLinkResponse {
+    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws {
         try await post("magiclink/signin/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
-    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MagicLinkResponse {
+    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws {
         try await post("magiclink/signup-in/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
@@ -113,23 +109,59 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
-        try await post("magiclink/update/email", headers: authorization(with: refreshToken), body: [
+    func magicLinkUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws {
+        try await post("magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
-        try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshToken), body: [
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws {
+        try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
         ])
     }
     
-    func magicLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
-        return try await post("magiclink/pending-session", body: [
+    // MARK: - Enchanted Link
+    
+    struct EnchantedLinkResponse: JSONResponse {
+        var pendingRef: String
+    }
+    
+    func enchantedLinkSignUp(loginId: String, user: User, uri: String?) async throws -> EnchantedLinkResponse {
+        return try await post("enchantedlink/signup/email", body: [
+            "loginId": loginId,
+            "user": user.dictValue,
+            "uri": uri,
+        ])
+    }
+    
+    func enchantedLinkSignIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
+        try await post("enchantedlink/signin/email", body: [
+            "loginId": loginId,
+            "uri": uri,
+        ])
+    }
+    
+    func enchantedLinkSignUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
+        try await post("enchantedlink/signup-in/email", body: [
+            "loginId": loginId,
+            "uri": uri,
+        ])
+    }
+    
+    func enchantedLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
+        return try await post("enchantedlink/pending-session", body: [
             "pendingRef": pendingRef,
+        ])
+    }
+    
+    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
+        try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "email": email,
+            "uri": uri,
         ])
     }
     
@@ -183,8 +215,8 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Others
     
-    func me(_ refreshToken: String) async throws -> UserResponse {
-        return try await get("me", headers: authorization(with: refreshToken))
+    func me(refreshJwt: String) async throws -> UserResponse {
+        return try await get("me", headers: authorization(with: refreshJwt))
     }
     
     // MARK: - Shared
@@ -235,8 +267,8 @@ class DescopeClient: HTTPClient {
         return DescopeError.from(responseData: data)
     }
     
-    private func authorization(with token: String) -> [String: String] {
-        return ["Authorization": "Bearer \(config.projectId):\(token)"]
+    private func authorization(with jwt: String) -> [String: String] {
+        return ["Authorization": "Bearer \(config.projectId):\(jwt)"]
     }
 }
 

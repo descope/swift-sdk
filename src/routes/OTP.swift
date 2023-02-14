@@ -22,11 +22,11 @@ class OTP: DescopeOTP {
         return try await client.otpVerify(with: method, loginId: loginId, code: code).convert()
     }
     
-    func updateEmail(_ email: String, loginId: String, refreshToken: String) async throws {
-        try await client.otpUpdateEmail(email, loginId: loginId, refreshToken: refreshToken)
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws {
+        try await client.otpUpdateEmail(email, loginId: loginId, refreshJwt: refreshJwt)
     }
     
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshToken: String) async throws {
-        try await client.otpUpdatePhone(phone, with: method, loginId: loginId, refreshToken: refreshToken)
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws {
+        try await client.otpUpdatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt)
     }
 }

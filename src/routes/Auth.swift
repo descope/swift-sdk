@@ -7,7 +7,7 @@ class Auth: DescopeAuth {
     }
     
     func me(refreshJwt: String) async throws -> MeResponse {
-        return try await client.me(refreshJwt).convert()
+        return try await client.me(refreshJwt: refreshJwt).convert()
     }
 }
 

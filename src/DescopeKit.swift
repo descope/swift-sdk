@@ -1,5 +1,9 @@
 
 /// Provides functions for working with Descope API.
+///
+/// This singleton object is provided as a convenience that should be suitable for
+/// usage in most app architectures. If you prefer a different approach you can also
+/// create an instance of the `DescopeSDK` class instead.
 public enum Descope {
     
     /// The Descope SDK name
@@ -33,6 +37,9 @@ public enum Descope {
     
     /// Authentication with magic links
     public static var magicLink: DescopeMagicLink { sdk.magicLink }
+    
+    /// Authentication with enchanted links
+    public static var enchantedLink: DescopeEnchantedLink { sdk.enchantedLink }
     
     /// Authentication with OAuth
     public static var oauth: DescopeOAuth { sdk.oauth }

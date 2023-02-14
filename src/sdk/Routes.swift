@@ -1,6 +1,8 @@
 
 public protocol DescopeAuth {
     func me(refreshJwt: String) async throws -> MeResponse
+    func refreshSession(refreshJwt: String) async throws -> DescopeSession
+    func logout(refreshJwt: String) async throws
 }
 
 public protocol DescopeAccessKey {

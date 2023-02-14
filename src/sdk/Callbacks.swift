@@ -29,6 +29,26 @@ public extension DescopeAuth {
             }
         }
     }
+
+    func refreshSession(refreshJwt: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await refreshSession(refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    func logout(refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await logout(refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
 }
 
 public extension DescopeEnchantedLink {
@@ -56,6 +76,16 @@ public extension DescopeEnchantedLink {
         Task {
             do {
                 completion(.success(try await signUpOrIn(loginId: loginId, uri: uri)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }

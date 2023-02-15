@@ -1,19 +1,44 @@
 
 import Foundation
 
+/// A `DescopeToken` is a utility wrapper around a single JWT value.
+///
+/// The session and refresh JWTs in a `DescopeSession` are stored as
+/// instances of `DescopeToken`. It's also returned directly when
+/// exchanging an access key for a session JWT.
 public protocol DescopeToken {
+    /// The underlying JWT value
     var jwt: String { get }
     
+    /// The value of the "sub" (subject) claim, which is the unique id
+    /// of the user or access key this JWT was generated for.
     var id: String { get }
+    
+    /// The value of the "aud" (audience) claim which is the unique id
+    /// of the Descope project the JWT was generated for.
     var projectId: String { get }
     
+    /// The value of the "exp" (expiration time) claim which is the time
+    /// after which the JWT expires.
     var expiresAt: Date? { get }
+    
+    /// Whether the JWT expiry time (if any) has already passed.
     var isExpired: Bool { get }
     
+    /// A map with all the custom claims in the JWT value. It includes
+    /// any claims whose values aren't already exposed by other accessors\
+    /// or authorization functions.
     var claims: [String: Any] { get }
     
-    func permissions(forTenant tenant: String?) -> [String]
-    func roles(forTenant tenant: String?) -> [String]
+    /// Returns the list of permissions granted in the JWT claims. Pass
+    /// a value of `nil` for the `tenant` parameter if the project
+    /// doesn't use multiple tenants.
+    func permissions(tenant: String?) -> [String]
+    
+    /// Returns the list of roles granted in the JWT claims. Pass
+    /// a value of `nil` for the `tenant` parameter if the project
+    /// doesn't use multiple tenants.
+    func roles(tenant: String?) -> [String]
 }
 
 // Implementation
@@ -45,17 +70,17 @@ class Token: DescopeToken {
         return expiresAt.timeIntervalSinceNow <= 0
     }
     
-    func permissions(forTenant tenant: String?) -> [String] {
-        let items = try? authorizationItems(forTenant: tenant, claim: .permissions)
+    func permissions(tenant: String?) -> [String] {
+        let items = try? authorizationItems(tenant: tenant, claim: .permissions)
         return items ?? []
     }
     
-    func roles(forTenant tenant: String?) -> [String] {
-        let items = try? authorizationItems(forTenant: tenant, claim: .roles)
+    func roles(tenant: String?) -> [String] {
+        let items = try? authorizationItems(tenant: tenant, claim: .roles)
         return items ?? []
     }
     
-    private func authorizationItems(forTenant tenant: String?, claim: Claim) throws -> [String] {
+    private func authorizationItems(tenant: String?, claim: Claim) throws -> [String] {
         let items: [String]
         if let tenant {
             items = try getValueForTenant(tenant, key: claim.rawValue) ?? []
@@ -87,7 +112,7 @@ extension Token: CustomStringConvertible {
             let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
             expires = "\(tag): \(expiresAt)"
         }
-        return "DescopeToken(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
+        return "DescopeToken(id: \"\(id)\", \(expires))"
     }
 }
 

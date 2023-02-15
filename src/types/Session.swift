@@ -1,69 +1,80 @@
 
 import Foundation
 
-public protocol DescopeSession {
-    var jwt: String { get }
-    var refreshJwt: String { get }
+/// A `DescopeSession` is returned as a result of a successful sign in operation.
+public class DescopeSession {
     
-    var id: String { get }
-    var projectId: String { get }
+    /// The underlying value for the short lived JWT that is sent with every
+    /// request that requires authentication.
+    private var sessionToken: Token
     
-    var expiresAt: Date? { get }
-    var isExpired: Bool { get }
+    /// The underlying value for the longer lived JWT that is used to create
+    /// new session JWTs until it expires.
+    private var refreshToken: Token
     
-    var claims: [String: Any] { get }
-    
-    func permissions(forTenant tenant: String?) -> [String]
-    func roles(forTenant tenant: String?) -> [String]
-}
-
-extension DescopeSession {
-    static func serialize(_ session: DescopeSession) -> (jwt: String, refreshJwt: String) {
-        return (session.jwt, session.refreshJwt)
-    }
-    
-    static func deserialize(jwt: String, refreshJwt: String) throws -> DescopeSession {
-        let sessionToken = try Token(jwt: jwt)
+    /// Creates a new `DescopeSession` instance from two JWT strings.
+    ///
+    /// Use this constructor to recreate a user's session after an
+    /// application is relaunched.
+    public convenience init(sessionJwt: String, refreshJwt: String) throws {
+        let sessionToken = try Token(jwt: sessionJwt)
         let refreshToken = try Token(jwt: refreshJwt)
-        return Session(sessionToken: sessionToken, refreshToken: refreshToken)
+        self.init(sessionToken: sessionToken, refreshToken: refreshToken)
     }
-}
-
-// Implementation
-
-class Session: DescopeSession {
-    let sessionToken: DescopeToken
-    let refreshToken: DescopeToken
     
-    init(sessionToken: DescopeToken, refreshToken: DescopeToken) {
+    init(sessionToken: Token, refreshToken: Token) {
         self.sessionToken = sessionToken
         self.refreshToken = refreshToken
     }
     
-    var jwt: String { sessionToken.jwt }
-    var refreshJwt: String { refreshToken.jwt }
+    /// The short lived JWT that is sent with every request that
+    /// requires authentication.
+    public var sessionJwt: String { sessionToken.jwt }
     
-    var id: String { sessionToken.id }
-    var projectId: String { sessionToken.projectId }
+    /// The longer lived JWT that is used to create new session JWTs
+    /// until it expires.
+    public var refreshJwt: String { refreshToken.jwt }
     
-    var expiresAt: Date? { refreshToken.expiresAt }
-    var isExpired: Bool { refreshToken.isExpired }
+    /// The unique id of the user this session was created for.
+    public var userId: String { refreshToken.id }
+    
+    /// The unique id of the Descope project this session was created for.
+    public var projectId: String { refreshToken.projectId }
+    
+    /// The time after which the refresh JWT expires, if any.
+    public var expiresAt: Date? { refreshToken.expiresAt }
+    
+    /// Whether the refresh JWT expiry time (if any) has already passed.
+    public var isExpired: Bool { refreshToken.isExpired }
 
-    var claims: [String: Any] { sessionToken.claims }
+    /// A map with all the custom claims in the underlying JWT. It includes
+    /// any claims whose values aren't already exposed by other accessors or
+    /// authorization functions.
+    public var claims: [String: Any] { refreshToken.claims }
     
-    func permissions(forTenant tenant: String?) -> [String] { sessionToken.permissions(forTenant: tenant) }
-    func roles(forTenant tenant: String?) -> [String] { sessionToken.roles(forTenant: tenant) }
+    /// Returns the list of permissions granted for the user.
+    /// Pass `nil` for the `tenant` parameter if the user isn't
+    /// associated with any tenant.
+    public func permissions(tenant: String?) -> [String] {
+        refreshToken.permissions(tenant: tenant)
+    }
+    
+    /// Returns the list of roles for the user. Pass `nil` for
+    /// the `tenant` parameter if the user isn't associated with
+    /// any tenant.
+    public func roles(tenant: String?) -> [String] {
+        refreshToken.roles(tenant: tenant)
+    }
 }
 
-// Description
-
-extension Session: CustomStringConvertible {
-    var description: String {
+extension DescopeSession: CustomStringConvertible {
+    /// Returns a textual representation of this `DescopeSession`.
+    public var description: String {
         var expires = "expires: Never"
         if let expiresAt {
             let label = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
             expires = "\(label): \(expiresAt)"
         }
-        return "DescopeSession(id: \"\(id)\", project: \"\(projectId)\", \(expires))"
+        return "DescopeSession(id: \"\(userId)\", \(expires))"
     }
 }

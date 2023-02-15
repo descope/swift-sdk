@@ -1,6 +1,7 @@
 
 import Foundation
 
+/// The concrete type of `Error` thrown by all operations in the Descope SDK.
 public struct DescopeError: Error {
     var code: String
     var desc: String?

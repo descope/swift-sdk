@@ -1,4 +1,4 @@
-// Generated using Sourcery 1.9.2 — https://github.com/krzysztofzablocki/Sourcery
+// Generated using Sourcery 2.0.1 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
 
 // Regenerate by running:
@@ -124,20 +124,20 @@ public extension DescopeMagicLink {
         }
     }
 
-    func updateEmail(_ email: String, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt)))
+                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
         }
     }
 
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
@@ -272,7 +272,7 @@ public extension DescopeTOTP {
         }
     }
 
-    func update(loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func update(loginId: String, refreshJwt: String, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await update(loginId: loginId, refreshJwt: refreshJwt)))

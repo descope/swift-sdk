@@ -20,7 +20,7 @@ public protocol DescopeOTP {
 
 public protocol DescopeTOTP {
     func signUp(loginId: String, user: User) async throws -> TOTPResponse
-    func update(loginId: String, refreshJwt: String) async throws
+    func update(loginId: String, refreshJwt: String) async throws -> TOTPResponse
     func verify(loginId: String, code: String) async throws -> DescopeSession
 }
 
@@ -34,10 +34,11 @@ public protocol DescopeMagicLink {
 }
 
 public protocol DescopeEnchantedLink {
-    func signUp(loginId: String, user: User, uri: String?) async throws -> DescopeSession
-    func signIn(loginId: String, uri: String?) async throws -> DescopeSession
-    func signUpOrIn(loginId: String, uri: String?) async throws -> DescopeSession
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws
+    func signUp(loginId: String, user: User, uri: String?) async throws -> EnchantedLinkResponse
+    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse
+    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse
+    func verify(token: String, pendingRef: String) async throws -> DescopeSession
+    func updateEmail(email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse
 }
 
 public protocol DescopeOAuth {

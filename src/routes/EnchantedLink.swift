@@ -2,32 +2,38 @@
 import Foundation
 
 class EnchantedLink: DescopeEnchantedLink {
+    
     let client: DescopeClient
     
     init(client: DescopeClient) {
         self.client = client
     }
     
-    func signUp(loginId: String, user: User, uri: String?) async throws -> DescopeSession {
+    func signUp(loginId: String, user: User, uri: String?) async throws -> EnchantedLinkResponse {
         let response = try await client.enchantedLinkSignUp(loginId: loginId, user: user, uri: uri)
-        return try await pollForSession(response.pendingRef)
+        return EnchantedLinkResponse(linkId: response.linkId, pendingRef: response.pendingRef)
     }
     
-    func signIn(loginId: String, uri: String?) async throws -> DescopeSession {
+    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
         let response = try await client.enchantedLinkSignIn(loginId: loginId, uri: uri)
-        return try await pollForSession(response.pendingRef)
+        return EnchantedLinkResponse(linkId: response.linkId, pendingRef: response.pendingRef)
     }
     
-    func signUpOrIn(loginId: String, uri: String?) async throws -> DescopeSession {
+    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
         let response = try await client.enchantedLinkSignUpOrIn(loginId: loginId, uri: uri)
-        return try await pollForSession(response.pendingRef)
+        return EnchantedLinkResponse(linkId: response.linkId, pendingRef: response.pendingRef)
     }
     
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
-        try await client.enchantedLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)
+    func verify(token: String, pendingRef: String) async throws -> DescopeSession {
+        return try await client.enchantedLinkVerify(token: token, pendingRef: pendingRef).convert()
+        // return try await pollForSession(pendingRef: pendingRef)
     }
     
-    private func pollForSession(_ pendingRef: String) async throws -> DescopeSession {
+    func updateEmail(email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse {
+        return try await client.enchantedLinkUpdateEmail(email: email, loginId: loginId, uri: uri, refreshJwt: refreshJwt).convert()
+    }
+    
+    internal func pollForSession(pendingRef: String) async throws -> DescopeSession {
         let pollingEndsAt = Date() + 600 // 10 minute polling window
         while Date() < pollingEndsAt {
             do {

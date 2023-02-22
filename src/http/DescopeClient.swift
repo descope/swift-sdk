@@ -73,8 +73,8 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func totpUpdate(loginId: String, refreshJwt: String) async throws {
-        try await post("totp/update", headers: authorization(with: refreshJwt), body: [
+    func totpUpdate(loginId: String, refreshJwt: String) async throws -> TOTPResponse {
+        return try await post("totp/update", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
         ])
     }
@@ -126,6 +126,7 @@ class DescopeClient: HTTPClient {
     // MARK: - Enchanted Link
     
     struct EnchantedLinkResponse: JSONResponse {
+        var linkId: String
         var pendingRef: String
     }
     
@@ -157,7 +158,14 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
+    func enchantedLinkVerify(token: String, pendingRef: String) async throws -> JWTResponse {
+        try await post("enchantedlink/verify", body: [
+            "token": token,
+        ])
+        return try await enchantedLinkPendingSession(pendingRef: pendingRef)
+    }
+    
+    func enchantedLinkUpdateEmail(email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse {
         try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,

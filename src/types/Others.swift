@@ -9,6 +9,14 @@ public struct User {
     public var name: String?
     public var phone: String?
     public var email: String?
+    //public var displayName: String?
+    public init(name: String = "", phone: String = "",
+                email: String = "") {
+        self.name = name
+        self.phone = phone
+        self.email = email
+        //self.displayName = displayName
+      }
 }
 
 public struct MeResponse {
@@ -22,7 +30,13 @@ public struct MeResponse {
 
 public struct TOTPResponse {
     public var provisioningURL: String
+    public var image: String
     public var key: String
+}
+
+public struct EnchantedLinkResponse {
+    public var linkId: String
+    public var pendingRef: String
 }
 
 public enum OAuthProvider: String {

@@ -5,3 +5,9 @@ extension DescopeClient.JWTResponse {
         return try DescopeSession(sessionJwt: sessionJwt, refreshJwt: refreshJwt)
     }
 }
+
+extension DescopeClient.EnchantedLinkResponse {
+    func convert() throws -> EnchantedLinkResponse {
+        return try EnchantedLinkResponse(linkId: linkId, pendingRef: pendingRef)
+    }
+}

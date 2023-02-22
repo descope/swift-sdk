@@ -52,7 +52,7 @@ public extension DescopeAuth {
 }
 
 public extension DescopeEnchantedLink {
-    func signUp(loginId: String, user: User, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    func signUp(loginId: String, user: User, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(loginId: loginId, user: user, uri: uri)))
@@ -62,7 +62,7 @@ public extension DescopeEnchantedLink {
         }
     }
 
-    func signIn(loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    func signIn(loginId: String, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signIn(loginId: loginId, uri: uri)))
@@ -72,7 +72,7 @@ public extension DescopeEnchantedLink {
         }
     }
 
-    func signUpOrIn(loginId: String, uri: String?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    func signUpOrIn(loginId: String, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUpOrIn(loginId: loginId, uri: uri)))
@@ -82,10 +82,10 @@ public extension DescopeEnchantedLink {
         }
     }
 
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
+                completion(.success(try await updateEmail(email: email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }
@@ -272,7 +272,7 @@ public extension DescopeTOTP {
         }
     }
 
-    func update(loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func update(loginId: String, refreshJwt: String, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await update(loginId: loginId, refreshJwt: refreshJwt)))

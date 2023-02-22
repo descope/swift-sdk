@@ -45,6 +45,7 @@ class DescopeClient: HTTPClient {
     }
     
     func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws {
+        try method.ensurePhoneMethod()
         try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
@@ -109,17 +110,20 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws {
+    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
         try await post("magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
+            "uri": uri,
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws {
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws {
+        try method.ensurePhoneMethod()
         try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
+            "uri": uri,
         ])
     }
     
@@ -295,5 +299,13 @@ private extension User {
             "phone": phone,
             "email": email,
         ]
+    }
+}
+
+private extension DeliveryMethod {
+    func ensurePhoneMethod() throws {
+        if self != .sms && self != .whatsapp {
+            throw DescopeError.invalidArguments.with(message: "Update phone can be done using SMS or Whatsapp only")
+        }
     }
 }

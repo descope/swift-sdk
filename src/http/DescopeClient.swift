@@ -56,7 +56,7 @@ class DescopeClient: HTTPClient {
     
     struct TOTPResponse: JSONResponse {
         var provisioningURL: String
-        var image: String // This is a base64 encoded image
+        var image: String
         var key: String
     }
     
@@ -130,6 +130,7 @@ class DescopeClient: HTTPClient {
     // MARK: - Enchanted Link
     
     struct EnchantedLinkResponse: JSONResponse {
+        var linkId: String
         var pendingRef: String
     }
     
@@ -155,17 +156,17 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func enchantedLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
-        return try await post("enchantedlink/pending-session", body: [
-            "pendingRef": pendingRef,
-        ])
-    }
-    
-    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
-        try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
+    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse {
+        return try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "uri": uri,
+        ])
+    }
+    
+    func enchantedLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
+        return try await post("enchantedlink/pending-session", body: [
+            "pendingRef": pendingRef,
         ])
     }
     

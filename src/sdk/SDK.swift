@@ -21,6 +21,7 @@ public class DescopeSDK {
     }
     
     init(config: DescopeConfig, client: DescopeClient) {
+        precondition(config.projectId != "", "ProjectId should not be an empty string")
         self.config = config
         self.auth = Auth(client: client)
         self.accessKey = AccessKey(client: client)

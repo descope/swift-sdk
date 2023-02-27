@@ -7,7 +7,7 @@ public struct DescopeConfig {
         self.projectId = projectId
     }
     
-    init(projectId: String, baseURL: String) {
+    public init(projectId: String, baseURL: String) {
         self.projectId = projectId
         self.baseURL = baseURL
     }

@@ -18,7 +18,10 @@ public enum Descope {
     /// initialization flow, and in most cases you only need to set this to
     /// work with the SDK.
     ///
-    /// - Note: This is a shortcut for setting the `config` property.
+    /// - Note: This is a shortcut for setting the `Descope.config` property.
+    ///     To prevent accidental misuse only one of these properties can be set,
+    ///     and they can only be set once. If this isn't appropriate for your usage
+    ///     scenario you can also use the `DescopeSDK` class directly instead.
     public static var projectId: String {
         get {
             return config.projectId
@@ -31,7 +34,7 @@ public enum Descope {
     
     /// The configuration of the Descope SDK.
     ///
-    /// Set this property instead of `Descope.projectId` in your application's
+    /// Set this property instead of `projectId` during your application's
     /// initialization flow if you require additional configuration.
     public static var config: DescopeConfig = .initial {
         willSet {
@@ -54,6 +57,9 @@ public enum Descope {
     /// Authentication with TOTP
     public static var totp: DescopeTOTP { sdk.totp }
     
+    /// Authentication with passwords
+    public static var password: DescopePassword { sdk.password }
+
     /// Authentication with magic links
     public static var magicLink: DescopeMagicLink { sdk.magicLink }
     

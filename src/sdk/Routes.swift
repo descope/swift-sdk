@@ -122,8 +122,9 @@ public protocol DescopeOTP {
 }
 
 
-/// Authenticate users using Timed One-time Passwords (TOTP) codes. This
-/// authentication method is geared towards using an authenticator app which
+/// Authenticate users using Timed One-time Passwords (TOTP) codes.
+///
+/// This authentication method is geared towards using an authenticator app which
 /// can produce TOTP codes.
 public protocol DescopeTOTP {
     
@@ -164,9 +165,11 @@ public protocol DescopeTOTP {
 }
 
 
-/// Authenticate users using a special link that once clicked, can authenticated
-/// the user. In order to correctly implement, the app must make sure the link
-/// redirects back to the app. Read more on universal links (https://developer.apple.com/ios/universal-links/)
+/// Authenticate users using a special link that once clicked, can authenticate
+/// the user.
+///
+/// In order to correctly implement, the app must make sure the link redirects back
+/// to the app. Read more on [universal links](https://developer.apple.com/ios/universal-links/)
 /// to learn more. Once redirected back to the app, call the `verify(token)` function
 /// on the appended token URL parameter.
 public protocol DescopeMagicLink {
@@ -267,12 +270,15 @@ public protocol DescopeMagicLink {
 }
 
 
-/// Authenticate users using one of three special links that once clicked, can authenticated
-/// the user. This method is geared towards cross-device authentication. In order to correctly
-/// implement, the app must make sure the uri redirects to a webpage which will verify the link
-/// for them. The app will poll for a valid session in the meantime, and will authenticate the
-/// user as soon as they are verified via said webpage. To learn more consult the official
-/// Descope docs.
+/// Authenticate users using one of three special links that once clicked,
+/// can authenticate the user.
+///
+/// This method is geared towards cross-device authentication. In order to
+/// correctly implement, the app must make sure the uri redirects to a webpage
+/// which will verify the link for them. The app will poll for a valid session
+/// in the meantime, and will authenticate the user as soon as they are
+/// verified via said webpage. To learn more consult the
+/// official Descope docs.
 public protocol DescopeEnchantedLink {
     
     /// Authenticates a new user using an enchanted link, sent via email.
@@ -396,10 +402,12 @@ public protocol DescopeEnchantedLink {
 }
 
 
-/// Authenticate a user using an OAuth provider. Use the Descope console to configure
-/// which authentication provider you'd like to support.
+/// Authenticate a user using an OAuth provider.
+///
+/// Use the Descope console to configure which authentication provider you'd like to support.
 /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication
-/// (read more: https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service ).
+///
+/// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeOAuth {
     
     /// Starts an OAuth redirect chain to authenticate a user.
@@ -429,10 +437,12 @@ public protocol DescopeOAuth {
 }
 
 
-/// Authenticate a user using a SSO. Use the Descope console to configure
-/// your SSO details in order for this method to work properly.
+/// Authenticate a user using a SSO.
+///
+/// Use the Descope console to configure your SSO details in order for this method to work properly.
 /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication
-/// (read more: https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service ).
+///
+/// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeSSO {
     
     /// Starts an SSO redirect chain to authenticate a user.

@@ -7,6 +7,7 @@ import Foundation
 /// instances of `DescopeToken`. It's also returned directly when
 /// exchanging an access key for a session JWT.
 public protocol DescopeToken {
+    
     /// The underlying JWT value
     var jwt: String { get }
     
@@ -41,7 +42,7 @@ public protocol DescopeToken {
     func roles(tenant: String?) -> [String]
 }
 
-// Implementation
+// Internal
 
 class Token: DescopeToken {
     let jwt: String

@@ -58,7 +58,7 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws
     
     /// Authenticates an existing user using an OTP, sent via a delivery
@@ -134,7 +134,7 @@ public protocol DescopeTOTP {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     ///
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
     func signUp(loginId: String, user: User) async throws -> TOTPResponse
@@ -165,6 +165,32 @@ public protocol DescopeTOTP {
 }
 
 
+/// Authenticate users using a password.
+public protocol DescopePassword {
+    
+    /// Creates a new user that can later sign in with a password.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in, typically
+    ///     an email, phone, or any other unique identifier.
+    ///   - user: Details about the user signing up.
+    ///   - password: The user's password.
+    ///
+    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
+    func signUp(loginId: String, user: User, password: String) async throws -> DescopeSession
+    
+    /// Authenticates an existing user using a password.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - password: The user's password.
+    ///
+    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
+    func signIn(loginId: String, password: String) async throws -> DescopeSession
+}
+
+
 /// Authenticate users using a special link that once clicked, can authenticate
 /// the user.
 ///
@@ -188,7 +214,7 @@ public protocol DescopeMagicLink {
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws
@@ -296,7 +322,7 @@ public protocol DescopeEnchantedLink {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///

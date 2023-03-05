@@ -11,10 +11,10 @@ public struct DescopeConfig {
     /// Creates a new `DescopeConfig` object.
     ///
     /// - Parameters:
-    ///   - projectId The id of the Descope project can be found in the
-    ///   project page in the Descope console
-    ///   - baseURL An optional override for the URL of the Descope server,
-    ///   in case you need to access it through a CNAME record.
+    ///   - projectId: The id of the Descope project can be found in the
+    ///     project page in the Descope console.
+    ///   - baseURL: An optional override for the URL of the Descope server,
+    ///     in case you need to access it through a CNAME record.
     public init(projectId: String, baseURL: String? = nil) {
         self.projectId = projectId
         if let baseURL {

@@ -80,6 +80,23 @@ class DescopeClient: HTTPClient {
         ])
     }
     
+    // MARK: - Password
+    
+    func passwordSignUp(loginId: String, user: User, password: String) async throws -> JWTResponse {
+        return try await post("password/signup", body: [
+            "loginId": loginId,
+            "user": user.dictValue,
+            "password": password,
+        ])
+    }
+    
+    func passwordSignIn(loginId: String, password: String) async throws -> JWTResponse {
+        return try await post("password/signin", body: [
+            "loginId": loginId,
+            "password": password,
+        ])
+    }
+    
     // MARK: - Magic Link
     
     func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws {

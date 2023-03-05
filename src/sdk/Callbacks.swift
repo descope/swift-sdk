@@ -91,7 +91,7 @@ public extension DescopeEnchantedLink {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     /// 
@@ -259,7 +259,7 @@ public extension DescopeMagicLink {
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?, completion: @escaping (Result<Void, Error>) -> Void) {
@@ -443,7 +443,7 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     func signUp(with method: DeliveryMethod, loginId: String, user: User, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
@@ -554,6 +554,45 @@ public extension DescopeOTP {
     }
 }
 
+public extension DescopePassword {
+    /// Creates a new user that can later sign in with a password.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in, typically
+    ///     an email, phone, or any other unique identifier.
+    ///   - user: Details about the user signing up.
+    ///   - password: The user's password.
+    /// 
+    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
+    func signUp(loginId: String, user: User, password: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signUp(loginId: loginId, user: user, password: password)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Authenticates an existing user using a password.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - password: The user's password.
+    /// 
+    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
+    func signIn(loginId: String, password: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signIn(loginId: loginId, password: password)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+}
+
 public extension DescopeSSO {
     /// Starts an SSO redirect chain to authenticate a user.
     /// 
@@ -604,7 +643,7 @@ public extension DescopeTOTP {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Metadata on the user signing up.
+    ///   - user: Details about the user signing up.
     /// 
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
     func signUp(loginId: String, user: User, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {

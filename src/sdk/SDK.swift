@@ -6,6 +6,7 @@ public class DescopeSDK {
     public let accessKey: DescopeAccessKey
     public let otp: DescopeOTP
     public let totp: DescopeTOTP
+    public let password: DescopePassword
     public let magicLink: DescopeMagicLink
     public let enchantedLink: DescopeEnchantedLink
     public let oauth: DescopeOAuth
@@ -27,6 +28,7 @@ public class DescopeSDK {
         self.accessKey = AccessKey(client: client)
         self.otp = OTP(client: client)
         self.totp = TOTP(client: client)
+        self.password = Password(client: client)
         self.magicLink = MagicLink(client: client)
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)

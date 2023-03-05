@@ -574,8 +574,7 @@ public extension DescopePassword {
         }
     }
 
-    /// Authenticates an existing user using an OTP, sent via a delivery
-    /// method of choice.
+    /// Authenticates an existing user using a password.
     /// 
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in,

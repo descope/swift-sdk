@@ -179,8 +179,7 @@ public protocol DescopePassword {
     /// - Returns: Upon successful authentication a `DescopeSession` is returned.
     func signUp(loginId: String, user: User, password: String) async throws -> DescopeSession
     
-    /// Authenticates an existing user using an OTP, sent via a delivery
-    /// method of choice.
+    /// Authenticates an existing user using a password.
     ///
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in,

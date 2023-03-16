@@ -262,7 +262,7 @@ public extension DescopeMagicLink {
     ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(with: method, loginId: loginId, user: user, uri: uri)))
@@ -284,7 +284,7 @@ public extension DescopeMagicLink {
     ///     an email, phone, or any other unique identifier.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signIn(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signIn(with: method, loginId: loginId, uri: uri)))
@@ -310,7 +310,7 @@ public extension DescopeMagicLink {
     ///     an email, phone, or any other unique identifier
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUpOrIn(with: method, loginId: loginId, uri: uri)))
@@ -332,7 +332,7 @@ public extension DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
@@ -358,7 +358,7 @@ public extension DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await updatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt)))
@@ -444,7 +444,7 @@ public extension DescopeOTP {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, user: User, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(with: method, loginId: loginId, user: user)))
@@ -461,7 +461,7 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    func signIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signIn(with: method, loginId: loginId)))
@@ -482,7 +482,7 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUpOrIn(with: method, loginId: loginId)))
@@ -520,7 +520,7 @@ public extension DescopeOTP {
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt)))
@@ -543,7 +543,7 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt)))

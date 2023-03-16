@@ -8,24 +8,24 @@ class MagicLink: DescopeMagicLink {
         self.client = client
     }
     
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws {
-        try await client.magicLinkSignUp(with: method, loginId: loginId, user: user, uri: uri)
+    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> String {
+        return try await client.magicLinkSignUp(with: method, loginId: loginId, user: user, uri: uri).convert(method: method)
     }
     
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws {
-        try await client.magicLinkSignIn(with: method, loginId: loginId, uri: uri)
+    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
+        return try await client.magicLinkSignIn(with: method, loginId: loginId, uri: uri).convert(method: method)
     }
     
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws {
-        try await client.magicLinkSignUpOrIn(with: method, loginId: loginId, uri: uri)
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
+        return try await client.magicLinkSignUpOrIn(with: method, loginId: loginId, uri: uri).convert(method: method)
     }
     
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws {
-        try await client.magicLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt)
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> String {
+        return try await client.magicLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt).convert(method: .email)
     }
     
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws {
-        try await client.magicLinkUpdatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt)
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> String {
+        return try await client.magicLinkUpdatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt).convert(method: method)
     }
     
     func verify(token: String) async throws -> DescopeSession {

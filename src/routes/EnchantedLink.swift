@@ -62,6 +62,6 @@ class EnchantedLink: DescopeEnchantedLink {
 
 private extension DescopeClient.EnchantedLinkResponse {
     func convert() -> EnchantedLinkResponse {
-        return EnchantedLinkResponse(linkId: linkId, pendingRef: pendingRef)
+        return EnchantedLinkResponse(linkId: linkId, pendingRef: pendingRef, maskedEmail: maskedEmail)
     }
 }

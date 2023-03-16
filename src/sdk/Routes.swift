@@ -59,7 +59,7 @@ public protocol DescopeOTP {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws
+    func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws -> String
     
     /// Authenticates an existing user using an OTP, sent via a delivery
     /// method of choice.
@@ -68,7 +68,7 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    func signIn(with method: DeliveryMethod, loginId: String) async throws
+    func signIn(with method: DeliveryMethod, loginId: String) async throws -> String
     
     /// Authenticates an existing user if one exists, or creates a new user
     /// using an OTP, sent via a delivery method of choice.
@@ -81,7 +81,7 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier
-    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws
+    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws -> String
     
     /// Verifies an OTP code sent to the user.
     ///
@@ -103,7 +103,7 @@ public protocol DescopeOTP {
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> String
     
     /// Updates an existing user by adding a phone number.
     ///
@@ -118,7 +118,7 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> String
 }
 
 
@@ -217,7 +217,7 @@ public protocol DescopeMagicLink {
     ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws
+    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> String
     
     /// Authenticates an existing user using a magic link, sent via a delivery
     /// method of choice.
@@ -231,7 +231,7 @@ public protocol DescopeMagicLink {
     ///     an email, phone, or any other unique identifier.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws
+    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String
     
     /// Authenticates an existing user if one exists, or creates a new user
     /// using a magic link, sent via a delivery method of choice.
@@ -249,7 +249,7 @@ public protocol DescopeMagicLink {
     ///     an email, phone, or any other unique identifier
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String
     
     /// Updates an existing user by adding an email address.
     ///
@@ -263,7 +263,7 @@ public protocol DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> String
     
     /// Updates an existing user by adding a phone number.
     ///
@@ -281,7 +281,7 @@ public protocol DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> String
     
     /// Verifies a magic link token.
     ///

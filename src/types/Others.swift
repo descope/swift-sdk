@@ -49,6 +49,7 @@ public struct MeResponse {
 public struct EnchantedLinkResponse {
     public var linkId: String
     public var pendingRef: String
+    public var maskedEmail: String
 }
 
 public struct TOTPResponse {

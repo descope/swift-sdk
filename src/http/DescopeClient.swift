@@ -24,7 +24,7 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func otpSignUpIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress{
+    func otpSignUpIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress {
         return try await post("otp/signup-in/\(method.rawValue)", body: [
             "loginId": loginId
         ])
@@ -37,14 +37,14 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> MaskedAddress{
+    func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> MaskedAddress {
         return try await post("otp/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
         ])
     }
     
-    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> MaskedAddress{
+    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
         return try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
@@ -99,7 +99,7 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Magic Link
     
-    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> MaskedAddress{
+    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> MaskedAddress {
         return try await post("magiclink/signup/\(method.rawValue)", body: [
             "loginId": loginId,
             "user": user.dictValue,
@@ -107,14 +107,14 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress{
+    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
         return try await post("magiclink/signin/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
-    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress{
+    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
         return try await post("magiclink/signup-in/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
@@ -127,7 +127,7 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress{
+    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress {
         return try await post("magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
@@ -135,7 +135,7 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress{
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
         return try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,

@@ -97,6 +97,41 @@ class DescopeClient: HTTPClient {
         ])
     }
     
+    func update(loginId: String, newPassword: String, refreshJwt: String) async throws {
+        try await post("password/update", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "newPassword": newPassword,
+        ])
+    }
+    
+    func replace(loginId: String, oldPassword: String, newPassword: String) async throws {
+        try await post("password/replace", body: [
+            "loginId": loginId,
+            "oldPassword": oldPassword,
+            "newPassword": newPassword,
+        ])
+    }
+    
+    func sendReset(loginId: String, redirectURL: String?) async throws {
+        try await post("password/reset", body: [
+            "loginId": loginId,
+            "redirectUrl": redirectURL,
+        ])
+    }
+    
+    struct PasswordPolicyResponse: JSONResponse {
+        var minLength: Int
+        var lowercase: Bool
+        var uppercase: Bool
+        var number: Bool
+        var nonAlphanumeric: Bool
+    }
+    
+    func getPolicy() async throws -> PasswordPolicyResponse {
+        return try await get("password/policy")
+    }
+
+    
     // MARK: - Magic Link
     
     func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> MaskedAddress {
@@ -321,7 +356,7 @@ private extension User {
 private extension DeliveryMethod {
     func ensurePhoneMethod() throws {
         if self != .sms && self != .whatsapp {
-            throw DescopeError.invalidArguments.with(message: "Update phone can be done using SMS or Whatsapp only")
+            throw DescopeError.invalidArguments.with(message: "Update phone can be done using SMS or WhatsApp only")
         }
     }
 }

@@ -203,14 +203,6 @@ public protocol DescopePassword {
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     func update(loginId: String, newPassword: String, refreshJwt: String) async throws
     
-    
-    // ReplaceUserPassword - updates a user's password according to the given loginID.
-    // This function requires the current or 'oldPassword' to be active.
-    // If the user can be successfully authenticated using the oldPassword, the user's
-    // password will be updated to newPassword.
-    // NewPassword must conform to the password policy defined in the password settings
-    // in the Descope console.
-
     /// Replaces a user's password by providing their current password.
     ///
     /// The value for `newPassword` must conform to the password policy defined in the

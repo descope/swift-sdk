@@ -83,12 +83,13 @@ public struct TOTPResponse {
     public var key: String
 }
 
-/// Represents the rules for valid passwords configured in the policy in the
-/// Descope console.
+/// Represents the rules for valid passwords.
 ///
-/// This can be used to implement client-side validation of new
-/// user passwords for a better user experience. Either way, the comprehensive
-/// policy is always enforced by Descope on the server side.
+/// The policy is configured in the password settings in the Descope console, and
+/// these values can be used to implement client-side validation of new user passwords
+/// for a better user experience.
+///
+/// In any case, all password rules are enforced by Descope on the server side as well.
 public struct PasswordPolicy {
     public var minLength: Int
     public var lowercase: Bool

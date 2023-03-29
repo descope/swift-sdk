@@ -226,7 +226,7 @@ public protocol DescopePassword {
     /// - Parameters:
     ///   - loginId: The existing user's loginId.
     ///   - redirectURL: Optional URL that is used by Magic Link or Enchanted Link
-    ///     if those are the chosen reset methods..
+    ///     if those are the chosen reset methods.
     func sendReset(loginId: String, redirectURL: String?) async throws
 
     /// Fetches the rules for valid passwords.

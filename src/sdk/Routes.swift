@@ -102,7 +102,7 @@ public protocol DescopeOTP {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> String
     
     /// Updates an existing user by adding a phone number.
@@ -117,7 +117,7 @@ public protocol DescopeOTP {
     ///   - phone: The phone number to add.
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> String
 }
 
@@ -149,7 +149,7 @@ public protocol DescopeTOTP {
     ///
     /// - Parameters:
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     ///
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
     func update(loginId: String, refreshJwt: String) async throws -> TOTPResponse
@@ -188,6 +188,55 @@ public protocol DescopePassword {
     ///
     /// - Returns: Upon successful authentication a `DescopeSession` is returned.
     func signIn(loginId: String, password: String) async throws -> DescopeSession
+
+    /// Updates a user's password.
+    ///
+    /// In order to do this, the user must have an active `DescopeSession` whose
+    /// `refreshJwt` should be passed as a parameter to this function.
+    ///
+    /// The value for `newPassword` must conform to the password policy defined in the
+    /// password settings in the Descope console
+    ///
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - newPassword: The new password to set for the user.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    func update(loginId: String, newPassword: String, refreshJwt: String) async throws
+    
+    /// Replaces a user's password by providing their current password.
+    ///
+    /// The value for `newPassword` must conform to the password policy defined in the
+    /// password settings in the Descope console
+    ///
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - oldPassword: The user's current password.
+    ///   - newPassword: The new password to set for the user.
+    func replace(loginId: String, oldPassword: String, newPassword: String) async throws
+    
+    /// Sends a password reset email to the user.
+    ///
+    /// This operation starts a Magic Link or Enchanted Link flow depending on the
+    /// configuration in the Descope console. After the authentication flow is finished
+    /// use the `refreshJwt` to call `update` and change the user's password.
+    ///
+    /// - Important: The user must be verified according to the configured
+    /// password reset method.
+    ///
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - redirectURL: Optional URL that is used by Magic Link or Enchanted Link
+    ///     if those are the chosen reset methods.
+    func sendReset(loginId: String, redirectURL: String?) async throws
+
+    /// Fetches the rules for valid passwords.
+    ///
+    /// The policy is configured in the password settings in the Descope console, and
+    /// these values can be used to implement client-side validation of new user passwords
+    /// for a better user experience.
+    ///
+    /// In any case, all password rules are enforced by Descope on the server side as well.
+    func getPolicy() async throws -> PasswordPolicy
 }
 
 
@@ -384,7 +433,7 @@ public protocol DescopeEnchantedLink {
     ///   - loginId: The existing user's loginId
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     ///
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.

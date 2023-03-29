@@ -25,7 +25,7 @@ public enum OAuthProvider: String {
 
 // Structs
 
-/// Used to provide additional details about a user in sign up calls.`
+/// Used to provide additional details about a user in sign up calls.
 public struct User {
     public var name: String?
     public var phone: String?

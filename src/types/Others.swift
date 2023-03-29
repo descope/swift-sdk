@@ -6,7 +6,7 @@ import UIKit
 
 // Enums
 
-/// The delivery method for an OTP message.
+/// The delivery method for an OTP or Magic Link message.
 public enum DeliveryMethod: String {
     case whatsapp
     case sms

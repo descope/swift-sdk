@@ -313,6 +313,7 @@ class DescopeClient: HTTPClient {
         var verifiedEmail: Bool = false
         var phone: String?
         var verifiedPhone: Bool = false
+        var createdTime: Int
     }
     
     struct MaskedAddress: JSONResponse {

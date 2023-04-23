@@ -51,6 +51,7 @@ public struct MeResponse {
     public var loginIds: [String]
     public var name: String?
     public var picture: String?
+    public var createdTime: Int
     public var email: (value: String, isVerified: Bool)?
     public var phone: (value: String, isVerified: Bool)?
 }

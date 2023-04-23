@@ -32,13 +32,13 @@ class TestToken: XCTestCase {
         XCTAssertEqual(1, token.claims.count)
         XCTAssertEqual("Swifty McApples", token.claims["name"] as! String)
         
-        // Roles & Permissions
+        // Authorization
         let permissions = token.permissions(tenant: nil)
         XCTAssertEqual(["d", "e"], permissions)
         let roles = token.roles(tenant: nil)
         XCTAssertEqual(["user"], roles)
         
-        // Roles & Permissions
+        // Tenant Authorization
         let tenantPermissions = token.permissions(tenant: "tenant")
         XCTAssertEqual(["a", "b", "c"], tenantPermissions)
         let tenantRoles = token.roles(tenant: "tenant")

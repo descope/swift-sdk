@@ -253,7 +253,7 @@ public extension DescopeMagicLink {
     ///     the `loginId` itself, i.e., the email address, phone number, etc.
     /// 
     /// - Important: Make sure a default magic link URI is configured
-    ///     in the Descope console, or provideded by this call.
+    ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
@@ -276,7 +276,7 @@ public extension DescopeMagicLink {
     /// method of choice.
     /// 
     /// - Important: Make sure a default magic link URI is configured
-    ///     in the Descope console, or provideded by this call.
+    ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
@@ -302,7 +302,7 @@ public extension DescopeMagicLink {
     ///     i.e., the email address, phone number, etc.
     /// 
     /// - Important: Make sure a default magic link URI is configured
-    ///     in the Descope console, or provideded by this call.
+    ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
@@ -394,7 +394,7 @@ public extension DescopeOAuth {
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     /// 
     /// - Important: Make sure a default OAuth redirect URL is configured
-    ///     in the Descope console, or provideded by this call.
+    ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - provider: The provider the user wishes to be authenticated by.
@@ -599,7 +599,7 @@ public extension DescopeSSO {
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     /// 
     /// - Important: Make sure a default SSO redirect URL is configured
-    ///     in the Descope console, or provideded by this call.
+    ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - provider: The provider the user wishes to be authenticated by.

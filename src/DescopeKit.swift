@@ -41,7 +41,7 @@ public enum Descope {
             precondition(config.projectId == "", "Config should not be set more than once")
         }
         didSet {
-            precondition(config.projectId != "", "Config should not be an empty string")
+            precondition(config.projectId != "", "ProjectId should not be an empty string")
         }
     }
     

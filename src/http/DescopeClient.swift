@@ -97,14 +97,14 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func update(loginId: String, newPassword: String, refreshJwt: String) async throws {
+    func passwordUpdate(loginId: String, newPassword: String, refreshJwt: String) async throws {
         try await post("password/update", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "newPassword": newPassword,
         ])
     }
     
-    func replace(loginId: String, oldPassword: String, newPassword: String) async throws {
+    func passwordReplace(loginId: String, oldPassword: String, newPassword: String) async throws {
         try await post("password/replace", body: [
             "loginId": loginId,
             "oldPassword": oldPassword,
@@ -112,7 +112,7 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func sendReset(loginId: String, redirectURL: String?) async throws {
+    func passwordSendReset(loginId: String, redirectURL: String?) async throws {
         try await post("password/reset", body: [
             "loginId": loginId,
             "redirectUrl": redirectURL,
@@ -127,7 +127,7 @@ class DescopeClient: HTTPClient {
         var nonAlphanumeric: Bool
     }
     
-    func getPolicy() async throws -> PasswordPolicyResponse {
+    func passwordGetPolicy() async throws -> PasswordPolicyResponse {
         return try await get("password/policy")
     }
 

@@ -1,3 +1,4 @@
+import Foundation
 
 class Auth: DescopeAuth {
     let client: DescopeClient

@@ -20,12 +20,12 @@ class MagicLink: DescopeMagicLink {
         return try await client.magicLinkSignUpOrIn(with: method, loginId: loginId, uri: uri).convert(method: method)
     }
     
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> String {
-        return try await client.magicLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt).convert(method: .email)
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String {
+        return try await client.magicLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions).convert(method: .email)
     }
     
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> String {
-        return try await client.magicLinkUpdatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt).convert(method: method)
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String {
+        return try await client.magicLinkUpdatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions).convert(method: method)
     }
     
     func verify(token: String) async throws -> DescopeSession {

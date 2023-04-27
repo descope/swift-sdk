@@ -37,18 +37,22 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> MaskedAddress {
+    func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> MaskedAddress {
         return try await post("otp/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
+            "addToLoginIDs": updateOptions?.addToLoginIDs,
+            "onMergeUseExisting": updateOptions?.onMergeUseExisting
         ])
     }
     
-    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> MaskedAddress {
+    func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
         return try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
+            "addToLoginIDs": updateOptions?.addToLoginIDs,
+            "onMergeUseExisting": updateOptions?.onMergeUseExisting
         ])
     }
     
@@ -162,20 +166,24 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress {
+    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> MaskedAddress {
         return try await post("magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "uri": uri,
+            "addToLoginIDs": updateOptions?.addToLoginIDs,
+            "onMergeUseExisting": updateOptions?.onMergeUseExisting
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> MaskedAddress {
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
         return try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
             "uri": uri,
+            "addToLoginIDs": updateOptions?.addToLoginIDs,
+            "onMergeUseExisting": updateOptions?.onMergeUseExisting
         ])
     }
     
@@ -209,11 +217,13 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse {
+    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> EnchantedLinkResponse {
         return try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "uri": uri,
+            "addToLoginIDs": updateOptions?.addToLoginIDs,
+            "onMergeUseExisting": updateOptions?.onMergeUseExisting
         ])
     }
     

@@ -103,7 +103,8 @@ public protocol DescopeOTP {
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, refreshJwt: String) async throws -> String
+    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String
     
     /// Updates an existing user by adding a phone number.
     ///
@@ -118,7 +119,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String) async throws -> String
+    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String
 }
 
 
@@ -312,7 +314,8 @@ public protocol DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> String
+    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String
     
     /// Updates an existing user by adding a phone number.
     ///
@@ -330,7 +333,8 @@ public protocol DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String) async throws -> String
+    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> String
     
     /// Verifies a magic link token.
     ///
@@ -434,10 +438,11 @@ public protocol DescopeEnchantedLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
     ///
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String) async throws -> EnchantedLinkResponse
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> EnchantedLinkResponse
     
     /// Checks if an enchanted link authentication has been verified by the user.
     ///

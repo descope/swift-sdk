@@ -25,6 +25,11 @@ public enum OAuthProvider: String {
 
 // Structs
 
+public struct UpdateOptions {
+    public var addToLoginIDs:      Bool?
+    public var onMergeUseExisting: Bool?
+}
+
 /// Used to provide additional details about a user in sign up calls.
 public struct User {
     public var name: String?

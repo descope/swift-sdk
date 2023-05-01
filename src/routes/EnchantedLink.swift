@@ -22,8 +22,8 @@ class EnchantedLink: DescopeEnchantedLink {
         return try await client.enchantedLinkSignUpOrIn(loginId: loginId, uri: uri).convert()
     }
     
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions).convert()
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
+        return try await client.enchantedLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options).convert()
     }
     
     func checkForSession(pendingRef: String) async throws -> DescopeSession {

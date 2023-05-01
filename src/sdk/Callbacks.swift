@@ -177,15 +177,17 @@ public extension DescopeEnchantedLink {
     ///   - loginId: The existing user's loginId
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///     in that case, if another user already has the same email address as a loginId how to
+    ///     merge the two users. See the documentation for `UpdateOptions` for more details.
     /// 
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions)))
+                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -333,11 +335,13 @@ public extension DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///     in that case, if another user already has the same email address as a loginId how to
+    ///     merge the two users. See the documentation for `UpdateOptions` for more details.
+    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions)))
+                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -360,11 +364,13 @@ public extension DescopeMagicLink {
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
-    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, updateOptions: UpdateOptions?, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - options: Whether to add the new phone number as a loginId for the existing user, and
+    ///     in that case, if another user already has the same phone number as a loginId how to
+    ///     merge the two users. See the documentation for `UpdateOptions` for more details.
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt, updateOptions: updateOptions)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -522,12 +528,14 @@ public extension DescopeOTP {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
-    func updateEmail(_ email: String, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///     in that case, if another user already has the same email address as a loginId how to
+    ///     merge the two users. See the documentation for `UpdateOptions` for more details.
+    func updateEmail(_ email: String, loginId: String, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt, updateOptions: updateOptions)))
+                completion(.success(try await updateEmail(email, loginId: loginId, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -546,12 +554,14 @@ public extension DescopeOTP {
     ///   - phone: The phone number to add.
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
-    ///   - updateOptions - Decide whether to add this email as a login id, and in that case, how to handle conflicts with other user that has this email as ID
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, updateOptions: UpdateOptions?, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    ///   - options: Whether to add the new phone number as a loginId for the existing user, and
+    ///     in that case, if another user already has the same phone number as a loginId how to
+    ///     merge the two users. See the documentation for `UpdateOptions` for more details.
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt, updateOptions: updateOptions)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -671,7 +681,7 @@ public extension DescopeTOTP {
     /// 
     /// - Parameters:
     ///   - loginId: The existing user's loginId
-    ///   - refreshJwt: The existing user's `refreshJwt` an active `DescopeSession`.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
     /// 
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
     func update(loginId: String, refreshJwt: String, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {

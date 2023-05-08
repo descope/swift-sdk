@@ -7,12 +7,11 @@ import Foundation
 /// instances of `DescopeToken`. It's also returned directly when
 /// exchanging an access key for a session JWT.
 public protocol DescopeToken {
-    
     /// The underlying JWT value
     var jwt: String { get }
     
     /// The value of the "sub" (subject) claim, which is the unique id
-    /// of the user or access key this JWT was generated for.
+    /// of the user or access key the JWT was generated for.
     var id: String { get }
     
     /// The value of the "aud" (audience) claim which is the unique id
@@ -27,7 +26,7 @@ public protocol DescopeToken {
     var isExpired: Bool { get }
     
     /// A map with all the custom claims in the JWT value. It includes
-    /// any claims whose values aren't already exposed by other accessors\
+    /// any claims whose values aren't already exposed by other accessors
     /// or authorization functions.
     var claims: [String: Any] { get }
     
@@ -110,8 +109,8 @@ extension Token: CustomStringConvertible {
     var description: String {
         var expires = "expires: Never"
         if let expiresAt {
-            let tag = expiresAt.timeIntervalSinceNow > 0 ? "expires" : "expired"
-            expires = "\(tag): \(expiresAt)"
+            let label = isExpired ? "expired" : "expires"
+            expires = "\(label): \(expiresAt)"
         }
         return "DescopeToken(id: \"\(id)\", \(expires))"
     }

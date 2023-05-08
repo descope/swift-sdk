@@ -3,23 +3,22 @@ import Foundation
 
 /// General authentication functions
 public protocol DescopeAuth {
-    
     /// Returns details about the user. The user must have an active `DescopeSession`.
     ///
     /// - Parameter refreshJwt: the `refreshJwt` from an active `DescopeSession`.
     ///
-    /// - Returns: A `MeResponse` object with the user details.
-    func me(refreshJwt: String) async throws -> MeResponse
+    /// - Returns: A `DescopeUser` object with the user details.
+    func me(refreshJwt: String) async throws -> DescopeUser
     
-    /// Refreshes a session.
+    /// Refreshes a `DescopeSession`.
     ///
     /// This can be called at any time as long as the `refreshJwt` is still valid.
-    /// Typically called when the `sessionJwt` is expired or about to be.
+    /// Typically called when the `sessionJwt` is expired or is about to expire.
     ///
     /// - Parameter refreshJwt: the `refreshJwt` from an active `DescopeSession`.
     ///
-    /// - Returns: A new `DescopeSession` with a refreshed `sessionJwt`.
-    func refreshSession(refreshJwt: String) async throws -> DescopeSession
+    /// - Returns: A new `RefreshResponse` with a refreshed `sessionJwt`.
+    func refreshSession(refreshJwt: String) async throws -> RefreshResponse
     
     /// Logs out from an active `DescopeSession`.
     ///
@@ -28,25 +27,11 @@ public protocol DescopeAuth {
 }
 
 
-/// Access key authentication methods
-public protocol DescopeAccessKey {
-    
-    /// Exchanges an access key for a `DescopeToken` that can be used to perform
-    /// authenticated requests.
-    ///
-    /// - Parameter accessKey: the access key's clear text
-    ///
-    /// - Returns: Upon successful exchange a `DescopeToken` is returned.
-    func exchange(accessKey: String) async throws -> DescopeToken
-}
-
-
 /// Authenticate users using a one time password (OTP) code, sent via
 /// a delivery method of choice. The code then needs to be verified using
 /// the `verify(with:loginId:code)` function. It is also possible to add
 /// an email or phone to an existing user after validating it via OTP.
 public protocol DescopeOTP {
-    
     /// Authenticates a new user using an OTP, sent via a delivery
     /// method of choice.
     ///
@@ -59,7 +44,7 @@ public protocol DescopeOTP {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws -> String
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser) async throws -> String
     
     /// Authenticates an existing user using an OTP, sent via a delivery
     /// method of choice.
@@ -90,8 +75,8 @@ public protocol DescopeOTP {
     ///   - loginId: The loginId value used to initiate the authentication.
     ///   - code: The code to validate.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> AuthenticationResponse
     
     /// Updates an existing user by adding an email address.
     ///
@@ -133,7 +118,6 @@ public protocol DescopeOTP {
 /// This authentication method is geared towards using an authenticator app which
 /// can produce TOTP codes.
 public protocol DescopeTOTP {
-    
     /// Authenticates a new user using a TOTP. This function returns the
     /// key (seed) that allows authenticator apps to generate TOTP codes.
     ///
@@ -143,7 +127,7 @@ public protocol DescopeTOTP {
     ///   - user: Details about the user signing up.
     ///
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
-    func signUp(loginId: String, user: User) async throws -> TOTPResponse
+    func signUp(loginId: String, user: SignUpUser) async throws -> TOTPResponse
     
     /// Updates an existing user by adding TOTP as an authentication method.
     ///
@@ -166,14 +150,13 @@ public protocol DescopeTOTP {
     ///   - loginId: The `loginId` of the user trying to log in.
     ///   - code: The code to validate.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(loginId: String, code: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func verify(loginId: String, code: String) async throws -> AuthenticationResponse
 }
 
 
 /// Authenticate users using a password.
 public protocol DescopePassword {
-    
     /// Creates a new user that can later sign in with a password.
     ///
     /// - Parameters:
@@ -182,8 +165,8 @@ public protocol DescopePassword {
     ///   - user: Details about the user signing up.
     ///   - password: The user's password.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func signUp(loginId: String, user: User, password: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func signUp(loginId: String, user: SignUpUser, password: String) async throws -> AuthenticationResponse
     
     /// Authenticates an existing user using a password.
     ///
@@ -192,8 +175,8 @@ public protocol DescopePassword {
     ///     typically an email, phone, or any other unique identifier.
     ///   - password: The user's password.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func signIn(loginId: String, password: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func signIn(loginId: String, password: String) async throws -> AuthenticationResponse
 
     /// Updates a user's password.
     ///
@@ -254,7 +237,6 @@ public protocol DescopePassword {
 /// to learn more. Once redirected back to the app, call the `verify(token)` function
 /// on the appended token URL parameter.
 public protocol DescopeMagicLink {
-    
     /// Authenticates a new user using a magic link, sent via a delivery
     /// method of choice.
     ///
@@ -272,7 +254,7 @@ public protocol DescopeMagicLink {
     ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> String
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?) async throws -> String
     
     /// Authenticates an existing user using a magic link, sent via a delivery
     /// method of choice.
@@ -348,12 +330,12 @@ public protocol DescopeMagicLink {
     ///
     /// In order to effectively do this, the link generated should refer back to
     /// the app, then the `t` URL parameter should be extracted and sent to this
-    /// function. Upon successful authentication a `DescopeSession` is returned.
+    /// function. Upon successful authentication an `AuthenticationResponse` is returned.
     ///
     /// - Parameter token: The extracted token from the `t` URL parameter from the magic link.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(token: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func verify(token: String) async throws -> AuthenticationResponse
 }
 
 
@@ -367,7 +349,6 @@ public protocol DescopeMagicLink {
 /// verified via said webpage. To learn more consult the
 /// official Descope docs.
 public protocol DescopeEnchantedLink {
-    
     /// Authenticates a new user using an enchanted link, sent via email.
     ///
     /// The caller should use the returned `EnchantedLinkResponse` object to show the
@@ -389,7 +370,7 @@ public protocol DescopeEnchantedLink {
     ///
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, user: User, uri: String?) async throws -> EnchantedLinkResponse
+    func signUp(loginId: String, user: SignUpUser, uri: String?) async throws -> EnchantedLinkResponse
     
     /// Authenticates an existing user using an enchanted link, sent via email.
     ///
@@ -456,8 +437,8 @@ public protocol DescopeEnchantedLink {
     
     /// Checks if an enchanted link authentication has been verified by the user.
     ///
-    /// This function will only return a `DescopeSession` successfully after the user
-    /// presses the enchanted link in the authentication email.
+    /// This function will only return an `AuthenticationResponse` successfully after
+    /// the user presses the enchanted link in the authentication email.
     ///
     /// - Important: This function doesn't perform any polling or waiting, so calling code
     ///     should expect to catch any thrown `DescopeError.enchantedLinkPending` errors and
@@ -466,13 +447,13 @@ public protocol DescopeEnchantedLink {
     ///
     /// - Parameter pendingRef: The pendingRef value from an `EnchantedLinkResponse` object.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func checkForSession(pendingRef: String) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func checkForSession(pendingRef: String) async throws -> AuthenticationResponse
     
     /// Waits until an enchanted link authentication has been verified by the user.
     ///
-    /// This function will only return a `DescopeSession` successfully after the user
-    /// presses the enchanted link in the authentication email.
+    /// This function will only return an `AuthenticationResponse` successfully after
+    /// the user presses the enchanted link in the authentication email.
     ///
     /// This function calls `checkForSession` periodically until the authentication
     /// is verified. It will keep polling even if it encounters network errors, but
@@ -487,8 +468,8 @@ public protocol DescopeEnchantedLink {
     ///   - timeout: An optional number of seconds to poll for until giving up. If not
     ///     given a default value of 2 minutes is used.
     ///
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> DescopeSession
+    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> AuthenticationResponse
 }
 
 
@@ -499,7 +480,6 @@ public protocol DescopeEnchantedLink {
 ///
 /// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeOAuth {
-    
     /// Starts an OAuth redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
@@ -517,13 +497,13 @@ public protocol DescopeOAuth {
     func start(provider: OAuthProvider, redirectURL: String?) async throws -> String
     
     /// Completes an OAuth redirect chain by exchanging the code received in
-    /// the `code` URL parameter for a `DescopeSession`.
+    /// the `code` URL parameter for an `AuthenticationResponse`.
     ///
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     ///
-    /// - Returns: Upon successful exchange a `DescopeSession` is returned.
-    func exchange(code: String) async throws -> DescopeSession
+    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    func exchange(code: String) async throws -> AuthenticationResponse
 }
 
 
@@ -534,7 +514,6 @@ public protocol DescopeOAuth {
 ///
 /// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeSSO {
-    
     /// Starts an SSO redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
@@ -552,11 +531,22 @@ public protocol DescopeSSO {
     func start(emailOrTenantName: String, redirectURL: String?) async throws -> String
     
     /// Completes an SSO redirect chain by exchanging the code received in
-    /// the `code` URL parameter for a `DescopeSession`.
+    /// the `code` URL parameter for an `AuthenticationResponse`.
     ///
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     ///
-    /// - Returns: Upon successful exchange a `DescopeSession` is returned.
-    func exchange(code: String) async throws -> DescopeSession
+    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    func exchange(code: String) async throws -> AuthenticationResponse
+}
+
+/// Access key authentication methods
+public protocol DescopeAccessKey {
+    /// Exchanges an access key for a `DescopeToken` that can be used to perform
+    /// authenticated requests.
+    ///
+    /// - Parameter accessKey: the access key's clear text
+    ///
+    /// - Returns: Upon successful exchange a `DescopeToken` is returned.
+    func exchange(accessKey: String) async throws -> DescopeToken
 }

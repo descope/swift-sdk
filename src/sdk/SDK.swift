@@ -12,6 +12,8 @@ public class DescopeSDK {
     public let oauth: DescopeOAuth
     public let sso: DescopeSSO
 
+    public var sessionManager: DescopeSessionManager
+    
     public convenience init(projectId: String) {
         self.init(config: DescopeConfig(projectId: projectId))
     }
@@ -22,7 +24,7 @@ public class DescopeSDK {
     }
     
     init(config: DescopeConfig, client: DescopeClient) {
-        precondition(config.projectId != "", "ProjectId should not be an empty string")
+        assert(config.projectId != "", "The projectId value must not be an empty string")
         self.config = config
         self.auth = Auth(client: client)
         self.accessKey = AccessKey(client: client)
@@ -33,6 +35,7 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
+        self.sessionManager = DescopeSessionManager(storage: SessionStorage(), lifecycle: SessionLifecycle(auth: auth))
     }
 }
 

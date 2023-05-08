@@ -6,7 +6,7 @@ class OTP: DescopeOTP {
         self.client = client
     }
 
-    func signUp(with method: DeliveryMethod, loginId: String, user: User) async throws -> String {
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser) async throws -> String {
         return try await client.otpSignUp(with: method, loginId: loginId, user: user).convert(method: method)
     }
     
@@ -18,7 +18,7 @@ class OTP: DescopeOTP {
         return try await client.otpSignUpIn(with: method, loginId: loginId).convert(method: method)
     }
     
-    func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> DescopeSession {
+    func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> AuthenticationResponse {
         return try await client.otpVerify(with: method, loginId: loginId, code: code).convert()
     }
     

@@ -1,8 +1,43 @@
 
+import Foundation
+
+extension DescopeClient.UserResponse {
+    func convert() -> DescopeUser {
+        let createdAt = Date(timeIntervalSince1970: TimeInterval(createdTime))
+        var me = DescopeUser(userId: userId, loginIds: loginIds, createdAt: createdAt, isVerifiedEmail: false, isVerifiedPhone: false)
+        if let name, !name.isEmpty {
+            me.name = name
+        }
+        if let picture, !picture.isEmpty {
+            me.picture = picture
+        }
+        if let email, !email.isEmpty {
+            me.email = email
+            me.isVerifiedEmail = verifiedEmail
+        }
+        if let phone, !phone.isEmpty {
+            me.phone = phone
+            me.isVerifiedPhone = verifiedPhone
+        }
+        return me
+    }
+}
+
 extension DescopeClient.JWTResponse {
-    func convert() throws -> DescopeSession {
+    func convert() throws -> AuthenticationResponse {
         guard let refreshJwt else { throw DescopeError.decodeError.with(message: "Missing refresh JWT") }
-        return try DescopeSession(sessionJwt: sessionJwt, refreshJwt: refreshJwt)
+        guard let user else { throw DescopeError.decodeError.with(message: "Missing user details") }
+        return try AuthenticationResponse(sessionToken: Token(jwt: sessionJwt), refreshToken: Token(jwt: refreshJwt), isFirstAuthentication: firstSeen, user: user.convert())
+    }
+}
+
+extension DescopeClient.JWTResponse {
+    func convert() throws -> RefreshResponse {
+        var refreshToken: DescopeToken?
+        if let refreshJwt {
+            refreshToken = try Token(jwt: refreshJwt)
+        }
+        return try RefreshResponse(sessionToken: Token(jwt: sessionJwt), refreshToken: refreshToken)
     }
 }
 

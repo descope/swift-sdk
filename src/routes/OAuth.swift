@@ -10,7 +10,7 @@ class OAuth: DescopeOAuth {
         return try await client.oauthStart(provider: provider, redirectURL: redirectURL).url
     }
     
-    func exchange(code: String) async throws -> DescopeSession {
+    func exchange(code: String) async throws -> AuthenticationResponse {
         return try await client.oauthExchange(code: code).convert()
     }
 }

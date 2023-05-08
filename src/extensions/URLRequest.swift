@@ -2,17 +2,17 @@
 import Foundation
 
 public extension URLRequest {
-    mutating func addAuthorizationHeader(from session: DescopeSession) {
-        let header = authorizationHeader(projectId: session.projectId, jwt: session.sessionJwt)
-        addValue(header.value, forHTTPHeaderField: header.field)
+    mutating func addAuthorizationHTTPHeaderField(from sessionManager: DescopeSessionManager) async throws {
+        guard let session = sessionManager.session else { return }
+        try await sessionManager.refreshSessionIfNeeded()
+        addAuthorizationHTTPHeaderField(from: session)
     }
     
-    mutating func addAuthorizationHeader(from token: DescopeToken) {
-        let header = authorizationHeader(projectId: token.projectId, jwt: token.jwt)
-        addValue(header.value, forHTTPHeaderField: header.field)
+    mutating func addAuthorizationHTTPHeaderField(from session: DescopeSession) {
+        addAuthorizationHTTPHeaderField(from: session.sessionToken)
     }
-}
 
-private func authorizationHeader(projectId: String, jwt: String) -> (field: String, value: String) {
-    return ("Authorization", "Bearer \(projectId):\(jwt)")
+    mutating func addAuthorizationHTTPHeaderField(from token: DescopeToken) {
+        addValue("Bearer \(token.jwt)", forHTTPHeaderField: "Authorization")
+    }
 }

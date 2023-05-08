@@ -1,4 +1,3 @@
-import Foundation
 
 class Auth: DescopeAuth {
     let client: DescopeClient
@@ -7,29 +6,15 @@ class Auth: DescopeAuth {
         self.client = client
     }
     
-    func me(refreshJwt: String) async throws -> MeResponse {
+    func me(refreshJwt: String) async throws -> DescopeUser {
         return try await client.me(refreshJwt: refreshJwt).convert()
     }
 
-    func refreshSession(refreshJwt: String) async throws -> DescopeSession {
+    func refreshSession(refreshJwt: String) async throws -> RefreshResponse {
         return try await client.refresh(refreshJwt: refreshJwt).convert()
     }
 
     func logout(refreshJwt: String) async throws {
         try await client.logout(refreshJwt: refreshJwt)
-    }
-}
-
-private extension DescopeClient.UserResponse {
-    func convert() -> MeResponse {
-        let createdAt = Date(timeIntervalSince1970: TimeInterval(createdTime))
-        var me = MeResponse(userId: userId, loginIds: loginIds, name: name, picture: picture, createdAt: createdAt)
-        if let value = email {
-            me.email = (value: value, isVerified: verifiedEmail)
-        }
-        if let value = phone {
-            me.phone = (value: value, isVerified: verifiedPhone)
-        }
-        return me
     }
 }

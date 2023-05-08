@@ -1,7 +1,7 @@
 
 import Foundation
 
-/// A `DescopeSession` is returned as a result of a successful sign in operation.
+/// The `DescopeSession` class represents a successful sign in operation.
 public class DescopeSession {
     /// The wrapper for the short lived JWT that can be sent with every server
     /// request that requires authentication.
@@ -103,23 +103,12 @@ public extension DescopeSession {
         refreshToken = refreshResponse.refreshToken ?? refreshToken
     }
     
-    func update(with sessionToken: DescopeToken) {
-        self.sessionToken = sessionToken
-    }
-    
-    func update(with sessionJwt: String) throws { // TODO remove if DescopeToken is public
-        sessionToken = try Token(jwt: sessionJwt)
+    func update(with user: DescopeUser) {
+        self.user = user
     }
 }
 
-// Utils
-
-extension DescopeSession: Equatable {
-    /// Two `DescopeSession` objects are considered equal iff both of their JWTs are equal.
-    public static func == (lhs: DescopeSession, rhs: DescopeSession) -> Bool {
-        return lhs.refreshJwt == rhs.refreshJwt && lhs.sessionJwt == rhs.sessionJwt
-    }
-}
+// Description
 
 extension DescopeSession: CustomStringConvertible {
     /// Returns a textual representation of this `DescopeSession`.

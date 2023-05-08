@@ -1,11 +1,22 @@
 
 import Foundation
 
+/// This protocol can be used to customize how a `DescopeSessionManager` object
+/// manages its `DescopeSession` while the application is running.
 public protocol DescopeSessionLifecycle: AnyObject {
+    /// Set by the session manager whenever the current active session changes.
     var session: DescopeSession? { get set }
+    
+    /// Called the session manager to conditionally refresh the active session.
     func refreshSessionIfNeeded() async throws
 }
 
+/// The default implementation of the `DescopeSessionLifecycle` protocol.
+///
+/// The `SessionLifecycle` class periodically checks if the session needs
+/// to be refreshed (every 30 seconds by default). Its implementation of the
+/// `refreshSessionIfNeeded` function will refresh the session if it's expired
+/// or will expire soon (within 60 seconds by default).
 public class SessionLifecycle: DescopeSessionLifecycle {
     public let auth: DescopeAuth
 
@@ -48,7 +59,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] _ in
-            self?.refreshSessionAsync()
+            self?.periodicRefresh()
         }
     }
     
@@ -57,7 +68,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         timer = nil
     }
     
-    private func refreshSessionAsync() {
+    private func periodicRefresh() {
         guard let session, shouldRefresh(session) else { return }
         auth.refreshSession(refreshJwt: session.refreshJwt) { result in
             guard case .success(let response) = result else { return }

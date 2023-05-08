@@ -8,8 +8,8 @@ extension DescopeClient.UserResponse {
         if let name, !name.isEmpty {
             me.name = name
         }
-        if let picture, !picture.isEmpty {
-            me.picture = picture
+        if let picture, let url = URL(string: picture) {
+            me.picture = url
         }
         if let email, !email.isEmpty {
             me.email = email

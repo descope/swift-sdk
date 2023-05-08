@@ -32,4 +32,16 @@ public class DescopeSessionManager {
             storage.saveSession(session)
         }
     }
+    
+    public func updateSession(with refreshResponse: RefreshResponse) {
+        guard let session else { return }
+        session.update(with: refreshResponse)
+        storage.saveSession(session)
+    }
+    
+    public func updateSession(with user: DescopeUser) {
+        guard let session else { return }
+        session.update(with: user)
+        storage.saveSession(session)
+    }
 }

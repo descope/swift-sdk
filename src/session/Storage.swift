@@ -1,9 +1,16 @@
 
 import Foundation
 
+/// This protocol can be used to customize how a `DescopeSessionManager` object
+/// stores the active `DescopeSession` between application launches.
 public protocol DescopeSessionStorage: AnyObject {
+    /// Called when a new session was set or an existing session was updated.
     func saveSession(_ session: DescopeSession)
+    
+    /// Called when a session manager is created to load any existing session.
     func loadSession() -> DescopeSession?
+    
+    /// Called when the session is set to `nil` on a session manager.
     func removeSession()
 }
 
@@ -14,20 +21,27 @@ public protocol DescopeSessionStorage: AnyObject {
 /// are encrypted at rest with a key that only becomes available to the OS after the
 /// device is unlocked once after reboot.
 public class SessionStorage: DescopeSessionStorage {
+    
+    public let itemName: String
+    
+    public init(itemName: String = "shared-session") {
+        self.itemName = itemName
+    }
+    
     public func saveSession(_ session: DescopeSession) {
         let value = KeychainSession(sessionJwt: session.sessionJwt, refreshJwt: session.refreshJwt, user: session.user)
         guard let data = try? JSONEncoder().encode(value) else { return }
-        saveItem(named: "session", data: data)
+        saveItem(named: itemName, data: data)
     }
     
     public func loadSession() -> DescopeSession? {
-        guard let data = loadItem(named: "session") else { return nil }
+        guard let data = loadItem(named: itemName) else { return nil }
         guard let value = try? JSONDecoder().decode(KeychainSession.self, from: data) else { return nil }
         return try? DescopeSession(sessionJwt: value.sessionJwt, refreshJwt: value.refreshJwt, user: value.user)
     }
     
     public func removeSession() {
-        removeItem(named: "session")
+        removeItem(named: itemName)
     }
     
     // Keychain

@@ -24,9 +24,9 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         self.auth = auth
     }
     
-    public var stalenessAllowedInterval: TimeInterval = 60
+    public var stalenessAllowedInterval: TimeInterval = 60 /* seconds */
     
-    public var stalenessCheckFrequency: TimeInterval = 30
+    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */
     
     public var session: DescopeSession? {
         didSet {
@@ -42,7 +42,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     public func refreshSessionIfNeeded() async throws {
         guard let session, shouldRefresh(session) else { return }
         let response = try await auth.refreshSession(refreshJwt: session.refreshJwt) // TODO check for refresh failure to not try again and again after expiry
-        session.update(with: response)
+        session.updateTokens(with: response)
     }
     
     // Internal
@@ -75,7 +75,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         auth.refreshSession(refreshJwt: session.refreshJwt) { result in
             guard case .success(let response) = result else { return }
             DispatchQueue.main.async {
-                session.update(with: response)
+                session.updateTokens(with: response)
             }
         }
     }

@@ -94,13 +94,13 @@ public extension DescopeSession {
     ///
     ///     if session.sessionToken.isExpired {
     ///         let refreshResponse = try await Descope.auth.refreshSession(refreshJwt: session.refreshJwt)
-    ///         session.update(with: refreshResponse)
+    ///         session.updateTokens(with: refreshResponse)
     ///     }
     ///
     /// - Important: It's recommended to use a `DescopeSessionManager` to manage sessions,
-    ///     in which case you should call `updateSession` on the manager itself, or
+    ///     in which case you should call `updateTokens` on the manager itself, or
     ///     just call `refreshSessionIfNeeded` to do everything for you.
-    func update(with refreshResponse: RefreshResponse) {
+    func updateTokens(with refreshResponse: RefreshResponse) {
         sessionToken = refreshResponse.sessionToken
         refreshToken = refreshResponse.refreshToken ?? refreshToken
     }
@@ -108,12 +108,12 @@ public extension DescopeSession {
     /// Updates the session user's details with those from another `DescopeUser` value.
     ///
     ///     let userResponse = try await Descope.auth.me(refreshJwt: session.refreshJwt)
-    ///     session.update(with: userResponse)
+    ///     session.updateUser(with: userResponse)
     ///
     /// - Important: It's recommended to use a `DescopeSessionManager` to manage sessions,
-    ///     in which case you should call `updateSession` on the manager itself instead
+    ///     in which case you should call `updateUser` on the manager itself instead
     ///     to ensure that the updated user details are saved.
-    func update(with user: DescopeUser) {
+    func updateUser(with user: DescopeUser) {
         self.user = user
     }
 }

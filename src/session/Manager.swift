@@ -142,9 +142,9 @@ public class DescopeSessionManager {
     /// - Note: If the `DescopeSessionManager` object was created with a custom `storage`
     ///     object then the exact behavior depends on the specific implementation of the
     ///     `DescopeSessionStorage` protocol.
-    public func updateSession(with refreshResponse: RefreshResponse) {
+    public func updateTokens(with refreshResponse: RefreshResponse) {
         guard let session else { return }
-        session.update(with: refreshResponse)
+        session.updateTokens(with: refreshResponse)
         storage.saveSession(session)
     }
     
@@ -155,13 +155,13 @@ public class DescopeSessionManager {
     /// keychain before returning.
     ///
     ///     let userResponse = try await Descope.auth.me(refreshJwt: session.refreshJwt)
-    ///     Descope.sessionManager.updateSession(with: userResponse)
+    ///     Descope.sessionManager.updateUser(with: userResponse)
     ///
     /// By default, the manager saves the updated session to the keychain before returning,
     /// but this can be overridden with a custom `DescopeSessionStorage` object.
-    public func updateSession(with user: DescopeUser) {
+    public func updateUser(with user: DescopeUser) {
         guard let session else { return }
-        session.update(with: user)
+        session.updateUser(with: user)
         storage.saveSession(session)
     }
 }

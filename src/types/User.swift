@@ -84,6 +84,6 @@ extension DescopeUser: CustomStringConvertible {
         if let name {
             extras += ", name: \"\(name)\""
         }
-        return "DescopeUser(id: \"\(userId)\"\(extras)"
+        return "DescopeUser(id: \"\(userId)\"\(extras))"
     }
 }

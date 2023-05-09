@@ -13,10 +13,10 @@ public protocol DescopeSessionLifecycle: AnyObject {
 
 /// The default implementation of the `DescopeSessionLifecycle` protocol.
 ///
-/// The `SessionLifecycle` class periodically checks if the session needs
-/// to be refreshed (every 30 seconds by default). Its implementation of the
-/// `refreshSessionIfNeeded` function will refresh the session if it's expired
-/// or will expire soon (within 60 seconds by default).
+/// The `SessionLifecycle` class periodically checks if the session needs to be
+/// refreshed (every 30 seconds by default). The `refreshSessionIfNeeded` function
+/// will refresh the session if it's about to expire (within 60 seconds by default)
+/// or if it's already expired.
 public class SessionLifecycle: DescopeSessionLifecycle {
     public let auth: DescopeAuth
 
@@ -59,7 +59,9 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] _ in
-            self?.periodicRefresh()
+            DispatchQueue.main.async {
+                self?.periodicRefresh()
+            }
         }
     }
     

@@ -3,14 +3,14 @@ public class DescopeSDK {
     public let config: DescopeConfig
     
     public let auth: DescopeAuth
-    public let accessKey: DescopeAccessKey
     public let otp: DescopeOTP
     public let totp: DescopeTOTP
-    public let password: DescopePassword
     public let magicLink: DescopeMagicLink
     public let enchantedLink: DescopeEnchantedLink
     public let oauth: DescopeOAuth
     public let sso: DescopeSSO
+    public let password: DescopePassword
+    public let accessKey: DescopeAccessKey
 
     public var sessionManager: DescopeSessionManager
     
@@ -35,7 +35,7 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
-        self.sessionManager = DescopeSessionManager(storage: SessionStorage(), lifecycle: SessionLifecycle(auth: auth))
+        self.sessionManager = DescopeSessionManager(storage: SessionStorage(key: config.projectId), lifecycle: SessionLifecycle(auth: auth))
     }
 }
 

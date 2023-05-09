@@ -4,50 +4,59 @@ import Foundation
 /// This protocol can be used to customize how a `DescopeSessionManager` object
 /// stores the active `DescopeSession` between application launches.
 public protocol DescopeSessionStorage: AnyObject {
-    /// Called when a new session was set or an existing session was updated.
+    /// Called by the session manager when a new session was set or an
+    /// existing session was updated.
     func saveSession(_ session: DescopeSession)
     
-    /// Called when a session manager is created to load any existing session.
+    /// Called by the session manager when it's initialized to load any
+    /// existing session.
     func loadSession() -> DescopeSession?
     
-    /// Called when the session is set to `nil` on a session manager.
+    /// Called by the session manager when its session is set to `nil`.
     func removeSession()
 }
 
 /// The default implementation of the `DescopeSessionStorage` protocol.
 ///
-/// The `SessionStorage` class ensures that the `DescopeSession` is kept in a secure
-/// manner in the devices's keychain. On iOS the keychain guarantees that the tokens
-/// are encrypted at rest with a key that only becomes available to the OS after the
-/// device is unlocked once after reboot.
-public class SessionStorage: DescopeSessionStorage {
+/// The `SessionStorage` class ensures that the `DescopeSession` is kept in
+/// a secure manner in the devices's keychain. On iOS the keychain guarantees
+/// that the tokens are encrypted at rest with an encryption key that only
+/// becomes available to the operating system after the device is unlocked
+/// at least once after it's powered on.
+///
+/// For your convenience, you can subclass `SessionStorage` and override
+/// the `loadItem`, `saveItem` and `removeItem` functions to create a similar
+/// implementation that just uses a different backing store.
+open class SessionStorage: DescopeSessionStorage {
     
-    public let itemName: String
+    public let key: String
     
-    public init(itemName: String = "shared-session") {
-        self.itemName = itemName
+    private var lastValue: StorageHelper?
+    
+    public init(key: String) {
+        self.key = key
     }
     
     public func saveSession(_ session: DescopeSession) {
-        let value = KeychainSession(sessionJwt: session.sessionJwt, refreshJwt: session.refreshJwt, user: session.user)
+        let value = StorageHelper(sessionJwt: session.sessionJwt, refreshJwt: session.refreshJwt, user: session.user)
+        guard value != lastValue else { return }
         guard let data = try? JSONEncoder().encode(value) else { return }
-        saveItem(named: itemName, data: data)
+        saveItem(data: data)
+        lastValue = value
     }
     
     public func loadSession() -> DescopeSession? {
-        guard let data = loadItem(named: itemName) else { return nil }
-        guard let value = try? JSONDecoder().decode(KeychainSession.self, from: data) else { return nil }
+        guard let data = loadItem() else { return nil }
+        guard let value = try? JSONDecoder().decode(StorageHelper.self, from: data) else { return nil }
         return try? DescopeSession(sessionJwt: value.sessionJwt, refreshJwt: value.refreshJwt, user: value.user)
     }
     
     public func removeSession() {
-        removeItem(named: itemName)
+        removeItem()
     }
     
-    // Keychain
-    
-    private func loadItem(named name: String) -> Data? {
-        var attrs = attributesForItem(named: name)
+    open func loadItem() -> Data? {
+        var attrs = attributesForItem(key: key)
         attrs[kSecReturnData as String] = true
         attrs[kSecMatchLimit as String] = kSecMatchLimitOne
         
@@ -56,8 +65,8 @@ public class SessionStorage: DescopeSessionStorage {
         return value as? Data
     }
     
-    private func saveItem(named name: String, data: Data) {
-        let attrs = attributesForItem(named: name)
+    open func saveItem(data: Data) {
+        let attrs = attributesForItem(key: key)
         
         let values: [String: Any] = [
             kSecValueData as String: data,
@@ -73,22 +82,22 @@ public class SessionStorage: DescopeSessionStorage {
         }
     }
     
-    private func removeItem(named name: String) {
-        let attrs = attributesForItem(named: name)
+    open func removeItem() {
+        let attrs = attributesForItem(key: key)
         SecItemDelete(attrs as CFDictionary)
-    }
-
-    private func attributesForItem(named name: String) -> [String: Any] {
-        return [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "com.descope.DescopeKit",
-            kSecAttrAccount as String: name,
-        ]
     }
 }
 
+private func attributesForItem(key: String) -> [String: Any] {
+    return [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: "com.descope.DescopeKit",
+        kSecAttrAccount as String: key,
+    ]
+}
+
 /// A helper struct for serializing the `DescopeSession` data.
-private struct KeychainSession: Codable {
+private struct StorageHelper: Codable, Equatable {
     var sessionJwt: String
     var refreshJwt: String
     var user: DescopeUser

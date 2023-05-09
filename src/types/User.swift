@@ -11,7 +11,7 @@ import Foundation
 /// code. The authentication response has a `DescopeUser` property which can be used
 /// directly or later on when it's kept in the `DescopeSession`.
 ///
-///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "john@appleseed.com", code: "123456")
+///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
 ///     print("Finished OTP login for user: \(authResponse.user)")
 ///
 ///     Descope.sessionManager.session = DescopeSession(from: authResponse)
@@ -28,7 +28,7 @@ import Foundation
 /// In the code above we check that there's an active `DescopeSession` in the shared
 /// session manager. If so we ask the Descope server for the latest user details and
 /// then update the `DescopeSession` with them.
-public struct DescopeUser: Codable {
+public struct DescopeUser: Codable, Equatable {
     
     /// The unique identifier for the user in Descope.
     ///
@@ -70,4 +70,20 @@ public struct DescopeUser: Codable {
     /// Whether the phone number has been verified to be a valid authentication method
     /// for this user. If `phone` is `nil` then this is always `false`.
     public var isVerifiedPhone: Bool
+}
+
+extension DescopeUser: CustomStringConvertible {
+    /// Returns a textual representation of this `DescopeUser` object.
+    ///
+    /// It returns a string with the user's unique id, login id, and name.
+    public var description: String {
+        var extras = ""
+        if let loginId = loginIds.first {
+            extras += ", loginId: \"\(loginId)\""
+        }
+        if let name {
+            extras += ", name: \"\(name)\""
+        }
+        return "DescopeUser(id: \"\(userId)\"\(extras)"
+    }
 }

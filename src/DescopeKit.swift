@@ -5,16 +5,6 @@
 /// in most app architectures. If you prefer a different approach you can also create
 /// an instance of the `DescopeSDK` class instead.
 public enum Descope {
-    
-    /// The Descope SDK name
-    public static let name = "DescopeKit"
-    
-    /// The Descope SDK version
-    public static let version = "0.9.1"
-
-    
-    // MARK: Initialization
-    
     /// The projectId of your Descope project.
     ///
     /// You will most likely want to set this value in your application's initialization code,
@@ -40,47 +30,60 @@ public enum Descope {
         }
     }
     
-    
-    // MARK: Session Management
-    
+    /// Manages the storage and lifetime of a `DescopeSession`.
+    ///
+    /// You can use this `DescopeSessionManager` object as a shared instance to manage
+    /// authenticated sessions in your application.
+    ///
+    ///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
+    ///     let session = DescopeSession(from: authResponse)
+    ///     Descope.sessionManager.manageSession(session)
+    ///
+    /// See the documentation for `DescopeSessionManager` for more details.
     public static var sessionManager: DescopeSessionManager {
         get { sdk.sessionManager }
         set { sdk.sessionManager = newValue }
     }
-    
-    
-    // MARK: SDK Routes
-    
-    /// General functions
-    public static var auth: DescopeAuth { sdk.auth }
-    
-    /// Authentication with access keys
-    public static var accessKey: DescopeAccessKey { sdk.accessKey }
-    
-    /// Authentication with one time codes
-    public static var otp: DescopeOTP { sdk.otp }
-    
-    /// Authentication with TOTP
-    public static var totp: DescopeTOTP { sdk.totp }
-    
-    /// Authentication with passwords
-    public static var password: DescopePassword { sdk.password }
+}
 
-    /// Authentication with magic links
-    public static var magicLink: DescopeMagicLink { sdk.magicLink }
+/// Authentication functions that call the Descope API.
+public extension Descope {
+    /// General functions.
+    static var auth: DescopeAuth { sdk.auth }
     
-    /// Authentication with enchanted links
-    public static var enchantedLink: DescopeEnchantedLink { sdk.enchantedLink }
+    /// Authentication with OTP codes via email or phone.
+    static var otp: DescopeOTP { sdk.otp }
     
-    /// Authentication with OAuth
-    public static var oauth: DescopeOAuth { sdk.oauth }
+    /// Authentication with TOTP codes.
+    static var totp: DescopeTOTP { sdk.totp }
     
-    /// Authentication with SSO
-    public static var sso: DescopeSSO { sdk.sso }
+    /// Authentication with magic links.
+    static var magicLink: DescopeMagicLink { sdk.magicLink }
     
+    /// Authentication with enchanted links.
+    static var enchantedLink: DescopeEnchantedLink { sdk.enchantedLink }
     
-    // MARK: Internal
+    /// Authentication with OAuth.
+    static var oauth: DescopeOAuth { sdk.oauth }
+    
+    /// Authentication with SSO.
+    static var sso: DescopeSSO { sdk.sso }
+    
+    /// Authentication with passwords.
+    static var password: DescopePassword { sdk.password }
 
+    /// Exchanging access keys for session tokens.
+    static var accessKey: DescopeAccessKey { sdk.accessKey }
+    
     /// The underlying `DescopeSDK` object used by the `Descope` singleton.
     private static let sdk = DescopeSDK(config: config)
+}
+
+/// SDK information
+public extension Descope {
+    /// The Descope SDK name
+    static let name = "DescopeKit"
+    
+    /// The Descope SDK version
+    static let version = "0.9.1"
 }

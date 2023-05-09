@@ -34,7 +34,7 @@ extension DescopeClient.JWTResponse {
 extension DescopeClient.JWTResponse {
     func convert() throws -> RefreshResponse {
         var refreshToken: DescopeToken?
-        if let refreshJwt {
+        if let refreshJwt, !refreshJwt.isEmpty {
             refreshToken = try Token(jwt: refreshJwt)
         }
         return try RefreshResponse(sessionToken: Token(jwt: sessionJwt), refreshToken: refreshToken)

@@ -35,7 +35,7 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
-        self.sessionManager = DescopeSessionManager(storage: SessionStorage(key: config.projectId), lifecycle: SessionLifecycle(auth: auth))
+        self.sessionManager = DescopeSessionManager(storage: SessionStorage(projectId: config.projectId), lifecycle: SessionLifecycle(auth: auth))
     }
 }
 

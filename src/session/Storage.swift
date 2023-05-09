@@ -106,9 +106,15 @@ public extension SessionStorage {
         public override func saveItem(key: String, data: Data) {
             let query = queryForItem(key: key)
             
+            #if os(macOS)
+            guard let access = SecAccessCreateWithOwnerAndACL(getuid(), 0, SecAccessOwnerType(kSecUseOnlyUID), nil, nil) else { return }
+            #else
+            let access = kSecAttrAccessibleAfterFirstUnlock
+            #endif
+            
             let values: [String: Any] = [
                 kSecValueData as String: data,
-                kSecAttrAccess as String: kSecAttrAccessibleAfterFirstUnlock,
+                kSecAttrAccess as String: access,
             ]
             
             let result = SecItemCopyMatching(query as CFDictionary, nil)

@@ -104,19 +104,17 @@ public extension SessionStorage {
         }
         
         public override func saveItem(key: String, data: Data) {
-            let query = queryForItem(key: key)
-            
-            #if os(macOS)
-            guard let access = SecAccessCreateWithOwnerAndACL(getuid(), 0, SecAccessOwnerType(kSecUseOnlyUID), nil, nil) else { return }
-            #else
-            let access = kSecAttrAccessibleAfterFirstUnlock
-            #endif
-            
-            let values: [String: Any] = [
+            var values: [String: Any] = [
                 kSecValueData as String: data,
-                kSecAttrAccess as String: access,
             ]
             
+            #if os(macOS)
+            values[kSecAttrAccess as String] = SecAccessCreateWithOwnerAndACL(getuid(), 0, SecAccessOwnerType(kSecUseOnlyUID), nil, nil)
+            #else
+            values[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            #endif
+
+            let query = queryForItem(key: key)
             let result = SecItemCopyMatching(query as CFDictionary, nil)
             if result == errSecSuccess {
                 SecItemUpdate(query as CFDictionary, values as CFDictionary)
@@ -127,8 +125,8 @@ public extension SessionStorage {
         }
         
         public override func removeItem(key: String) {
-            let attrs = queryForItem(key: key)
-            SecItemDelete(attrs as CFDictionary)
+            let query = queryForItem(key: key)
+            SecItemDelete(query as CFDictionary)
         }
         
         private func queryForItem(key: String) -> [String: Any] {

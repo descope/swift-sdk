@@ -56,7 +56,7 @@ public class DescopeSessionManager {
     public let lifecycle: DescopeSessionLifecycle
 
     /// The active `DescopeSession` managed by this object.
-    public var session: DescopeSession?
+    public private(set) var session: DescopeSession?
 
     /// Creates a new `DescopeSessionManager` object.
     ///

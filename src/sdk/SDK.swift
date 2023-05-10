@@ -12,7 +12,7 @@ public class DescopeSDK {
     public let password: DescopePassword
     public let accessKey: DescopeAccessKey
 
-    public lazy var sessionManager = DescopeSessionManager(sdk: self)
+    public lazy var sessionManager: DescopeSessionManager = DescopeSessionManager(sdk: self)
     
     public convenience init(projectId: String) {
         self.init(config: DescopeConfig(projectId: projectId))
@@ -23,7 +23,7 @@ public class DescopeSDK {
         self.init(config: config, client: client)
     }
     
-    private init(config: DescopeConfig, client: DescopeClient) {
+    init(config: DescopeConfig, client: DescopeClient) {
         assert(config.projectId != "", "The projectId value must not be an empty string")
         self.config = config
         self.auth = Auth(client: client)

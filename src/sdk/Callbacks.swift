@@ -434,7 +434,7 @@ public extension DescopeOAuth {
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     /// 
-    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
     func exchange(code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -726,7 +726,7 @@ public extension DescopeSSO {
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     /// 
-    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
     func exchange(code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {

@@ -81,7 +81,7 @@ public protocol DescopeOTP {
     ///   - loginId: The loginId value used to initiate the authentication.
     ///   - code: The code to validate.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> AuthenticationResponse
     
     /// Updates an existing user by adding an email address.
@@ -156,7 +156,7 @@ public protocol DescopeTOTP {
     ///   - loginId: The `loginId` of the user trying to log in.
     ///   - code: The code to validate.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(loginId: String, code: String) async throws -> AuthenticationResponse
 }
 
@@ -262,11 +262,11 @@ public protocol DescopeMagicLink {
     ///
     /// In order to effectively do this, the link generated should refer back to
     /// the app, then the `t` URL parameter should be extracted and sent to this
-    /// function. Upon successful authentication an `AuthenticationResponse` is returned.
+    /// function. An `AuthenticationResponse` value upon successful authentication.
     ///
     /// - Parameter token: The extracted token from the `t` URL parameter from the magic link.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(token: String) async throws -> AuthenticationResponse
 }
 
@@ -379,7 +379,7 @@ public protocol DescopeEnchantedLink {
     ///
     /// - Parameter pendingRef: The pendingRef value from an `EnchantedLinkResponse` object.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func checkForSession(pendingRef: String) async throws -> AuthenticationResponse
     
     /// Waits until an enchanted link authentication has been verified by the user.
@@ -400,7 +400,7 @@ public protocol DescopeEnchantedLink {
     ///   - timeout: An optional number of seconds to poll for until giving up. If not
     ///     given a default value of 2 minutes is used.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> AuthenticationResponse
 }
 
@@ -482,7 +482,7 @@ public protocol DescopePassword {
     ///   - user: Details about the user signing up.
     ///   - password: The user's password.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func signUp(loginId: String, user: SignUpUser, password: String) async throws -> AuthenticationResponse
     
     /// Authenticates an existing user using a password.
@@ -492,7 +492,7 @@ public protocol DescopePassword {
     ///     typically an email, phone, or any other unique identifier.
     ///   - password: The user's password.
     ///
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func signIn(loginId: String, password: String) async throws -> AuthenticationResponse
 
     /// Updates a user's password.
@@ -553,6 +553,6 @@ public protocol DescopeAccessKey {
     ///
     /// - Parameter accessKey: the access key's clear text
     ///
-    /// - Returns: Upon successful exchange a `DescopeToken` is returned.
+    /// - Returns: A `DescopeToken` upon successful exchange.
     func exchange(accessKey: String) async throws -> DescopeToken
 }

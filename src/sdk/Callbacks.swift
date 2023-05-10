@@ -15,7 +15,7 @@ public extension DescopeAccessKey {
     /// 
     /// - Parameter accessKey: the access key's clear text
     /// 
-    /// - Returns: Upon successful exchange a `DescopeToken` is returned.
+    /// - Returns: A `DescopeToken` upon successful exchange.
     func exchange(accessKey: String, completion: @escaping (Result<DescopeToken, Error>) -> Void) {
         Task {
             do {
@@ -212,7 +212,7 @@ public extension DescopeEnchantedLink {
     /// 
     /// - Parameter pendingRef: The pendingRef value from an `EnchantedLinkResponse` object.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func checkForSession(pendingRef: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -241,7 +241,7 @@ public extension DescopeEnchantedLink {
     ///   - timeout: An optional number of seconds to poll for until giving up. If not
     ///     given a default value of 2 minutes is used.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func pollForSession(pendingRef: String, timeout: TimeInterval?, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -387,11 +387,11 @@ public extension DescopeMagicLink {
     /// 
     /// In order to effectively do this, the link generated should refer back to
     /// the app, then the `t` URL parameter should be extracted and sent to this
-    /// function. Upon successful authentication an `AuthenticationResponse` is returned.
+    /// function. An `AuthenticationResponse` value upon successful authentication.
     /// 
     /// - Parameter token: The extracted token from the `t` URL parameter from the magic link.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(token: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -514,7 +514,7 @@ public extension DescopeOTP {
     ///   - loginId: The loginId value used to initiate the authentication.
     ///   - code: The code to validate.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(with method: DeliveryMethod, loginId: String, code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -584,7 +584,7 @@ public extension DescopePassword {
     ///   - user: Details about the user signing up.
     ///   - password: The user's password.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func signUp(loginId: String, user: SignUpUser, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -602,7 +602,7 @@ public extension DescopePassword {
     ///     typically an email, phone, or any other unique identifier.
     ///   - password: The user's password.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func signIn(loginId: String, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -787,7 +787,7 @@ public extension DescopeTOTP {
     ///   - loginId: The `loginId` of the user trying to log in.
     ///   - code: The code to validate.
     /// 
-    /// - Returns: Upon successful authentication an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
     func verify(loginId: String, code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {

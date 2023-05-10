@@ -434,7 +434,7 @@ public protocol DescopeOAuth {
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     ///
-    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
     func exchange(code: String) async throws -> AuthenticationResponse
 }
 
@@ -468,7 +468,7 @@ public protocol DescopeSSO {
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     ///
-    /// - Returns: Upon successful exchange an `AuthenticationResponse` is returned.
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
     func exchange(code: String) async throws -> AuthenticationResponse
 }
 

@@ -15,6 +15,12 @@ public protocol DescopeAuth {
     /// This can be called at any time as long as the `refreshJwt` is still valid.
     /// Typically called when the `sessionJwt` is expired or is about to expire.
     ///
+    /// - Important: It's recommended to let a `DescopeSessionManager` object manage
+    ///     sessions, in which case you can just call `refreshSessionIfNeeded` on the
+    ///     manager instead to refresh and update the session. You can also use the
+    ///     extension function on `URLRequest` to set the authorization header on a
+    ///     request, as it will ensure that the session is valid automatically.
+    ///
     /// - Parameter refreshJwt: the `refreshJwt` from an active `DescopeSession`.
     ///
     /// - Returns: A new `RefreshResponse` with a refreshed `sessionJwt`.

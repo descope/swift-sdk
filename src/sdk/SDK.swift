@@ -12,7 +12,7 @@ public class DescopeSDK {
     public let password: DescopePassword
     public let accessKey: DescopeAccessKey
 
-    public var sessionManager: DescopeSessionManager
+    public lazy var sessionManager = DescopeSessionManager(sdk: self)
     
     public convenience init(projectId: String) {
         self.init(config: DescopeConfig(projectId: projectId))
@@ -23,7 +23,7 @@ public class DescopeSDK {
         self.init(config: config, client: client)
     }
     
-    init(config: DescopeConfig, client: DescopeClient) {
+    private init(config: DescopeConfig, client: DescopeClient) {
         assert(config.projectId != "", "The projectId value must not be an empty string")
         self.config = config
         self.auth = Auth(client: client)
@@ -35,14 +35,15 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
-        self.sessionManager = DescopeSessionManager(storage: SessionStorage(projectId: config.projectId), lifecycle: SessionLifecycle(auth: auth))
     }
 }
 
-// Description
+// Internal
 
-extension DescopeSDK: CustomStringConvertible {
-    public var description: String {
-        return "DescopeSDK(project: \"\(config.projectId)\")"
+private extension DescopeSessionManager {
+    convenience init(sdk: DescopeSDK) {
+        let storage = SessionStorage(projectId: sdk.config.projectId)
+        let lifecycle = SessionLifecycle(auth: sdk.auth)
+        self.init(storage: storage, lifecycle: lifecycle)
     }
 }

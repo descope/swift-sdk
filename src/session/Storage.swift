@@ -53,10 +53,13 @@ public class SessionStorage: DescopeSessionStorage {
     public func loadSession() -> DescopeSession? {
         guard let data = try? store.loadItem(key: projectId) else { return nil }
         guard let value = try? JSONDecoder().decode(Value.self, from: data) else { return nil }
-        return try? DescopeSession(sessionJwt: value.sessionJwt, refreshJwt: value.refreshJwt, user: value.user)
+        let session = try? DescopeSession(sessionJwt: value.sessionJwt, refreshJwt: value.refreshJwt, user: value.user)
+        lastValue = value
+        return session
     }
     
     public func removeSession() {
+        lastValue = nil
         try? store.removeItem(key: projectId)
     }
     

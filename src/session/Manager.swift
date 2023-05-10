@@ -6,10 +6,10 @@ import Foundation
 ///
 /// The session manager takes care of loading and saving the session as well
 /// as ensuring that it's refreshed when needed. For the default instances of
-/// the `DescopeSessionManager` this means using the keychain for secure storage
-/// of the session and refreshing it a short while before it actually expires.
+/// the `DescopeSessionManager` class this means using the keychain for secure
+/// storage of the session and refreshing it a short while before it expires.
 ///
-/// Once the user finishes a sign in flow successfully you should set the
+/// Once the user completes a sign in flow successfully you should set the
 /// `DescopeSession` object as the active session of the session manager.
 ///
 ///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
@@ -50,10 +50,10 @@ import Foundation
 /// below for more details.
 public class DescopeSessionManager {
     /// The object that handles session storage for this manager.
-    public let storage: DescopeSessionStorage
+    private let storage: DescopeSessionStorage
     
     /// The object that handles session lifecycle for this manager.
-    public let lifecycle: DescopeSessionLifecycle
+    private let lifecycle: DescopeSessionLifecycle
 
     /// The active `DescopeSession` managed by this object.
     public private(set) var session: DescopeSession?

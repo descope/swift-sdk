@@ -43,9 +43,8 @@ class EnchantedLink: DescopeEnchantedLink {
             } catch DescopeError.enchantedLinkPending {
                 // sleep for a second before checking again
                 try await Task.sleep(nanoseconds: NSEC_PER_SEC)
-                // if the timer's expired then we throw as specific
-                // client side error that can be handled appropriately
-                // by the calling code
+                // if the timer's expired then we throw a specific error that
+                // can be handled appropriately by the calling code
                 guard Date() < pollingEndsAt else { throw DescopeError.enchantedLinkExpired }
             } catch let error as DescopeError where error == .networkError {
                 // we managed to start the enchanted link authentication

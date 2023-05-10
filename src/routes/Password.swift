@@ -6,11 +6,11 @@ class Password: DescopePassword {
         self.client = client
     }
     
-    func signUp(loginId: String, user: User, password: String) async throws -> DescopeSession {
+    func signUp(loginId: String, user: SignUpUser, password: String) async throws -> AuthenticationResponse {
         return try await client.passwordSignUp(loginId: loginId, user: user, password: password).convert()
     }
     
-    func signIn(loginId: String, password: String) async throws -> DescopeSession {
+    func signIn(loginId: String, password: String) async throws -> AuthenticationResponse {
         return try await client.passwordSignIn(loginId: loginId, password: password).convert()
     }
     

@@ -4,8 +4,6 @@ import Foundation
 import UIKit
 #endif
 
-// Requests
-
 /// The delivery method for an OTP or Magic Link message.
 public enum DeliveryMethod: String {
     case whatsapp
@@ -24,10 +22,10 @@ public enum OAuthProvider: String {
 }
 
 /// Used to provide additional details about a user in sign up calls.
-public struct User {
+public struct SignUpUser {
     public var name: String?
-    public var phone: String?
     public var email: String?
+    public var phone: String?
     
     public init(name: String? = nil, phone: String? = nil, email: String? = nil) {
         self.name = name
@@ -38,7 +36,6 @@ public struct User {
 
 /// Used to configure how user details are updated.
 public struct UpdateOptions: OptionSet {
-    
     /// When updating a user's email address or phone number if this option is set
     /// the new value will be added to the user's list of `loginIds`.
     public static let addToLoginIds = UpdateOptions(rawValue: 1)
@@ -58,68 +55,8 @@ public struct UpdateOptions: OptionSet {
     public static let onMergeUseExisting = UpdateOptions(rawValue: 2)
     
     public let rawValue: Int
+    
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
-}
-
-// Responses
-
-/// Returned from the me call.
-///
-/// The `userId` field is the unique identifier for the user in Descope, and it
-/// matches the `Subject` (`sub`) value in the user's JWT after logging in. The
-/// `loginIds` is the set of acceptable login identifiers for the user, e.g.,
-/// email addresses, phone numbers, usernames, etc.
-public struct MeResponse {
-    public var userId: String
-    public var loginIds: [String]
-    public var name: String?
-    public var picture: String?
-    public var createdAt: Date
-    public var email: (value: String, isVerified: Bool)?
-    public var phone: (value: String, isVerified: Bool)?
-}
-
-/// Returned from calls that start an enchanted link flow.
-///
-/// The `linkId` value needs to be displayed to the user so they know which
-/// link should be clicked on in the enchanted link email. The `maskedEmail`
-/// field can also be shown to inform the user to which address the email
-/// was sent. The `pendingRef` field is used to poll the server for the
-/// enchanted link flow result.
-public struct EnchantedLinkResponse {
-    public var linkId: String
-    public var pendingRef: String
-    public var maskedEmail: String
-}
-
-/// Returned from TOTP calls that create a new seed.
-///
-/// The `provisioningURL` field wraps the key (seed) in a URL that can be
-/// opened by authenticator apps. The `image` field encodes the key (seed)
-/// in a QR code image.
-public struct TOTPResponse {
-    public var provisioningURL: String
-    #if os(iOS)
-    public var image: UIImage
-    #else
-    public var image: Data
-    #endif
-    public var key: String
-}
-
-/// Represents the rules for valid passwords.
-///
-/// The policy is configured in the password settings in the Descope console, and
-/// these values can be used to implement client-side validation of new user passwords
-/// for a better user experience.
-///
-/// In any case, all password rules are enforced by Descope on the server side as well.
-public struct PasswordPolicy {
-    public var minLength: Int
-    public var lowercase: Bool
-    public var uppercase: Bool
-    public var number: Bool
-    public var nonAlphanumeric: Bool
 }

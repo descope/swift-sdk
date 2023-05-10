@@ -10,7 +10,7 @@ class EnchantedLink: DescopeEnchantedLink {
         self.client = client
     }
     
-    func signUp(loginId: String, user: User, uri: String?) async throws -> EnchantedLinkResponse {
+    func signUp(loginId: String, user: SignUpUser, uri: String?) async throws -> EnchantedLinkResponse {
         return try await client.enchantedLinkSignUp(loginId: loginId, user: user, uri: uri).convert()
     }
     
@@ -26,11 +26,11 @@ class EnchantedLink: DescopeEnchantedLink {
         return try await client.enchantedLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options).convert()
     }
     
-    func checkForSession(pendingRef: String) async throws -> DescopeSession {
+    func checkForSession(pendingRef: String) async throws -> AuthenticationResponse {
         return try await client.enchantedLinkPendingSession(pendingRef: pendingRef).convert()
     }
     
-    func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> DescopeSession {
+    func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> AuthenticationResponse {
         let pollingEndsAt = Date() + (timeout ?? defaultPollDuration)
         // use repeat to ensure we always check at least once
         while true {
@@ -43,9 +43,8 @@ class EnchantedLink: DescopeEnchantedLink {
             } catch DescopeError.enchantedLinkPending {
                 // sleep for a second before checking again
                 try await Task.sleep(nanoseconds: NSEC_PER_SEC)
-                // if the timer's expired then we throw as specific
-                // client side error that can be handled appropriately
-                // by the calling code
+                // if the timer's expired then we throw a specific error that
+                // can be handled appropriately by the calling code
                 guard Date() < pollingEndsAt else { throw DescopeError.enchantedLinkExpired }
             } catch let error as DescopeError where error == .networkError {
                 // we managed to start the enchanted link authentication

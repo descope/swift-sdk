@@ -2,17 +2,25 @@
 import Foundation
 
 public extension URLRequest {
-    mutating func addAuthorizationHeader(from session: DescopeSession) {
-        let header = authorizationHeader(projectId: session.projectId, jwt: session.sessionJwt)
-        addValue(header.value, forHTTPHeaderField: header.field)
+    /// Ensures that the active session in a `DescopeSessionManager` is valid and
+    /// then sets its session JWT as the Bearer Token value of the Authorization
+    /// header field in the `URLRequest`.
+    mutating func setAuthorizationHTTPHeaderField(from sessionManager: DescopeSessionManager) async throws {
+        try await sessionManager.refreshSessionIfNeeded()
+        if let session = sessionManager.session {
+            setAuthorizationHTTPHeaderField(from: session)
+        }
     }
     
-    mutating func addAuthorizationHeader(from token: DescopeToken) {
-        let header = authorizationHeader(projectId: token.projectId, jwt: token.jwt)
-        addValue(header.value, forHTTPHeaderField: header.field)
+    /// Sets the session JWT from a `DescopeSession` as the Bearer Token value of
+    /// the Authorization header field in the `URLRequest`.
+    mutating func setAuthorizationHTTPHeaderField(from session: DescopeSession) {
+        setAuthorizationHTTPHeaderField(from: session.sessionToken)
     }
-}
 
-private func authorizationHeader(projectId: String, jwt: String) -> (field: String, value: String) {
-    return ("Authorization", "Bearer \(projectId):\(jwt)")
+    /// Sets the JWT from a `DescopeToken` as the Bearer Token value of
+    /// the Authorization header field in the `URLRequest`.
+    mutating func setAuthorizationHTTPHeaderField(from token: DescopeToken) {
+        setValue("Bearer \(token.jwt)", forHTTPHeaderField: "Authorization")
+    }
 }

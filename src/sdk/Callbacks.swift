@@ -15,7 +15,7 @@ public extension DescopeAccessKey {
     /// 
     /// - Parameter accessKey: the access key's clear text
     /// 
-    /// - Returns: Upon successful exchange a `DescopeToken` is returned.
+    /// - Returns: A `DescopeToken` upon successful exchange.
     func exchange(accessKey: String, completion: @escaping (Result<DescopeToken, Error>) -> Void) {
         Task {
             do {
@@ -32,8 +32,8 @@ public extension DescopeAuth {
     /// 
     /// - Parameter refreshJwt: the `refreshJwt` from an active `DescopeSession`.
     /// 
-    /// - Returns: A `MeResponse` object with the user details.
-    func me(refreshJwt: String, completion: @escaping (Result<MeResponse, Error>) -> Void) {
+    /// - Returns: A `DescopeUser` object with the user details.
+    func me(refreshJwt: String, completion: @escaping (Result<DescopeUser, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await me(refreshJwt: refreshJwt)))
@@ -43,15 +43,21 @@ public extension DescopeAuth {
         }
     }
 
-    /// Refreshes a session.
+    /// Refreshes a `DescopeSession`.
     /// 
     /// This can be called at any time as long as the `refreshJwt` is still valid.
-    /// Typically called when the `sessionJwt` is expired or about to be.
+    /// Typically called when the `sessionJwt` is expired or is about to expire.
+    /// 
+    /// - Important: It's recommended to let a `DescopeSessionManager` object manage
+    ///     sessions, in which case you can just call `refreshSessionIfNeeded` on the
+    ///     manager instead to refresh and update the session. You can also use the
+    ///     extension function on `URLRequest` to set the authorization header on a
+    ///     request, as it will ensure that the session is valid automatically.
     /// 
     /// - Parameter refreshJwt: the `refreshJwt` from an active `DescopeSession`.
     /// 
-    /// - Returns: A new `DescopeSession` with a refreshed `sessionJwt`.
-    func refreshSession(refreshJwt: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: A new `RefreshResponse` with a refreshed `sessionJwt`.
+    func refreshSession(refreshJwt: String, completion: @escaping (Result<RefreshResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await refreshSession(refreshJwt: refreshJwt)))
@@ -97,7 +103,7 @@ public extension DescopeEnchantedLink {
     /// 
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, user: User, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func signUp(loginId: String, user: SignUpUser, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(loginId: loginId, user: user, uri: uri)))
@@ -196,8 +202,8 @@ public extension DescopeEnchantedLink {
 
     /// Checks if an enchanted link authentication has been verified by the user.
     /// 
-    /// This function will only return a `DescopeSession` successfully after the user
-    /// presses the enchanted link in the authentication email.
+    /// This function will only return an `AuthenticationResponse` successfully after
+    /// the user presses the enchanted link in the authentication email.
     /// 
     /// - Important: This function doesn't perform any polling or waiting, so calling code
     ///     should expect to catch any thrown `DescopeError.enchantedLinkPending` errors and
@@ -206,8 +212,8 @@ public extension DescopeEnchantedLink {
     /// 
     /// - Parameter pendingRef: The pendingRef value from an `EnchantedLinkResponse` object.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func checkForSession(pendingRef: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func checkForSession(pendingRef: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await checkForSession(pendingRef: pendingRef)))
@@ -219,8 +225,8 @@ public extension DescopeEnchantedLink {
 
     /// Waits until an enchanted link authentication has been verified by the user.
     /// 
-    /// This function will only return a `DescopeSession` successfully after the user
-    /// presses the enchanted link in the authentication email.
+    /// This function will only return an `AuthenticationResponse` successfully after
+    /// the user presses the enchanted link in the authentication email.
     /// 
     /// This function calls `checkForSession` periodically until the authentication
     /// is verified. It will keep polling even if it encounters network errors, but
@@ -235,8 +241,8 @@ public extension DescopeEnchantedLink {
     ///   - timeout: An optional number of seconds to poll for until giving up. If not
     ///     given a default value of 2 minutes is used.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func pollForSession(pendingRef: String, timeout: TimeInterval?, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func pollForSession(pendingRef: String, timeout: TimeInterval?, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await pollForSession(pendingRef: pendingRef, timeout: timeout)))
@@ -265,7 +271,7 @@ public extension DescopeMagicLink {
     ///   - user: Details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(with: method, loginId: loginId, user: user, uri: uri)))
@@ -381,12 +387,12 @@ public extension DescopeMagicLink {
     /// 
     /// In order to effectively do this, the link generated should refer back to
     /// the app, then the `t` URL parameter should be extracted and sent to this
-    /// function. Upon successful authentication a `DescopeSession` is returned.
+    /// function. An `AuthenticationResponse` value upon successful authentication.
     /// 
     /// - Parameter token: The extracted token from the `t` URL parameter from the magic link.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(token: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func verify(token: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await verify(token: token)))
@@ -423,13 +429,13 @@ public extension DescopeOAuth {
     }
 
     /// Completes an OAuth redirect chain by exchanging the code received in
-    /// the `code` URL parameter for a `DescopeSession`.
+    /// the `code` URL parameter for an `AuthenticationResponse`.
     /// 
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     /// 
-    /// - Returns: Upon successful exchange a `DescopeSession` is returned.
-    func exchange(code: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
+    func exchange(code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await exchange(code: code)))
@@ -453,7 +459,7 @@ public extension DescopeOTP {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, completion: @escaping (Result<String, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(with: method, loginId: loginId, user: user)))
@@ -508,8 +514,8 @@ public extension DescopeOTP {
     ///   - loginId: The loginId value used to initiate the authentication.
     ///   - code: The code to validate.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(with method: DeliveryMethod, loginId: String, code: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func verify(with method: DeliveryMethod, loginId: String, code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await verify(with: method, loginId: loginId, code: code)))
@@ -578,8 +584,8 @@ public extension DescopePassword {
     ///   - user: Details about the user signing up.
     ///   - password: The user's password.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func signUp(loginId: String, user: User, password: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func signUp(loginId: String, user: SignUpUser, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(loginId: loginId, user: user, password: password)))
@@ -596,11 +602,92 @@ public extension DescopePassword {
     ///     typically an email, phone, or any other unique identifier.
     ///   - password: The user's password.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func signIn(loginId: String, password: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func signIn(loginId: String, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signIn(loginId: loginId, password: password)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Updates a user's password.
+    /// 
+    /// In order to do this, the user must have an active `DescopeSession` whose
+    /// `refreshJwt` should be passed as a parameter to this function.
+    /// 
+    /// The value for `newPassword` must conform to the password policy defined in the
+    /// password settings in the Descope console
+    /// 
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - newPassword: The new password to set for the user.
+    ///   - refreshJwt: The existing user's `refreshJwt` from an active `DescopeSession`.
+    func update(loginId: String, newPassword: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await update(loginId: loginId, newPassword: newPassword, refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Replaces a user's password by providing their current password.
+    /// 
+    /// The value for `newPassword` must conform to the password policy defined in the
+    /// password settings in the Descope console
+    /// 
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - oldPassword: The user's current password.
+    ///   - newPassword: The new password to set for the user.
+    func replace(loginId: String, oldPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await replace(loginId: loginId, oldPassword: oldPassword, newPassword: newPassword)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Sends a password reset email to the user.
+    /// 
+    /// This operation starts a Magic Link or Enchanted Link flow depending on the
+    /// configuration in the Descope console. After the authentication flow is finished
+    /// use the `refreshJwt` to call `update` and change the user's password.
+    /// 
+    /// - Important: The user must be verified according to the configured
+    /// password reset method.
+    /// 
+    /// - Parameters:
+    ///   - loginId: The existing user's loginId.
+    ///   - redirectURL: Optional URL that is used by Magic Link or Enchanted Link
+    ///     if those are the chosen reset methods.
+    func sendReset(loginId: String, redirectURL: String?, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await sendReset(loginId: loginId, redirectURL: redirectURL)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Fetches the rules for valid passwords.
+    /// 
+    /// The policy is configured in the password settings in the Descope console, and
+    /// these values can be used to implement client-side validation of new user passwords
+    /// for a better user experience.
+    /// 
+    /// In any case, all password rules are enforced by Descope on the server side as well.
+    func getPolicy(completion: @escaping (Result<PasswordPolicy, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await getPolicy()))
             } catch {
                 completion(.failure(error))
             }
@@ -634,13 +721,13 @@ public extension DescopeSSO {
     }
 
     /// Completes an SSO redirect chain by exchanging the code received in
-    /// the `code` URL parameter for a `DescopeSession`.
+    /// the `code` URL parameter for an `AuthenticationResponse`.
     /// 
     /// - Parameter code: The code appended to the returning URL via the
     ///     `code` URL parameter.
     /// 
-    /// - Returns: Upon successful exchange a `DescopeSession` is returned.
-    func exchange(code: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful exchange.
+    func exchange(code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await exchange(code: code)))
@@ -661,7 +748,7 @@ public extension DescopeTOTP {
     ///   - user: Details about the user signing up.
     /// 
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
-    func signUp(loginId: String, user: User, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
+    func signUp(loginId: String, user: SignUpUser, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await signUp(loginId: loginId, user: user)))
@@ -700,8 +787,8 @@ public extension DescopeTOTP {
     ///   - loginId: The `loginId` of the user trying to log in.
     ///   - code: The code to validate.
     /// 
-    /// - Returns: Upon successful authentication a `DescopeSession` is returned.
-    func verify(loginId: String, code: String, completion: @escaping (Result<DescopeSession, Error>) -> Void) {
+    /// - Returns: An `AuthenticationResponse` value upon successful authentication.
+    func verify(loginId: String, code: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await verify(loginId: loginId, code: code)))

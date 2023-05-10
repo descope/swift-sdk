@@ -3,10 +3,10 @@ import Foundation
 
 /// The concrete type of `Error` thrown by all operations in the Descope SDK.
 public struct DescopeError: Error {
-    var code: String
-    var desc: String?
-    var message: String?
-    var cause: Error?
+    public var code: String
+    public var desc: String?
+    public var message: String?
+    public var cause: Error?
 }
 
 extension DescopeError {
@@ -34,10 +34,12 @@ extension DescopeError {
 }
 
 extension DescopeError: Equatable {
+    /// Returns true if the two `DescopeError` instances have the same `code`.
     public static func == (lhs: DescopeError, rhs: DescopeError) -> Bool {
         return lhs.code == rhs.code
     }
 
+    /// Returns true if the other error object is equal to this `DescopeError` instance.
     public static func ~= (lhs: DescopeError, rhs: Error) -> Bool {
         guard let rhs = rhs as? DescopeError else { return false }
         return lhs == rhs
@@ -45,6 +47,7 @@ extension DescopeError: Equatable {
 }
 
 extension DescopeError: CustomStringConvertible {
+    /// Returns a textual representation of this `DescopeError`.
     public var description: String {
         var str = "DescopeError(code: \"\(code)\""
         if let desc {
@@ -62,6 +65,7 @@ extension DescopeError: CustomStringConvertible {
 }
 
 extension DescopeError: LocalizedError {
+    /// Returns a message describing what error occurred.
     public var errorDescription: String? {
         var str: String
         if let desc {

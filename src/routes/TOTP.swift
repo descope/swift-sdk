@@ -11,11 +11,11 @@ class TOTP: DescopeTOTP {
         self.client = client
     }
 
-    func signUp(loginId: String, user: User) async throws -> TOTPResponse {
+    func signUp(loginId: String, user: SignUpUser) async throws -> TOTPResponse {
         return try await client.totpSignUp(loginId: loginId, user: user).convert()
     }
     
-    func verify(loginId: String, code: String) async throws -> DescopeSession {
+    func verify(loginId: String, code: String) async throws -> AuthenticationResponse {
         return try await client.totpVerify(loginId: loginId, code: code).convert()
     }
     

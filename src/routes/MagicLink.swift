@@ -8,7 +8,7 @@ class MagicLink: DescopeMagicLink {
         self.client = client
     }
     
-    func signUp(with method: DeliveryMethod, loginId: String, user: User, uri: String?) async throws -> String {
+    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?) async throws -> String {
         return try await client.magicLinkSignUp(with: method, loginId: loginId, user: user, uri: uri).convert(method: method)
     }
     
@@ -28,7 +28,7 @@ class MagicLink: DescopeMagicLink {
         return try await client.magicLinkUpdatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options).convert(method: method)
     }
     
-    func verify(token: String) async throws -> DescopeSession {
+    func verify(token: String) async throws -> AuthenticationResponse {
         return try await client.magicLinkVerify(token: token).convert()
     }
 }

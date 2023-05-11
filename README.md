@@ -1,82 +1,198 @@
 # DescopeKit
 
-DescopeKit is the Descope SDK for Swift. It provides convenient access to the Descope user management and authentication APIs
-for applications written in Swift. You can read more on the [Descope Website](https://descope.com).
-
-## Requirements
-
-The SDK supports iOS 13 and above, and macOS 12 and above.
-
-## Installing the SDK
-
-Install the package using the [swift package manager](https://www.swift.org/package-manager/).
+DescopeKit is the Descope SDK for Swift. It provides convenient access
+to the Descope user management and authentication APIs for applications
+written in Swift. You can read more on the [Descope Website](https://descope.com).
 
 ## Setup
 
-A Descope `Project ID` is required to initialize the SDK. Find it on the
-[project page in the Descope Console](https://app.descope.com/settings/project).
+Add the `DescopeKit` package using the [Swift package manager](https://www.swift.org/package-manager/).
+
+The SDK supports iOS 13 and above, and macOS 12 and above.
+
+## Quickstart 
+
+A Descope `Project ID` is required to initialize the SDK. Find it
+on the [project page](https://app.descope.com/settings/project) in
+the Descope Console.
 
 ```swift
 import DescopeKit
 
-// ...
-
-Descope.projectId = "<Your-Project-ID>"
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    Descope.projectId = "<Your-Project-Id>"
+    return true
+}
 ```
 
-## Usage
+Authenticate the user in your application by starting one of the
+authentication methods. For example, let's use OTP via email: 
 
-Here are some examples how to manage and authenticate users:
+```swift
+// sends an OTP code to the given email address
+try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: nil)
+...
+```
+
+Finish the authentication by verifying the OTP code the user entered: 
+
+```swift
+// if the user entered the right code the authentication is successful  
+let authResponse = try await Descope.otp.verify(with: .email, loginId: "desmond_c@mail.com", code: code)
+
+// we create a DescopeSession object that represents an authenticated user session
+let session = DescopeSession(from: authResponse)
+
+// the session manager automatically takes care of persisting the session
+// and refreshing it as needed
+Descope.sessionManager.manageSession(session)
+```
+
+On the next application launch check if there's a logged in user to
+decide which screen to show:
+
+```swift
+func initialViewController() -> UIViewController {
+    // check if we have a valid session from a previous launch and that it hasn't expired yet 
+    if let session = Descope.sessionManager.session, !session.refreshToken.isExpired {
+        print("Authenticated user found: \(session.user)")
+        return MainViewController()
+    }
+    return LoginViewController()
+}
+```
+
+Use the active session to authenticate outgoing API requests to the
+application's backend:
+
+```swift
+var request = URLRequest(url: url)
+try await request.setAuthorizationHTTPHeaderField(from: Descope.sessionManager)
+let (data, response) = try await URLSession.shared.data(for: request)
+```
+
+## Session Management
+
+The `DescopeSessionManager` class is used to manage an authenticated
+user session for an application.
+
+The session manager takes care of loading and saving the session as well
+as ensuring that it's refreshed when needed. For the default instances of
+the `DescopeSessionManager` class this means using the keychain for secure
+storage of the session and refreshing it a short while before it expires.
+
+Once the user completes a sign in flow successfully you should set the
+`DescopeSession` object as the active session of the session manager.
+
+```swift
+let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
+let session = DescopeSession(from: authResponse)
+Descope.sessionManager.manageSession(session)
+```
+
+The session manager can then be used at any time to ensure the session
+is valid and to authenticate outgoing requests to your backend with a
+bearer token authorization header.
+
+```swift
+var request = URLRequest(url: url)
+try await request.setAuthorizationHTTPHeaderField(from: Descope.sessionManager)
+let (data, response) = try await URLSession.shared.data(for: request)
+```
+
+If your backend uses a different authorization mechanism you can of course
+use the session JWT directly instead of the extension function. You can either
+add another extension function on `URLRequest` such as the one above, or you
+can do the following.
+
+```swift
+try await Descope.sessionManager.refreshSessionIfNeeded()
+guard let sessionJwt = Descope.sessionManager.session?.sessionJwt else { throw ServerError.unauthorized }
+request.setValue(sessionJwt, forHTTPHeaderField: "X-Auth-Token")
+```
+
+When the application is relaunched the `DescopeSessionManager` loads any
+existing session automatically, so you can check straight away if there's
+an authenticated user.
+
+```swift
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    Descope.projectId = "..."
+    if let session = Descope.sessionManager.session {
+        print("User is logged in: \(session)")
+    }
+    return true
+}
+```
+
+When the user wants to sign out of the application we revoke the
+active session and clear it from the session manager:
+
+```swift
+guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
+try await Descope.auth.logout(refreshJwt: refreshJwt)
+Descope.sessionManager.clearSession()
+```
+
+You can customize how the `DescopeSessionManager` behaves by using
+your own `storage` and `lifecycle` objects. See the documentation
+for more details.
+
+## Authentication Methods
+
+Here are some examples for how to authenticate users:
 
 ### OTP Authentication
 
-Send a user a one-time password (OTP) using your preferred delivery method (_email / SMS_). An email address or phone number must be provided accordingly.
+Send a user a one-time password (OTP) using your preferred delivery
+method (_email / SMS_). An email address or phone number must be
+provided accordingly.
 
 The user can either `sign up`, `sign in` or `sign up or in`
 
 ```swift
 // Every user must have a loginID. All other user information is optional
-try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: User(
+try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: SignUpUser(
     name: "Desmond Copeland"
 ))
 ```
 
-The user will receive a code using the selected delivery method. Verify that code using:
+The user will receive a code using the selected delivery method. Verify
+that code using:
 
 ```swift
 let descopeSession = try await Descope.otp.verify(with: .email, loginId: "desmond_c@mail.com", code: "123456")
 ```
 
-The session and refresh JWTs should be passed with every request in the session. Read more on [session validation](#session-validation)
-
 ### Magic Link
 
 Send a user a Magic Link using your preferred delivery method (_email / SMS_).
-The Magic Link will redirect the user to page where the its token needs to be verified.
-This redirection can be configured in code, or globally in the [Descope Console](https://app.descope.com/settings/authentication/magiclink)
+The Magic Link will redirect the user to page where the its token needs
+to be verified. This redirection can be configured in code, or globally
+in the [Descope Console](https://app.descope.com/settings/authentication/magiclink)
 
 The user can either `sign up`, `sign in` or `sign up or in`
 
 ```swift
 // If configured globally, the redirect URI is optional. If provided however, it will be used
 // instead of any global configuration
-try await Descope.magiclink.signUp(with: .email, loginId: "desmond_c@mail.com", user: User(
+try await Descope.magiclink.signUp(with: .email, loginId: "desmond_c@mail.com", user: SignUpUser(
     name: "Desmond Copeland"
 ))
 ```
 
-To verify a magic link, your redirect page must call the validation function on the token (`t`) parameter (`https://your-redirect-address.com/verify?t=<token>`):
+To verify a magic link, your redirect page must call the validation function
+on the token (`t`) parameter (`https://your-redirect-address.com/verify?t=<token>`):
 
 ```swift
 let descopeSession = try await Descope.magiclink.verify(token: "<token>")
 ```
 
-
-The session and refresh JWTs should be passed with every request in the session. Read more on [session validation](#session-validation)
-
 ### OAuth
 
-Users can authenticate using their social logins, using the OAuth protocol. Configure your OAuth settings on the [Descope console](https://app.descope.com/settings/authentication/social). To start a flow call:
+Users can authenticate using their social logins, using the OAuth protocol.
+Configure your OAuth settings on the [Descope console](https://app.descope.com/settings/authentication/social).
+To start a flow call:
 
 ```swift
 // Choose an oauth provider out of the supported providers
@@ -87,8 +203,11 @@ let authURL = try await Descope.oauth.start(provider: .github, redirectURL: "exa
 guard let authURL = URL(string: url) else { return }
 ```
 
-Take the generated URL and authenticate the user using `ASWebAuthenticationSession` (read more [here](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)).
-The user will authenticate with the authentication provider, and will be redirected back to the redirect URL, with an appended `code` HTTP URL parameter. Exchange it to validate the user:
+Take the generated URL and authenticate the user using `ASWebAuthenticationSession`
+(read more [here](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)).
+The user will authenticate with the authentication provider, and will be
+redirected back to the redirect URL, with an appended `code` HTTP URL parameter.
+Exchange it to validate the user:
 
 ```swift
 // Start the authentication session
@@ -106,11 +225,11 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
 }
 ```
 
-The session and refresh JWTs should be passed with every request in the session. Read more on [session validation](#session-validation)
-
 ### SSO/SAML
 
-Users can authenticate to a specific tenant using SAML or Single Sign On. Configure your SSO/SAML settings on the [Descope console](https://app.descope.com/settings/authentication/sso). To start a flow call:
+Users can authenticate to a specific tenant using SAML or Single Sign On.
+Configure your SSO/SAML settings on the [Descope console](https://app.descope.com/settings/authentication/sso).
+To start a flow call:
 
 ```swift
 // Choose which tenant to log into
@@ -121,8 +240,11 @@ let authURL = try await Descope.sso.start(emailOrTenantName: "my-tenant-ID", red
 guard let authURL = URL(string: url) else { return }
 ```
 
-Take the generated URL and authenticate the user using `ASWebAuthenticationSession` (read more [here](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)).
-The user will authenticate with the authentication provider, and will be redirected back to the redirect URL, with an appended `code` HTTP URL parameter. Exchange it to validate the user:
+Take the generated URL and authenticate the user using `ASWebAuthenticationSession`
+(read more [here](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)).
+The user will authenticate with the authentication provider, and will be redirected
+back to the redirect URL, with an appended `code` HTTP URL parameter. Exchange it
+to validate the user:
 
 ```swift
 // Start the authentication session
@@ -140,8 +262,6 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
 }
 ```
 
-The session and refresh JWTs should be passed with every request in the session. Read more on [session validation](#session-validation)
-
 ### TOTP Authentication
 
 The user can authenticate using an authenticator app, such as Google Authenticator.
@@ -154,7 +274,7 @@ Existing users can add TOTP using the `update` function.
 
 ```swift
 // Every user must have a loginID. All other user information is optional
-let totpResponse = try await Descope.totp.signUp(loginId: "desmond@descope.com", user: User(
+let totpResponse = try await Descope.totp.signUp(loginId: "desmond@descope.com", user: SignUpUser(
     name: "Desmond Copeland"
 ))
 
@@ -163,27 +283,11 @@ let totpResponse = try await Descope.totp.signUp(loginId: "desmond@descope.com",
 // totpResponse.key
 ```
 
-There are 3 different ways to allow the user to save their credentials in
-their authenticator app - either by clicking the provisioning URL, scanning the QR
-image or inserting the key manually. After that, signing in is done using the code
-the app produces.
+There are 3 different ways to allow the user to save their credentials in their
+authenticator app - either by clicking the provisioning URL, scanning the QR
+image or inserting the key manually. After that, signing in is done using the
+code the app produces.
 
 ```swift
 let descopeSession = try await Descope.totp.verify(loginId: "desmond@descope.com", code: "123456")
 ```
-
-The session and refresh JWTs should be passed with every request in the session. Read more on [session validation](#session-validation)
-
-### Session Validation
-
-Every secure request performed between your client and server needs to be validated. The client sends
-the session and refresh tokens with every request, to validated by the server.
-
-On the server side, it will validate the session and also refresh it in the event it has expired.
-Every request should receive the given session token if it's still valid, or a new one if it was refreshed.
-Make sure to save the returned session as it might have been refreshed.
-
-The `refreshJwt` is optional here to validate a session, but is required to refresh the session in the event it has expired.
-
-Usually, the tokens can be passed in and out via HTTP headers or via a cookie.
-The implementation can defer according to your server implementation.

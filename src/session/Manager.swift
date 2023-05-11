@@ -45,6 +45,13 @@ import Foundation
 ///         return true
 ///     }
 ///
+/// When the user wants to sign out of the application we revoke the active
+/// session and clear it from the session manager:
+///
+///     guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
+///     try await Descope.auth.logout(refreshJwt: refreshJwt)
+///     Descope.sessionManager.clearSession()
+///
 /// You can customize how the `DescopeSessionManager` behaves by using your own
 /// `storage` and `lifecycle` objects. See the documentation for the initializer
 /// below for more details.

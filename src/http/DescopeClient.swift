@@ -11,10 +11,10 @@ class DescopeClient: HTTPClient {
     
     // MARK: - OTP
     
-    func otpSignUp(with method: DeliveryMethod, loginId: String, user: SignUpUser) async throws -> MaskedAddress {
+    func otpSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?) async throws -> MaskedAddress {
         return try await post("otp/signup/\(method.rawValue)", body: [
             "loginId": loginId,
-            "user": user.dictValue,
+            "user": details?.dictValue,
         ])
     }
     
@@ -64,10 +64,10 @@ class DescopeClient: HTTPClient {
         var key: String
     }
     
-    func totpSignUp(loginId: String, user: SignUpUser) async throws -> TOTPResponse {
+    func totpSignUp(loginId: String, details: SignUpDetails?) async throws -> TOTPResponse {
         return try await post("totp/signup", body: [
             "loginId": loginId,
-            "user": user.dictValue,
+            "user": details?.dictValue,
         ])
     }
     
@@ -86,10 +86,10 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Password
     
-    func passwordSignUp(loginId: String, user: SignUpUser, password: String) async throws -> JWTResponse {
+    func passwordSignUp(loginId: String, password: String, details: SignUpDetails?) async throws -> JWTResponse {
         return try await post("password/signup", body: [
             "loginId": loginId,
-            "user": user.dictValue,
+            "user": details?.dictValue,
             "password": password,
         ])
     }
@@ -138,10 +138,10 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Magic Link
     
-    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?) async throws -> MaskedAddress {
+    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> MaskedAddress {
         return try await post("magiclink/signup/\(method.rawValue)", body: [
             "loginId": loginId,
-            "user": user.dictValue,
+            "user": details?.dictValue,
             "uri": uri,
         ])
     }
@@ -195,10 +195,10 @@ class DescopeClient: HTTPClient {
         var maskedEmail: String
     }
     
-    func enchantedLinkSignUp(loginId: String, user: SignUpUser, uri: String?) async throws -> EnchantedLinkResponse {
+    func enchantedLinkSignUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse {
         return try await post("enchantedlink/signup/email", body: [
             "loginId": loginId,
-            "user": user.dictValue,
+            "user": details?.dictValue,
             "uri": uri,
         ])
     }
@@ -354,7 +354,7 @@ class DescopeClient: HTTPClient {
     }
 }
 
-private extension SignUpUser {
+private extension SignUpDetails {
     var dictValue: [String: Any?] {
         return [
             "name": name,

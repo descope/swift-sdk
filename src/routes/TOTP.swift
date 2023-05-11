@@ -11,8 +11,8 @@ class TOTP: DescopeTOTP {
         self.client = client
     }
 
-    func signUp(loginId: String, user: SignUpUser) async throws -> TOTPResponse {
-        return try await client.totpSignUp(loginId: loginId, user: user).convert()
+    func signUp(loginId: String, details: SignUpDetails?) async throws -> TOTPResponse {
+        return try await client.totpSignUp(loginId: loginId, details: details).convert()
     }
     
     func verify(loginId: String, code: String) async throws -> AuthenticationResponse {

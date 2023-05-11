@@ -10,8 +10,8 @@ class EnchantedLink: DescopeEnchantedLink {
         self.client = client
     }
     
-    func signUp(loginId: String, user: SignUpUser, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignUp(loginId: loginId, user: user, uri: uri).convert()
+    func signUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse {
+        return try await client.enchantedLinkSignUp(loginId: loginId, details: details, uri: uri).convert()
     }
     
     func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {

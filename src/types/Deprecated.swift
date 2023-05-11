@@ -5,6 +5,6 @@ import Foundation
 @available(*, deprecated, renamed: "DescopeUser")
 public typealias MeResponse = DescopeUser
 
-/// See the documentation for `SignUpUser`.
-@available(*, deprecated, renamed: "SignUpUser")
-public typealias User = SignUpUser
+/// See the documentation for `SignUpDetails`.
+@available(*, deprecated, renamed: "SignUpDetails")
+public typealias User = SignUpDetails

@@ -8,8 +8,8 @@ class MagicLink: DescopeMagicLink {
         self.client = client
     }
     
-    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?) async throws -> String {
-        return try await client.magicLinkSignUp(with: method, loginId: loginId, user: user, uri: uri).convert(method: method)
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> String {
+        return try await client.magicLinkSignUp(with: method, loginId: loginId, details: details, uri: uri).convert(method: method)
     }
     
     func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {

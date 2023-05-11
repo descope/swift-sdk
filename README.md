@@ -30,7 +30,7 @@ authentication methods. For example, let's use OTP via email:
 
 ```swift
 // sends an OTP code to the given email address
-try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: nil)
+try await Descope.otp.signUp(with: .email, loginId: "andy@example.com", details: nil)
 ...
 ```
 
@@ -38,7 +38,7 @@ Finish the authentication by verifying the OTP code the user entered:
 
 ```swift
 // if the user entered the right code the authentication is successful  
-let authResponse = try await Descope.otp.verify(with: .email, loginId: "desmond_c@mail.com", code: code)
+let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: code)
 
 // we create a DescopeSession object that represents an authenticated user session
 let session = DescopeSession(from: authResponse)
@@ -151,9 +151,9 @@ provided accordingly.
 The user can either `sign up`, `sign in` or `sign up or in`
 
 ```swift
-// Every user must have a loginID. All other user information is optional
-try await Descope.otp.signUp(with: .email, loginId: "desmond_c@mail.com", user: SignUpUser(
-    name: "Desmond Copeland"
+// Every user must have a loginId. All other user details are optional:
+try await Descope.otp.signUp(with: .email, loginId: "andy@example.com", details: SignUpDetails(
+    name: "Andy Rhoads"
 ))
 ```
 
@@ -161,7 +161,7 @@ The user will receive a code using the selected delivery method. Verify
 that code using:
 
 ```swift
-let descopeSession = try await Descope.otp.verify(with: .email, loginId: "desmond_c@mail.com", code: "123456")
+let descopeSession = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
 ```
 
 ### Magic Link
@@ -176,9 +176,7 @@ The user can either `sign up`, `sign in` or `sign up or in`
 ```swift
 // If configured globally, the redirect URI is optional. If provided however, it will be used
 // instead of any global configuration
-try await Descope.magiclink.signUp(with: .email, loginId: "desmond_c@mail.com", user: SignUpUser(
-    name: "Desmond Copeland"
-))
+try await Descope.magiclink.signUp(with: .email, loginId: "andy@example.com", details: nil)
 ```
 
 To verify a magic link, your redirect page must call the validation function
@@ -274,9 +272,7 @@ Existing users can add TOTP using the `update` function.
 
 ```swift
 // Every user must have a loginID. All other user information is optional
-let totpResponse = try await Descope.totp.signUp(loginId: "desmond@descope.com", user: SignUpUser(
-    name: "Desmond Copeland"
-))
+let totpResponse = try await Descope.totp.signUp(loginId: "andy@example.com", details: nil)
 
 // Use one of the provided options to have the user add their credentials to the authenticator
 // totpResponse.provisioningURL
@@ -289,5 +285,5 @@ image or inserting the key manually. After that, signing in is done using the
 code the app produces.
 
 ```swift
-let descopeSession = try await Descope.totp.verify(loginId: "desmond@descope.com", code: "123456")
+let descopeSession = try await Descope.totp.verify(loginId: "andy@example.com", code: "987654")
 ```

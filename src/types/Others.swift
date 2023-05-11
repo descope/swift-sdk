@@ -22,7 +22,7 @@ public enum OAuthProvider: String {
 }
 
 /// Used to provide additional details about a user in sign up calls.
-public struct SignUpUser {
+public struct SignUpDetails {
     public var name: String?
     public var email: String?
     public var phone: String?

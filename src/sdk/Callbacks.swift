@@ -97,16 +97,16 @@ public extension DescopeEnchantedLink {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     /// 
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, user: SignUpUser, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func signUp(loginId: String, details: SignUpDetails?, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(loginId: loginId, user: user, uri: uri)))
+                completion(.success(try await signUp(loginId: loginId, details: details, uri: uri)))
             } catch {
                 completion(.failure(error))
             }
@@ -268,13 +268,13 @@ public extension DescopeMagicLink {
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(with: method, loginId: loginId, user: user, uri: uri)))
+                completion(.success(try await signUp(with: method, loginId: loginId, details: details, uri: uri)))
             } catch {
                 completion(.failure(error))
             }
@@ -458,11 +458,11 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - details: Optional details about the user signing up.
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(with: method, loginId: loginId, user: user)))
+                completion(.success(try await signUp(with: method, loginId: loginId, details: details)))
             } catch {
                 completion(.failure(error))
             }
@@ -581,14 +581,14 @@ public extension DescopePassword {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - password: The user's password.
     /// 
     /// - Returns: An `AuthenticationResponse` value upon successful authentication.
-    func signUp(loginId: String, user: SignUpUser, password: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+    func signUp(loginId: String, password: String, details: SignUpDetails?, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(loginId: loginId, user: user, password: password)))
+                completion(.success(try await signUp(loginId: loginId, password: password, details: details)))
             } catch {
                 completion(.failure(error))
             }
@@ -745,13 +745,13 @@ public extension DescopeTOTP {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     /// 
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
-    func signUp(loginId: String, user: SignUpUser, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
+    func signUp(loginId: String, details: SignUpDetails?, completion: @escaping (Result<TOTPResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(loginId: loginId, user: user)))
+                completion(.success(try await signUp(loginId: loginId, details: details)))
             } catch {
                 completion(.failure(error))
             }

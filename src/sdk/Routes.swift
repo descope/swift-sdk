@@ -49,8 +49,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
-    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser) async throws -> String
+    ///   - details: Optional details about the user signing up.
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?) async throws -> String
     
     /// Authenticates an existing user using an OTP, sent via a delivery
     /// method of choice.
@@ -130,10 +130,10 @@ public protocol DescopeTOTP {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///
     /// - Returns: A `TOTPResponse` object with the key (seed) in multiple formats.
-    func signUp(loginId: String, user: SignUpUser) async throws -> TOTPResponse
+    func signUp(loginId: String, details: SignUpDetails?) async throws -> TOTPResponse
     
     /// Updates an existing user by adding TOTP as an authentication method.
     ///
@@ -183,10 +183,10 @@ public protocol DescopeMagicLink {
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, user: SignUpUser, uri: String?) async throws -> String
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> String
     
     /// Authenticates an existing user using a magic link, sent via a delivery
     /// method of choice.
@@ -296,13 +296,13 @@ public protocol DescopeEnchantedLink {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - uri: Optional URI that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///
     /// - Returns: An `EnchantedLinkResponse` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, user: SignUpUser, uri: String?) async throws -> EnchantedLinkResponse
+    func signUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse
     
     /// Authenticates an existing user using an enchanted link, sent via email.
     ///
@@ -479,11 +479,11 @@ public protocol DescopePassword {
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - user: Details about the user signing up.
+    ///   - details: Optional details about the user signing up.
     ///   - password: The user's password.
     ///
     /// - Returns: An `AuthenticationResponse` value upon successful authentication.
-    func signUp(loginId: String, user: SignUpUser, password: String) async throws -> AuthenticationResponse
+    func signUp(loginId: String, password: String, details: SignUpDetails?) async throws -> AuthenticationResponse
     
     /// Authenticates an existing user using a password.
     ///

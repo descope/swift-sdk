@@ -37,7 +37,7 @@ public struct EnchantedLinkResponse {
 /// opened by authenticator apps. The `image` field encodes the key (seed)
 /// in a QR code image.
 public struct TOTPResponse {
-    public var provisioningURL: String
+    public var provisioningURL: URL
     #if os(iOS)
     public var image: UIImage
     #else

@@ -4,10 +4,10 @@ import Foundation
 // API errors
 
 extension DescopeError {
-    static func from(responseData data: Data) -> DescopeError? {
+    init?(errorResponse data: Data) {
         guard let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
         guard let code = dict["errorCode"] as? String else { return nil }
-        var desc: String? = nil
+        var desc = "Descope server error" // is always supposed to be overwritten below
         if let value = dict["errorDescription"] as? String, !value.isEmpty {
             desc = value
         }
@@ -15,24 +15,24 @@ extension DescopeError {
         if let value = dict["errorMessage"] as? String, !value.isEmpty {
             message = value
         }
-        return DescopeError(code: code, desc: desc, message: message)
+        self = DescopeError(code: code, desc: desc, message: message)
     }
 }
 
-// Server errors
+// HTTP errors
 
 extension DescopeError {
-    static func from(statusCode: Int) -> DescopeError? {
-        guard let err = ServerError(statusCode: statusCode) else { return nil }
-        return DescopeError(serverError: err)
+    init?(httpStatusCode: Int) {
+        guard let err = HTTPError(statusCode: httpStatusCode) else { return nil }
+        self = DescopeError(httpError: err)
     }
 
-    init(serverError: ServerError) {
-        self = DescopeError.serverError.with(desc: serverError.description)
+    init(httpError: HTTPError) {
+        self = DescopeError.httpError.with(desc: httpError.description)
     }
 }
 
-enum ServerError: Error {
+enum HTTPError: Error {
     case invalidRoute
     case invalidResponse
     case unexpectedResponse(Int)
@@ -44,7 +44,7 @@ enum ServerError: Error {
     case serverUnreachable
 }
 
-extension ServerError {
+extension HTTPError {
     init?(statusCode: Int) {
         switch statusCode {
         case 200...299: return nil
@@ -59,7 +59,7 @@ extension ServerError {
     }
 }
 
-extension ServerError: CustomStringConvertible {
+extension HTTPError: CustomStringConvertible {
     var description: String {
         switch self {
         case .invalidRoute: return "The request URL was invalid"

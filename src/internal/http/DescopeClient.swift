@@ -346,7 +346,7 @@ class DescopeClient: HTTPClient {
     }
     
     override func errorForResponseData(_ data: Data) -> Error? {
-        return DescopeError.from(responseData: data)
+        return DescopeError(errorResponse: data)
     }
     
     private func authorization(with value: String) -> [String: String] {

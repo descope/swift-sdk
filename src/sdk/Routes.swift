@@ -542,7 +542,7 @@ public protocol DescopePassword {
     /// for a better user experience.
     ///
     /// In any case, all password rules are enforced by Descope on the server side as well.
-    func getPolicy() async throws -> PasswordPolicy
+    func getPolicy() async throws -> PasswordPolicyResponse
 }
 
 

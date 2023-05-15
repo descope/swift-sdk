@@ -53,7 +53,7 @@ public struct TOTPResponse {
 /// for a better user experience.
 ///
 /// In any case, all password rules are enforced by Descope on the server side as well.
-public struct PasswordPolicy {
+public struct PasswordPolicyResponse {
     public var minLength: Int
     public var lowercase: Bool
     public var uppercase: Bool

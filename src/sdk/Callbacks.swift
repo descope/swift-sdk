@@ -684,7 +684,7 @@ public extension DescopePassword {
     /// for a better user experience.
     /// 
     /// In any case, all password rules are enforced by Descope on the server side as well.
-    func getPolicy(completion: @escaping (Result<PasswordPolicy, Error>) -> Void) {
+    func getPolicy(completion: @escaping (Result<PasswordPolicyResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await getPolicy()))

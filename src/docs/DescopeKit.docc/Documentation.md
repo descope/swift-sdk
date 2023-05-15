@@ -42,7 +42,7 @@ on the [Descope website](https://descope.com).
 - ``RefreshResponse``
 - ``EnchantedLinkResponse``
 - ``TOTPResponse``
-- ``PasswordPolicy``
+- ``PasswordPolicyResponse``
 
 ### Parameter Types
 

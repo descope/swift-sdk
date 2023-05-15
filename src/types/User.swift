@@ -1,15 +1,15 @@
 
 import Foundation
 
-/// The `DescopeUser` struct represents an existing user in Descope.
+/// The ``DescopeUser`` struct represents an existing user in Descope.
 ///
-/// After a user is signed in with any authentication method the `DescopeSession` object
-/// keeps a `DescopeUser` value in its `user` property so the user's details are always
+/// After a user is signed in with any authentication method the ``DescopeSession`` object
+/// keeps a ``DescopeUser`` value in its `user` property so the user's details are always
 /// available.
 ///
 /// In the example below we finalize an OTP authentication for the user by verifying the
-/// code. The authentication response has a `DescopeUser` property which can be used
-/// directly or later on when it's kept in the `DescopeSession`.
+/// code. The authentication response has a `user` property which can be used
+/// directly or later on when it's kept in the ``DescopeSession``.
 ///
 ///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
 ///     print("Finished OTP login for user: \(authResponse.user)")
@@ -17,17 +17,17 @@ import Foundation
 ///     Descope.sessionManager.session = DescopeSession(from: authResponse)
 ///     print("Created session for user \(descopeSession.user.userId)")
 ///
-/// The details for a signed in user can be updated manually by calling the `auth.me` API with
-/// the `refreshJwt` from the active `DescopeSession`. If the operation is successful the call
-/// returns a new `DescopeUser` value.
+/// The details for a signed in user can be updated manually by calling `auth.me` with
+/// the `refreshJwt` from the active ``DescopeSession``. If the operation is successful the call
+/// returns a new ``DescopeUser`` value.
 ///
 ///     guard let session = Descope.sessionManager.session else { return }
 ///     let descopeUser = try await Descope.auth.me(refreshJwt: session.refreshJwt)
 ///     session.update(with: descopeUser)
 ///
-/// In the code above we check that there's an active `DescopeSession` in the shared
+/// In the code above we check that there's an active ``DescopeSession`` in the shared
 /// session manager. If so we ask the Descope server for the latest user details and
-/// then update the `DescopeSession` with them.
+/// then update the ``DescopeSession`` with them.
 public struct DescopeUser: Codable, Equatable {
     
     /// The unique identifier for the user in Descope.
@@ -53,27 +53,27 @@ public struct DescopeUser: Codable, Equatable {
     
     /// The user's email address.
     ///
-    /// If this is non-nil and the `isVerifiedEmail` flag is `true` then this email address
+    /// If this is non-nil and the ``isVerifiedEmail`` flag is `true` then this email address
     /// can be used to do email based authentications such as magic link, OTP, etc.
     public var email: String?
     
     /// Whether the email address has been verified to be a valid authentication method
-    /// for this user. If `email` is `nil` then this is always `false`.
+    /// for this user. If ``email`` is `nil` then this is always `false`.
     public var isVerifiedEmail: Bool
     
     /// The user's phone number.
     ///
-    /// If this is non-nil and the `isVerifiedPhone` flag is `true` then this phone number
+    /// If this is non-nil and the ``isVerifiedPhone`` flag is `true` then this phone number
     /// can be used to do phone based authentications such as OTP.
     public var phone: String?
     
     /// Whether the phone number has been verified to be a valid authentication method
-    /// for this user. If `phone` is `nil` then this is always `false`.
+    /// for this user. If ``phone`` is `nil` then this is always `false`.
     public var isVerifiedPhone: Bool
 }
 
 extension DescopeUser: CustomStringConvertible {
-    /// Returns a textual representation of this `DescopeUser` object.
+    /// Returns a textual representation of this ``DescopeUser`` object.
     ///
     /// It returns a string with the user's unique id, login id, and name.
     public var description: String {

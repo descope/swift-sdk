@@ -1,8 +1,8 @@
 
 import Foundation
 
-/// This protocol can be used to customize how a `DescopeSessionManager` object
-/// stores the active `DescopeSession` between application launches.
+/// This protocol can be used to customize how a ``DescopeSessionManager`` object
+/// stores the active ``DescopeSession`` between application launches.
 public protocol DescopeSessionStorage: AnyObject {
     /// Called by the session manager when a new session is set or an
     /// existing session is updated.
@@ -17,9 +17,9 @@ public protocol DescopeSessionStorage: AnyObject {
     func removeSession()
 }
 
-/// The default implementation of the `DescopeSessionStorage` protocol.
+/// The default implementation of the ``DescopeSessionStorage`` protocol.
 ///
-/// The `SessionStorage` class ensures that the `DescopeSession` is kept in
+/// The ``SessionStorage`` class ensures that the ``DescopeSession`` is kept in
 /// a secure manner in the device's keychain.
 ///
 /// When running on iOS the keychain guarantees that the tokens are encrypted at
@@ -28,7 +28,7 @@ public protocol DescopeSessionStorage: AnyObject {
 ///
 /// For your convenience, you can subclass the `SessionStorage.Store` class and
 /// override the `loadItem`, `saveItem` and `removeItem` functions, then pass an
-/// instance of that class to the initializer to create a `SessionStorage` object
+/// instance of that class to the initializer to create a ``SessionStorage`` object
 /// that uses a different backing store.
 public class SessionStorage: DescopeSessionStorage {
     
@@ -78,7 +78,7 @@ public class SessionStorage: DescopeSessionStorage {
         }
     }
     
-    /// A helper struct for serializing the `DescopeSession` data.
+    /// A helper struct for serializing the ``DescopeSession`` data.
     private struct Value: Codable, Equatable {
         var sessionJwt: String
         var refreshJwt: String

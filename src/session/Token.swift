@@ -1,10 +1,10 @@
 
 import Foundation
 
-/// A `DescopeToken` is a utility wrapper around a single JWT value.
+/// A ``DescopeToken`` is a utility wrapper around a single JWT value.
 ///
-/// The session and refresh JWTs in a `DescopeSession` are stored as
-/// instances of `DescopeToken`. It's also returned directly when
+/// The session and refresh JWTs in a ``DescopeSession`` are stored as
+/// instances of ``DescopeToken``. It's also returned directly when
 /// exchanging an access key for a session JWT.
 public protocol DescopeToken {
     /// The underlying JWT value

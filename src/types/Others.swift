@@ -40,7 +40,7 @@ public struct UpdateOptions: OptionSet {
     /// the new value will be added to the user's list of `loginIds`.
     public static let addToLoginIds = UpdateOptions(rawValue: 1)
     
-    /// When updating a user with the `addToLoginIds` option, if another user already
+    /// When updating a user with the ``addToLoginIds`` option, if another user already
     /// has the same email address or phone number as a `loginId` the two users are
     /// merged and one of them is deleted.
     ///
@@ -50,8 +50,8 @@ public struct UpdateOptions: OptionSet {
     ///
     /// If this option is set however then the current user is merged into the other
     /// user, and the current user is discarded. In this case the `refreshJwt` and its
-    /// `DescopeSession` will no longer be valid, and a new `DescopeSession` is returned
-    /// for the other user instead.
+    /// ``DescopeSession`` will no longer be valid, and a new ``DescopeSession`` is
+    /// returned for the other user instead.
     public static let onMergeUseExisting = UpdateOptions(rawValue: 2)
     
     public let rawValue: Int

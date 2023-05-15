@@ -20,10 +20,10 @@ public struct RefreshResponse {
 
 /// Returned from calls that start an enchanted link flow.
 ///
-/// The `linkId` value needs to be displayed to the user so they know which
-/// link should be clicked on in the enchanted link email. The `maskedEmail`
+/// The ``linkId`` value needs to be displayed to the user so they know which
+/// link should be clicked on in the enchanted link email. The ``maskedEmail``
 /// field can also be shown to inform the user to which address the email
-/// was sent. The `pendingRef` field is used to poll the server for the
+/// was sent. The ``pendingRef`` field is used to poll the server for the
 /// enchanted link flow result.
 public struct EnchantedLinkResponse {
     public var linkId: String
@@ -33,8 +33,8 @@ public struct EnchantedLinkResponse {
 
 /// Returned from TOTP calls that create a new seed.
 ///
-/// The `provisioningURL` field wraps the key (seed) in a URL that can be
-/// opened by authenticator apps. The `image` field encodes the key (seed)
+/// The ``provisioningURL`` field wraps the key (seed) in a `URL` that can be
+/// opened by authenticator apps. The ``image`` field encodes the key (seed)
 /// in a QR code image.
 public struct TOTPResponse {
     public var provisioningURL: URL

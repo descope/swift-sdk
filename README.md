@@ -12,9 +12,9 @@ The SDK supports iOS 13 and above, and macOS 12 and above.
 
 ## Quickstart 
 
-Initialize the Descope SDK before using it. You can find your
-`Project ID` in the [project page](https://app.descope.com/settings/project)
-of the Descope Console.
+A Descope `Project ID` is required to initialize the SDK. Find it
+on the [project page](https://app.descope.com/settings/project) in
+the Descope Console.
 
 ```swift
 import DescopeKit
@@ -31,7 +31,6 @@ authentication methods. For example, let's use OTP via email:
 ```swift
 // sends an OTP code to the given email address
 try await Descope.otp.signUp(with: .email, loginId: "andy@example.com", details: nil)
-...
 ```
 
 We finish the authentication by verifying the OTP code the user entered: 
@@ -43,13 +42,14 @@ let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@exa
 // we create a DescopeSession object that represents an authenticated user session
 let session = DescopeSession(from: authResponse)
 
-// the session manager automatically takes care of persisting the session
-// and refreshing it as needed
+// the session manager takes care of saving the session to the keychain and
+// refreshing it for us as needed
 Descope.sessionManager.manageSession(session)
 ```
 
-On the next application launch we can check if there's a logged in
-user to decide which screen to show:
+The session manager will automatically load the session from the keychain
+the next time the application is launched. At that point we might check if
+there's a logged in user to decide which screen to show:
 
 ```swift
 func initialViewController() -> UIViewController {

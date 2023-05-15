@@ -2,9 +2,9 @@
 import Foundation
 
 /// See the documentation for `DescopeUser`.
-@available(*, deprecated, renamed: "DescopeUser")
+@available(*, unavailable, renamed: "DescopeUser")
 public typealias MeResponse = DescopeUser
 
 /// See the documentation for `SignUpDetails`.
-@available(*, deprecated, renamed: "SignUpDetails")
+@available(*, unavailable, renamed: "SignUpDetails")
 public typealias User = SignUpDetails

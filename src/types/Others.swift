@@ -49,9 +49,9 @@ public struct UpdateOptions: OptionSet {
     /// to is kept.
     ///
     /// If this option is set however then the current user is merged into the other
-    /// user, and the current user is discarded. In this case the `refreshJwt` and its
-    /// ``DescopeSession`` will no longer be valid, and a new ``DescopeSession`` is
-    /// returned for the other user instead.
+    /// user, and the current user is discarded. In this case the ``DescopeSession``
+    /// and its `refreshJwt` will no longer be valid, and an ``AuthenticationResponse``
+    /// is returned for the other user instead.
     public static let onMergeUseExisting = UpdateOptions(rawValue: 2)
     
     public let rawValue: Int

@@ -8,3 +8,7 @@ public typealias MeResponse = DescopeUser
 /// See the documentation for `SignUpDetails`.
 @available(*, unavailable, renamed: "SignUpDetails")
 public typealias User = SignUpDetails
+
+/// See the documentation for `PasswordPolicyResponse`.
+@available(*, unavailable, renamed: "PasswordPolicyResponse")
+public typealias PasswordPolicy = PasswordPolicyResponse

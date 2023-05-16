@@ -59,7 +59,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    func signIn(with method: DeliveryMethod, loginId: String) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String
     
     /// Authenticates an existing user if one exists, or creates a new user
     /// using an OTP, sent via a delivery method of choice.
@@ -72,7 +73,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier
-    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String
     
     /// Verifies an OTP code sent to the user.
     ///

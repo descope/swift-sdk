@@ -40,7 +40,7 @@ class TestHttpMethods: XCTestCase {
             "a": "b",
             "c": nil,
             "d": ["e", "f"],
-            "g": ["h": nil, "i": [:]],
+            "g": ["h": nil, "i": [String: Any]()],
         ]
 
         MockHTTP.push(json: MockResponse.json, headers: MockResponse.headers) { request in

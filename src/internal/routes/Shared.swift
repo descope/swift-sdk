@@ -63,3 +63,25 @@ extension DescopeClient.MaskedAddress {
         }
     }
 }
+
+extension [SignInOptions] {
+    func convert() throws -> (refreshJwt: String?, loginOptions: DescopeClient.LoginOptions?) {
+        guard !isEmpty else { return (nil, nil) }
+        var refreshJwt: String?
+        var loginOptions = DescopeClient.LoginOptions()
+        for option in self {
+            switch option {
+            case .customClaims(let dict):
+                guard JSONSerialization.isValidJSONObject(dict) else { throw DescopeError.encodeError.with(message: "Invalid custom claims payload") }
+                loginOptions.customClaims = dict
+            case .stepup(let value):
+                loginOptions.stepup = true
+                refreshJwt = value
+            case .mfa(let value):
+                loginOptions.mfa = true
+                refreshJwt = value
+            }
+        }
+        return (refreshJwt, loginOptions)
+    }
+}

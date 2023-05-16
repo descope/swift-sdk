@@ -77,15 +77,15 @@ public extension DescopeSession {
     /// A map with all the custom claims in the underlying JWT. It includes
     /// any claims whose values aren't already exposed by other accessors or
     /// authorization functions.
-    var claims: [String: Any] { refreshToken.claims }
+    var claims: [String: Any] { sessionToken.claims }
 
     /// Returns the list of permissions granted for the user. Pass `nil` for
     /// the `tenant` parameter if the user isn't associated with any tenant.
-    func permissions(tenant: String?) -> [String] { refreshToken.permissions(tenant: tenant) }
+    func permissions(tenant: String?) -> [String] { sessionToken.permissions(tenant: tenant) }
     
     /// Returns the list of roles for the user. Pass `nil` for the `tenant`
     /// parameter if the user isn't associated with any tenant.
-    func roles(tenant: String?) -> [String] { refreshToken.roles(tenant: tenant) }
+    func roles(tenant: String?) -> [String] { sessionToken.roles(tenant: tenant) }
 }
 
 /// Updating the session manually when not using a ``DescopeSessionManager``.

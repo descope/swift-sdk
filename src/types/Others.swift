@@ -34,6 +34,50 @@ public struct SignUpDetails {
     }
 }
 
+/// Used to require additional behaviors when authenticating a user.
+public enum SignInOptions {
+    /// Adds additional custom claims to the user's JWT during authentication.
+    ///
+    /// For example, the following code starts an OTP sign in and requests a custom claim
+    /// with the authenticated user's full name:
+    ///
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .customClaims(["name": "{{user.name}}"]),
+    ///     ])
+    ///
+    /// - Important: Any custom claims added via this method are considered insecure and will
+    /// be nested under the `nsec` custom claim.
+    case customClaims([String: Any])
+    
+    /// Used to add layered security to your app by implementing Step-up authentication.
+    ///
+    ///     guard let session = Descope.sessionManager.session else { return }
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .stepup(refreshJwt: session.refreshJwt),
+    ///     ])
+    ///
+    /// After the Step-up authentication completes successfully the returned session JWT will
+    /// have an `su` claim with a value of `true`.
+    ///
+    /// - Note: The `su` claim is not set on the refresh JWT.
+    case stepup(refreshJwt: String)
+    
+    /// Used to add layered security to your app by implementing Multi-factor authentication.
+    ///
+    /// Assuming the user has already signed in successfully with one authentication method,
+    /// we can take the `refreshJwt` and pass it as an `mfa` option to another authentication
+    /// method.
+    ///
+    ///     guard let session = Descope.sessionManager.session else { return }
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .mfa(refreshJwt: session.refreshJwt),
+    ///     ])
+    ///
+    /// After the MFA authentication completes successfully the `amr` claim in both the session
+    /// and refresh JWTs will be an array with an entry for each authentication method used.
+    case mfa(refreshJwt: String)
+}
+
 /// Used to configure how users are updated.
 public struct UpdateOptions: OptionSet {
     /// Whether to allow sign in from a new `loginId` after an update.

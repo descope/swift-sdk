@@ -18,15 +18,17 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func otpSignIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress {
-        return try await post("auth/otp/signin/\(method.rawValue)", body: [
-            "loginId": loginId
+    func otpSignIn(with method: DeliveryMethod, loginId: String, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+        return try await post("auth/otp/signin/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "loginOptions": options?.dictValue,
         ])
     }
     
-    func otpSignUpIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress {
-        return try await post("auth/otp/signup-in/\(method.rawValue)", body: [
-            "loginId": loginId
+    func otpSignUpIn(with method: DeliveryMethod, loginId: String, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+        return try await post("auth/otp/signup-in/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "loginOptions": options?.dictValue,
         ])
     }
     
@@ -340,6 +342,20 @@ class DescopeClient: HTTPClient {
         var maskedPhone: String?
     }
     
+    struct LoginOptions {
+        var stepup: Bool = false
+        var mfa: Bool = false
+        var customClaims: [String: Any] = [:]
+
+        var dictValue: [String: Any?] {
+            return [
+                "stepup": stepup ? true : nil,
+                "mfa": mfa ? true : nil,
+                "customClaims": customClaims.isEmpty ? nil : customClaims,
+            ]
+        }
+    }
+    
     // MARK: - Internal
     
     override var basePath: String {
@@ -358,7 +374,8 @@ class DescopeClient: HTTPClient {
         return DescopeError(errorResponse: data)
     }
     
-    private func authorization(with value: String) -> [String: String] {
+    private func authorization(with value: String?) -> [String: String] {
+        guard let value else { return [:] }
         return ["Authorization": "Bearer \(config.projectId):\(value)"]
     }
 }

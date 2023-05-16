@@ -10,12 +10,14 @@ class OTP: DescopeOTP {
         return try await client.otpSignUp(with: method, loginId: loginId, details: details).convert(method: method)
     }
     
-    func signIn(with method: DeliveryMethod, loginId: String) async throws -> String {
-        return try await client.otpSignIn(with: method, loginId: loginId).convert(method: method)
+    func signIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.otpSignIn(with: method, loginId: loginId, refreshJwt: refreshJwt, options: loginOptions).convert(method: method)
     }
     
-    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws -> String {
-        return try await client.otpSignUpIn(with: method, loginId: loginId).convert(method: method)
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.otpSignUpIn(with: method, loginId: loginId, refreshJwt: refreshJwt, options: loginOptions).convert(method: method)
     }
     
     func verify(with method: DeliveryMethod, loginId: String, code: String) async throws -> AuthenticationResponse {

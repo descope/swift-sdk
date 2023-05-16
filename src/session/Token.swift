@@ -14,7 +14,7 @@ public protocol DescopeToken {
     /// of the user or access key the JWT was generated for.
     var id: String { get }
     
-    /// The value of the "aud" (audience) claim which is the unique id
+    /// The value of the "iss" (issuer) claim which is the unique id
     /// of the Descope project the JWT was generated for.
     var projectId: String { get }
     

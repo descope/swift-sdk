@@ -507,10 +507,11 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    func signIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - options: Additional behaviors to perform during authentication.
+    func signIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signIn(with: method, loginId: loginId)))
+                completion(.success(try await signIn(with: method, loginId: loginId, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -528,10 +529,11 @@ public extension DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, completion: @escaping (Result<String, Error>) -> Void) {
+    ///   - options: Additional behaviors to perform during authentication.
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUpOrIn(with: method, loginId: loginId)))
+                completion(.success(try await signUpOrIn(with: method, loginId: loginId, options: options)))
             } catch {
                 completion(.failure(error))
             }

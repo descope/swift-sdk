@@ -253,6 +253,18 @@ public extension DescopeEnchantedLink {
     }
 }
 
+public extension DescopeFlow {
+    func start(runner: DescopeFlowRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await start(runner: runner)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+}
+
 public extension DescopeMagicLink {
     /// Authenticates a new user using a magic link, sent via a delivery
     /// method of choice.

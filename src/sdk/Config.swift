@@ -1,3 +1,4 @@
+import Foundation
 
 /// The configuration of the Descope SDK.
 public struct DescopeConfig {

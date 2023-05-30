@@ -556,3 +556,9 @@ public protocol DescopeAccessKey {
     /// - Returns: A ``DescopeToken`` upon successful exchange.
     func exchange(accessKey: String) async throws -> DescopeToken
 }
+
+public protocol DescopeFlow {
+    var current: DescopeFlowRunner? { get }
+    
+    func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse
+}

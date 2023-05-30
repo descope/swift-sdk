@@ -72,6 +72,8 @@ public extension Descope {
     /// Authentication with passwords.
     static var password: DescopePassword { sdk.password }
 
+    static var flow: DescopeFlow { sdk.flow }
+    
     /// Exchanging access keys for session tokens.
     static var accessKey: DescopeAccessKey { sdk.accessKey }
     

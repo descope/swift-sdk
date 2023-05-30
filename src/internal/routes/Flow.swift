@@ -72,42 +72,47 @@ class Flow: DescopeFlow {
             }
         }
         
-        let presentationContextProvider = runner.presentationContextProvider
-        session.presentationContextProvider = presentationContextProvider
+        if !sessions.isEmpty {
+            session.prefersEphemeralWebBrowserSession = true
+        }
+        session.presentationContextProvider = runner.presentationContextProvider
         session.start()
         
-        Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { timer in
-            Task { @MainActor in
-                guard !finished else {
-                    timer.invalidate()
-                    return
+        var counter = 0
+        Task {
+            do {
+                while !finished {
+                    counter += 1
+                    NSLog("Counter: \(Task.isCancelled)")
+                    
+                    guard !runner.isCancelled else { throw DescopeError.flowCancelled }
+                    
+                    if let pendingURL = runner.pendingURL {
+                        runner.pendingURL = nil
+                        
+                        guard let pendingComponents = URLComponents(url: pendingURL, resolvingAgainstBaseURL: false) else { continue }
+                        guard let url = URL(string: runner.flowURL), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { continue }
+                        components.queryItems = components.queryItems ?? []
+                        for item in pendingComponents.queryItems ?? [] {
+                            components.queryItems?.append(item)
+                        }
+                        guard let nextURL = components.url else { continue }
+                        
+                        finished = true
+                        try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
+                        
+                        return run(runner, url: nextURL, codeVerifier: codeVerifier, sessions: sessions+[session], completion: completion)
+                    }
+                    
+                    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
                 }
-                
-                guard !runner.isCancelled else {
-                    timer.invalidate()
-                    session.cancel()
-                    return
-                }
-                
-                guard let pendingURL = runner.pendingURL else { return }
-                runner.pendingURL = nil
-                
-                guard let pendingComponents = URLComponents(url: pendingURL, resolvingAgainstBaseURL: false) else { return }
-                guard let url = URL(string: runner.flowURL), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return }
-                components.queryItems = components.queryItems ?? []
-                for item in pendingComponents.queryItems ?? [] {
-                    components.queryItems?.append(item)
-                }
-                guard let nextURL = components.url else { return }
-
-                timer.invalidate()
+            } catch {
                 finished = true
-
-                var sessions = sessions
-                sessions.append(session)
-                
-                try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-                self.run(runner, url: nextURL, codeVerifier: codeVerifier, sessions: sessions, completion: completion)
+                for session in sessions {
+                    session.cancel()
+                }
+                session.cancel()
+                completion(.failure(DescopeError.flowCancelled))
             }
         }
     }

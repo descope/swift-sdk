@@ -6,7 +6,7 @@ import AuthenticationServices
 public class DescopeFlowRunner {
     public let flowURL: String
     
-    public var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
+    public weak var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
     
     public init(flowURL: String, presentationContextProvider: ASWebAuthenticationPresentationContextProviding) {
         self.flowURL = flowURL
@@ -48,7 +48,12 @@ public class DescopeFlowRunner {
     ///         } catch {
     ///             // ...
     ///     }
+    ///
+    ///     // sometime later
     ///     task.cancel()
+    ///
+    /// In any case, when a runner is cancelled the ``DescopeFlow/start(runner:)`` call always
+    /// throws a ``DescopeError/flowCancelled`` error.
     ///
     /// - Important: Keep in mind that the cancellation is asynchronous and the calling code
     ///     shouldn't rely on the user interface state being updated immediately after this
@@ -56,13 +61,17 @@ public class DescopeFlowRunner {
     public func cancel() {
         isCancelled = true
     }
-    
+
+    /// Returns whether this runner was cancelled.
+    ///
+    /// The running flow periodically checks this property to see if the flow was cancelled.
+    ///
+    /// - Note: This property can be set to `true` by calling the ``cancel()`` function.
+    public private(set) var isCancelled: Bool = false
+
     // Internal
 
-    /// The running flow periodically checks this property for any redirect URL that was
-    /// passed as a parameter to the ``handleURL(_:)`` function.
+    /// The running flow periodically checks this property to for any redirect URL from calls
+    /// to the ``handleURL(_:)`` function.
     var pendingURL: URL?
-    
-    /// Set to `true` after ``cancel()`` is called.
-    var isCancelled: Bool = false
 }

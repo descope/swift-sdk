@@ -56,7 +56,7 @@ class Flow: DescopeFlow {
                 do {
                     guard !runner.isCancelled else { throw DescopeError.flowCancelled }
                     
-                    let code = try self.parseAuthorizationCode(callbackURL, error)
+                    let code = try parseAuthorizationCode(callbackURL, error)
                     let jwtResponse = try await self.client.flowExchange(authorizationCode: code, codeVerifier: codeVerifier)
 
                     guard !runner.isCancelled else { throw DescopeError.flowCancelled }
@@ -116,29 +116,6 @@ class Flow: DescopeFlow {
             }
         }
     }
-    
-    private func parseAuthorizationCode(_ callbackURL: URL?, _ error: Error?) throws -> String {
-        if let error {
-            // TODO logger
-            switch error {
-            case ASWebAuthenticationSessionError.canceledLogin:
-                throw DescopeError.flowCancelled
-            case ASWebAuthenticationSessionError.presentationContextInvalid:
-                print("Invalid presentation context: \(error)")
-            case ASWebAuthenticationSessionError.presentationContextNotProvided:
-                print("No presentation context: \(error)")
-            default:
-                print("Unknown error: \(error)")
-            }
-            throw DescopeError.flowFailed.with(cause: error)
-        }
-
-        guard let callbackURL else { throw DescopeError.flowFailed.with(message: "Authentication session finished without callback") }
-        guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Authentication session finished with invalid callback") }
-        guard let code = components.queryItems?.first(where: { $0.name == "code" })?.value else { throw DescopeError.flowFailed.with(message: "Authentication session finished without authorization code") }
-        
-        return code
-    }
 }
 
 // Internal
@@ -156,4 +133,27 @@ private extension Data {
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
     }
+}
+
+private func parseAuthorizationCode(_ callbackURL: URL?, _ error: Error?) throws -> String {
+    if let error {
+        // TODO logger
+        switch error {
+        case ASWebAuthenticationSessionError.canceledLogin:
+            throw DescopeError.flowCancelled
+        case ASWebAuthenticationSessionError.presentationContextInvalid:
+            print("Invalid presentation context: \(error)")
+        case ASWebAuthenticationSessionError.presentationContextNotProvided:
+            print("No presentation context: \(error)")
+        default:
+            print("Unknown error: \(error)")
+        }
+        throw DescopeError.flowFailed.with(cause: error)
+    }
+
+    guard let callbackURL else { throw DescopeError.flowFailed.with(message: "Authentication session finished without callback") }
+    guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Authentication session finished with invalid callback") }
+    guard let code = components.queryItems?.first(where: { $0.name == "code" })?.value else { throw DescopeError.flowFailed.with(message: "Authentication session finished without authorization code") }
+    
+    return code
 }

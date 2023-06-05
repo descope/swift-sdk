@@ -37,33 +37,28 @@ class Flow: DescopeFlow {
             }
         }
         
-        let cancellation = CancellationHandler()
-        
-        let jwtResponse = try await withTaskCancellationHandler {
-            let code = try await withCheckedThrowingContinuation { continuation in
-                run(runner, url: initialURL, codeVerifier: codeVerifier, sessions: [], cancellation: cancellation) { result in
+        return try await withTaskCancellationHandler {
+            let authorizationCode = try await withCheckedThrowingContinuation { continuation in
+                run(runner, url: initialURL, codeVerifier: codeVerifier, sessions: []) { result in
                     continuation.resume(with: result)
                 }
             }
-            return try await client.flowExchange(authorizationCode: code, codeVerifier: codeVerifier)
+            return try await exchange(runner, authorizationCode: authorizationCode, codeVerifier: codeVerifier)
         } onCancel: {
-            cancellation.cancel()
+            Task { @MainActor in
+                runner.cancel()
+            }
         }
-
-        guard !Task.isCancelled else { throw DescopeError.flowCancelled }
-        let authResponse: AuthenticationResponse = try jwtResponse.convert()
-
-        return authResponse
     }
     
     @MainActor
-    private func run(_ runner: DescopeFlowRunner, url: URL, codeVerifier: String, sessions: [ASWebAuthenticationSession], cancellation: CancellationHandler, completion: @escaping (Result<String, Error>) -> Void) {
-        var finished = false
+    private func run(_ runner: DescopeFlowRunner, url: URL, codeVerifier: String, sessions: [ASWebAuthenticationSession], completion: @escaping (Result<String, Error>) -> Void) {
+        var handled = false
         
         let session = ASWebAuthenticationSession(url: url, callbackURLScheme: redirectScheme) { callbackURL, error in
             Task {
-                guard !finished else { return }
-                finished = true
+                guard !handled else { return }
+                handled = true
                 
                 let result = Result {
                     try parseAuthorizationCode(callbackURL, error)
@@ -85,8 +80,8 @@ class Flow: DescopeFlow {
         
         Task {
             do {
-                while !finished {
-                    guard !cancellation.isCancelled else { throw DescopeError.flowCancelled }
+                while !handled {
+                    guard !runner.isCancelled else { throw DescopeError.flowCancelled }
                     
                     if let pendingURL = runner.pendingURL {
                         runner.pendingURL = nil
@@ -99,14 +94,14 @@ class Flow: DescopeFlow {
                         }
                         guard let nextURL = components.url else { continue }
                         
-                        finished = true
-                        return run(runner, url: nextURL, codeVerifier: codeVerifier, sessions: sessions+[session], cancellation: cancellation, completion: completion)
+                        handled = true
+                        return run(runner, url: nextURL, codeVerifier: codeVerifier, sessions: sessions+[session], completion: completion)
                     }
                     
                     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
                 }
             } catch {
-                finished = true
+                handled = true
                 for session in sessions {
                     session.cancel()
                 }
@@ -114,6 +109,14 @@ class Flow: DescopeFlow {
                 completion(.failure(DescopeError.flowCancelled))
             }
         }
+    }
+    
+    @MainActor
+    private func exchange(_ runner: DescopeFlowRunner, authorizationCode: String, codeVerifier: String) async throws -> AuthenticationResponse {
+        guard !runner.isCancelled else { throw DescopeError.flowCancelled }
+        let jwtResponse = try await client.flowExchange(authorizationCode: authorizationCode, codeVerifier: codeVerifier)
+        guard !runner.isCancelled else { throw DescopeError.flowCancelled }
+        return try jwtResponse.convert()
     }
 }
 
@@ -155,15 +158,4 @@ private func parseAuthorizationCode(_ callbackURL: URL?, _ error: Error?) throws
     guard let code = components.queryItems?.first(where: { $0.name == "code" })?.value else { throw DescopeError.flowFailed.with(message: "Authentication session finished without authorization code") }
     
     return code
-}
-
-@MainActor
-private class CancellationHandler {
-    var isCancelled = false
-    
-    nonisolated func cancel() {
-        Task { @MainActor in
-            isCancelled = true
-        }
-    }
 }

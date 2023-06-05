@@ -17,11 +17,5 @@ public class DescopeFlowRunner {
         pendingURL = url
     }
 
-    public func cancel() {
-        
-    }
-
     var pendingURL: URL?
-    
-    var isCancelled: Bool = false
 }

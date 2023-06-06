@@ -26,13 +26,13 @@ class Password: DescopePassword {
         try await client.passwordSendReset(loginId: loginId, redirectURL: redirectURL)
     }
     
-    func getPolicy() async throws -> PasswordPolicy {
+    func getPolicy() async throws -> PasswordPolicyResponse {
         return try await client.passwordGetPolicy().convert()
     }
 }
 
 private extension DescopeClient.PasswordPolicyResponse {
-    func convert() throws -> PasswordPolicy {
-        return PasswordPolicy(minLength: minLength, lowercase: lowercase, uppercase: uppercase, number: number, nonAlphanumeric: nonAlphanumeric)
+    func convert() throws -> PasswordPolicyResponse {
+        return PasswordPolicyResponse(minLength: minLength, lowercase: lowercase, uppercase: uppercase, number: number, nonAlphanumeric: nonAlphanumeric)
     }
 }

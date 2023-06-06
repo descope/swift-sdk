@@ -65,8 +65,8 @@ class HTTPClient {
     private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> (Data, HTTPURLResponse) {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
         let (data, response) = try await sendRequest(request)
-        guard let response = response as? HTTPURLResponse else { throw DescopeError(serverError: .invalidResponse) }
-        if let error = DescopeError.from(statusCode: response.statusCode) {
+        guard let response = response as? HTTPURLResponse else { throw DescopeError(httpError: .invalidResponse) }
+        if let error = DescopeError(httpStatusCode: response.statusCode) {
             throw errorForResponseData(data) ?? error
         }
         return (data, response)
@@ -84,14 +84,14 @@ class HTTPClient {
     }
     
     private func makeURL(route: String, params: [String: String?]) throws -> URL {
-        guard var url = URL(string: baseURL) else { throw DescopeError(serverError: .invalidRoute) }
+        guard var url = URL(string: baseURL) else { throw DescopeError(httpError: .invalidRoute) }
         url.appendPathComponent(basePath, isDirectory: false)
         url.appendPathComponent(route, isDirectory: false)
-        guard var components = URLComponents(string: url.absoluteString) else { throw DescopeError(serverError: .invalidRoute) }
+        guard var components = URLComponents(string: url.absoluteString) else { throw DescopeError(httpError: .invalidRoute) }
         if case let params = params.compacted(), !params.isEmpty {
             components.queryItems = params.map(URLQueryItem.init)
         }
-        guard let url = components.url else { throw DescopeError(serverError: .invalidRoute) }
+        guard let url = components.url else { throw DescopeError(httpError: .invalidRoute) }
         return url
     }
     

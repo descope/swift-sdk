@@ -25,16 +25,15 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
-Authenticate the user in your application by starting one of the
+You can authenticate a user in your application by starting one of the
 authentication methods. For example, let's use OTP via email: 
 
 ```swift
 // sends an OTP code to the given email address
 try await Descope.otp.signUp(with: .email, loginId: "andy@example.com", details: nil)
-...
 ```
 
-Finish the authentication by verifying the OTP code the user entered: 
+We finish the authentication by verifying the OTP code the user entered: 
 
 ```swift
 // if the user entered the right code the authentication is successful  
@@ -43,13 +42,14 @@ let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@exa
 // we create a DescopeSession object that represents an authenticated user session
 let session = DescopeSession(from: authResponse)
 
-// the session manager automatically takes care of persisting the session
-// and refreshing it as needed
+// the session manager takes care of saving the session to the keychain and
+// refreshing it for us as needed
 Descope.sessionManager.manageSession(session)
 ```
 
-On the next application launch check if there's a logged in user to
-decide which screen to show:
+The session manager will automatically load the session from the keychain
+the next time the application is launched. At that point we might check if
+there's a logged in user to decide which screen to show:
 
 ```swift
 func initialViewController() -> UIViewController {
@@ -62,7 +62,7 @@ func initialViewController() -> UIViewController {
 }
 ```
 
-Use the active session to authenticate outgoing API requests to the
+We use the active session to authenticate an outgoing API request to the
 application's backend:
 
 ```swift

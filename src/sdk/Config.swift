@@ -7,7 +7,7 @@ public struct DescopeConfig {
     /// The base URL of the Descope server.
     public var baseURL: String = "https://api.descope.com"
 
-    /// Creates a new `DescopeConfig` object.
+    /// Creates a new ``DescopeConfig`` object.
     ///
     /// - Parameters:
     ///   - projectId: The id of the Descope project can be found in the

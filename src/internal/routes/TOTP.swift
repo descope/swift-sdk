@@ -30,6 +30,7 @@ private extension DescopeClient.TOTPResponse {
         #if os(iOS)
         guard let image = UIImage(data: image) else { throw DescopeError.decodeError.with(message: "Invalid image data") }
         #endif
-        return TOTPResponse(provisioningURL: provisioningURL, image: image, key: key)
+        guard let url = URL(string: provisioningURL) else { throw DescopeError.decodeError.with(message: "Invalid provisioning URL") }
+        return TOTPResponse(provisioningURL: url, image: image, key: key)
     }
 }

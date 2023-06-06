@@ -3,7 +3,7 @@ import Foundation
 
 /// The concrete type of `Error` thrown by all operations in the Descope SDK.
 ///
-/// The ``DescopeError`` objects implement the `LocalizedError` protocol so you use the value
+/// The ``DescopeError`` objects implement the `LocalizedError` protocol so you can use the value
 /// of the `localizedDescription` property to get a relatively user friendly error string.
 ///
 ///     } catch let err as DescopeError {

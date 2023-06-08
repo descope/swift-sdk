@@ -93,8 +93,12 @@ class Flow: DescopeFlow {
         // gets a presentation anchor from the runner or uses the default one if none was set
         let contextProvider = runner.contextProvider
         
-        // TODO
-        if !sessions.isEmpty {
+        // when presenting the flow initially we only ask for shared user data if that option
+        // was set, in subsequent sessions after magic link authentication we always set this
+        // to true so the user won't get a confirmation dialog twice
+        if sessions.isEmpty {
+            session.prefersEphemeralWebBrowserSession = !runner.shouldAccessSharedUserData
+        } else {
             session.prefersEphemeralWebBrowserSession = true
         }
         

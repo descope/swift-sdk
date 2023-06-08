@@ -32,6 +32,22 @@ public class DescopeFlowRunner {
     /// The URL where the flow is hosted.
     public let flowURL: String
     
+    /// Whether the authentication view is allowed to access shared user data.
+    ///
+    /// Setting this to `true` allows the sandboxed browser in the authentication view
+    /// to access cookies and other browsing data from the user's regular browser in the
+    /// device.
+    ///
+    /// This can be helpful in flows that use SSO or OAuth authentication. Users are
+    /// often logged in to their provider in the device's regular browser, and enabling
+    /// this setting should let them use their active session when authenticating in the
+    /// flow rather than forcing them to login to the provider again.
+    ///
+    /// A side effect of enabling this is that the device will show a dialog before
+    /// the authentication view is presented, asking the user to allow the app to share
+    /// information with the browser.
+    public var shouldAccessSharedUserData: Bool = false
+    
     /// Determines where in an application's UI the authentication view for the flow
     /// should be shown.
     ///

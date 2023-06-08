@@ -6,7 +6,8 @@ private let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXIiLCJuYW1l
 
 class TestAccessKey: XCTestCase {
     func testTokenDecoding() async throws {
-        let config = DescopeConfig(projectId: "foo", networking: MockHTTP.networking)
+        var config = DescopeConfig(projectId: "foo")
+        config.networking = MockHTTP.networking
         let descope = DescopeSDK(config: config)
         
         MockHTTP.push(json: ["sessionJwt": jwt]) { request in

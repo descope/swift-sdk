@@ -586,5 +586,7 @@ public protocol DescopeFlow {
     ///
     /// - Throws: ``DescopeError/flowCancelled`` if the ``DescopeFlowRunner/cancel()`` method
     ///     is called on the runner or the authentication view is cancelled by the user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse
 }

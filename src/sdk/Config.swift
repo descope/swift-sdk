@@ -10,6 +10,10 @@ public struct DescopeConfig {
     public var baseURL: String = "https://api.descope.com"
 
     /// An optional object to override how HTTP requests are performed.
+    ///
+    /// The default value of this property is always `nil`, and the SDK uses its own internal
+    /// `URLSession` object to perform HTTP requests. In most cases this property should
+    /// only be used when testing code that uses the Descope SDK.
     public var networking: Networking? = nil
     
     /// Creates a new ``DescopeConfig`` object.
@@ -64,10 +68,6 @@ public struct DescopeConfig {
     ///             return try await session.data(for: request)
     ///         }
     ///     }
-    ///
-    /// - Note: The default ``Networking`` object used by the SDK uses an internal `URLSession`
-    ///     object. It is not exposed as a public symbol and unless you need to override
-    ///     the SDK's networking behavior there's no need to use this class.
     open class Networking {
         /// Loads data using a `URLRequest` and returns the `data` and `response`.
         open func call(request: URLRequest) async throws -> (Data, URLResponse) {

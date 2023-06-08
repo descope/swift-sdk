@@ -37,6 +37,15 @@ extension MockHTTP {
         sessionConfig.protocolClasses = [MockHTTP.self]
         return URLSession(configuration: sessionConfig)
     }()
+    
+    static var networking: DescopeConfig.Networking = {
+        class Client: DescopeConfig.Networking {
+            override func call(request: URLRequest) async throws -> (Data, URLResponse) {
+                return try await session.data(for: request)
+            }
+        }
+        return Client()
+    }()
 }
     
 extension MockHTTP {

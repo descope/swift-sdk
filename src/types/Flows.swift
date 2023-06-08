@@ -1,19 +1,79 @@
 
-import Foundation
 import AuthenticationServices
 
+/// A helper object that encapsulates a single flow run.
+///
+/// Create a runner by providing the URL for a webpage where the flow is hosted. You
+/// can start the flow by calling ``DescopeFlow/start(runner:)``. When the authentication
+/// completes successfully it returns a ``AuthenticationResponse`` value as in all other
+/// authentication methods.
+///
+///     class LoginScreen: UIViewController {
+///         // ...
+///         func runFlow() async {
+///             do {
+///                 let runner = DescopeFlowRunner(flowURL: "https://example.com/flows/signup")
+///                 let authResponse = try await Descope.flow.start(runner: runner)
+///                 let session = DescopeSession(from: authResponse)
+///                 Descope.sessionManager.manageSession(session)
+///             } catch DescopeError.flowCancelled {
+///                 // do nothing
+///             } catch {
+///                 showErrorAlert(error)
+///             }
+///         }
+///     }
+///
+/// - Important: In case the flow uses Magic Link authentication you'll need to call
+///     ``resume(with:)`` after intercepting the Universal Link from the authentication
+///     email. See the documentation for ``resume(with:)`` for more details.
 @MainActor
 public class DescopeFlowRunner {
+    /// The URL where the flow is hosted.
     public let flowURL: String
     
+    /// Determines where in an application's UI the authentication view for the flow
+    /// should be shown.
+    ///
+    /// Setting this delegate object is optional as the ``DescopeFlowRunner`` will look for
+    /// a suitable anchor to show the authentication view. In case you need to override the
+    /// default behavior set your own delegate on this property.
+    ///
+    /// - Note: This property is marked as `weak` like all delegate properties, so if you
+    ///     set a custom object make sure it's retained elsewhere.
     public weak var presentationContextProvider: ASWebAuthenticationPresentationContextProviding?
     
-    public init(flowURL: String, presentationContextProvider: ASWebAuthenticationPresentationContextProviding) {
+    /// Creates a new ``DescopeFlowRunner`` object that encapsulates a single flow run.
+    ///
+    /// - Parameter flowURL: The URL where the flow is hosted.
+    public init(flowURL: String) {
         self.flowURL = flowURL
-        self.presentationContextProvider = presentationContextProvider
     }
     
-    public func handleURL(_ url: URL) {
+    /// Resumes a running flow that's waiting for Magic Link authentication.
+    ///
+    /// When a flow performs authentication with Magic Link at some point it will wait
+    /// for the user to receive an email and tap on the authentication URL provided inside.
+    /// The host application is expected to intercept this URL via Universal Links and
+    /// resume the running flow with it.
+    ///
+    /// You can do this by first getting a reference to the current running flow from
+    /// the ``DescopeFlow/current`` property and then calling the ``resume(with:)`` method
+    /// with the URL from the Universal Link.
+    ///
+    ///     @main
+    ///     struct MyApp: App {
+    ///         // ...
+    ///
+    ///         var body: some Scene {
+    ///             WindowGroup {
+    ///                 ContentView().onOpenURL { url in
+    ///                     Descope.flow.current?.resume(with: url)
+    ///                 }
+    ///             }
+    ///         }
+    ///     }
+    public func resume(with url: URL) {
         pendingURL = url
     }
 
@@ -36,21 +96,7 @@ public class DescopeFlowRunner {
     ///     Descope.flow.current?.cancel()
     ///
     /// Note that cancelling the `Task` that started the flow with ``DescopeFlow/start(runner:)``
-    /// has the same effect as calling this ``cancel()`` function. In other words, the following
-    /// code is more or less equivalent to the one above.
-    ///
-    ///     let task = Task {
-    ///         do {
-    ///             let runner = DescopeFlowRunner(...)
-    ///             let authResponse = try await Descope.flow.start(runner: runner)
-    ///         } catch DescopeError.flowCancelled {
-    ///             print("The flow was cancelled")
-    ///         } catch {
-    ///             // ...
-    ///     }
-    ///
-    ///     // sometime later
-    ///     task.cancel()
+    /// has the same effect as calling this ``cancel()`` function.
     ///
     /// In any case, when a runner is cancelled the ``DescopeFlow/start(runner:)`` call always
     /// throws a ``DescopeError/flowCancelled`` error.
@@ -73,4 +119,32 @@ public class DescopeFlowRunner {
     /// The running flow periodically checks this property to for any redirect URL from calls
     /// to the ``handleURL(_:)`` function.
     var pendingURL: URL?
+    
+    /// Returns the ``presentationContextProvider`` or the default provider if none was set.
+    var contextProvider: ASWebAuthenticationPresentationContextProviding {
+        return presentationContextProvider ?? defaultContextProvider
+    }
+    
+    /// The default context provider that looks for the first key window in the active scene.
+    private let defaultContextProvider = DefaultContextProvider()
+}
+
+// Internal
+
+private class DefaultContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        #if os(macOS)
+        return ASPresentationAnchor()
+        #else
+        let scene = UIApplication.shared.connectedScenes
+            .filter { $0.activationState == .foregroundActive }
+            .compactMap { $0 as? UIWindowScene }
+            .first
+        
+        let keyWindow = scene?.windows
+            .first { $0.isKeyWindow }
+        
+        return keyWindow ?? ASPresentationAnchor()
+        #endif
+    }
 }

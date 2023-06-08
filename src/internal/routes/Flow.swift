@@ -90,10 +90,16 @@ class Flow: DescopeFlow {
             }
         }
         
+        // gets a presentation anchor from the runner or uses the default one if none was set
+        let contextProvider = runner.contextProvider
+        
+        // TODO
         if !sessions.isEmpty {
             session.prefersEphemeralWebBrowserSession = true
         }
-        session.presentationContextProvider = runner.presentationContextProvider
+        
+        // opens the flow in a sandboxed browser view
+        session.presentationContextProvider = contextProvider
         session.start()
         
         Task {

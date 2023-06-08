@@ -64,9 +64,8 @@ public class DescopeFlowRunner {
 
     /// Returns whether this runner was cancelled.
     ///
-    /// The running flow periodically checks this property to see if the flow was cancelled.
-    ///
-    /// - Note: This property can be set to `true` by calling the ``cancel()`` function.
+    /// After the flow is started by calling ``DescopeFlow/start(runner:)`` it periodically
+    /// checks this property to see if the flow was cancelled.
     public private(set) var isCancelled: Bool = false
 
     // Internal

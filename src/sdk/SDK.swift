@@ -11,6 +11,7 @@ public class DescopeSDK {
     public let sso: DescopeSSO
     public let password: DescopePassword
     public let accessKey: DescopeAccessKey
+    public let flow: DescopeFlow
 
     public lazy var sessionManager: DescopeSessionManager = DescopeSessionManager(sdk: self)
     
@@ -35,6 +36,7 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
+        self.flow = Flow(client: client)
     }
 }
 

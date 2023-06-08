@@ -12,33 +12,33 @@ class DescopeClient: HTTPClient {
     // MARK: - OTP
     
     func otpSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?) async throws -> MaskedAddress {
-        return try await post("otp/signup/\(method.rawValue)", body: [
+        return try await post("auth/otp/signup/\(method.rawValue)", body: [
             "loginId": loginId,
             "user": details?.dictValue,
         ])
     }
     
     func otpSignIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress {
-        return try await post("otp/signin/\(method.rawValue)", body: [
+        return try await post("auth/otp/signin/\(method.rawValue)", body: [
             "loginId": loginId
         ])
     }
     
     func otpSignUpIn(with method: DeliveryMethod, loginId: String) async throws -> MaskedAddress {
-        return try await post("otp/signup-in/\(method.rawValue)", body: [
+        return try await post("auth/otp/signup-in/\(method.rawValue)", body: [
             "loginId": loginId
         ])
     }
     
     func otpVerify(with method: DeliveryMethod, loginId: String, code: String) async throws -> JWTResponse {
-        return try await post("otp/verify/\(method.rawValue)", body: [
+        return try await post("auth/otp/verify/\(method.rawValue)", body: [
             "loginId": loginId,
             "code": code,
         ])
     }
     
     func otpUpdateEmail(_ email: String, loginId: String, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
-        return try await post("otp/update/email", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/otp/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "addToLoginIDs": options.contains(.addToLoginIds),
@@ -48,7 +48,7 @@ class DescopeClient: HTTPClient {
     
     func otpUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
-        return try await post("otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/otp/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
             "addToLoginIDs": options.contains(.addToLoginIds),
@@ -65,21 +65,21 @@ class DescopeClient: HTTPClient {
     }
     
     func totpSignUp(loginId: String, details: SignUpDetails?) async throws -> TOTPResponse {
-        return try await post("totp/signup", body: [
+        return try await post("auth/totp/signup", body: [
             "loginId": loginId,
             "user": details?.dictValue,
         ])
     }
     
     func totpVerify(loginId: String, code: String) async throws -> JWTResponse {
-        return try await post("totp/verify", body: [
+        return try await post("auth/totp/verify", body: [
             "loginId": loginId,
             "code": code,
         ])
     }
     
     func totpUpdate(loginId: String, refreshJwt: String) async throws -> TOTPResponse {
-        return try await post("totp/update", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/totp/update", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
         ])
     }
@@ -87,7 +87,7 @@ class DescopeClient: HTTPClient {
     // MARK: - Password
     
     func passwordSignUp(loginId: String, password: String, details: SignUpDetails?) async throws -> JWTResponse {
-        return try await post("password/signup", body: [
+        return try await post("auth/password/signup", body: [
             "loginId": loginId,
             "user": details?.dictValue,
             "password": password,
@@ -95,21 +95,21 @@ class DescopeClient: HTTPClient {
     }
     
     func passwordSignIn(loginId: String, password: String) async throws -> JWTResponse {
-        return try await post("password/signin", body: [
+        return try await post("auth/password/signin", body: [
             "loginId": loginId,
             "password": password,
         ])
     }
     
     func passwordUpdate(loginId: String, newPassword: String, refreshJwt: String) async throws {
-        try await post("password/update", headers: authorization(with: refreshJwt), body: [
+        try await post("auth/password/update", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "newPassword": newPassword,
         ])
     }
     
     func passwordReplace(loginId: String, oldPassword: String, newPassword: String) async throws {
-        try await post("password/replace", body: [
+        try await post("auth/password/replace", body: [
             "loginId": loginId,
             "oldPassword": oldPassword,
             "newPassword": newPassword,
@@ -117,7 +117,7 @@ class DescopeClient: HTTPClient {
     }
     
     func passwordSendReset(loginId: String, redirectURL: String?) async throws {
-        try await post("password/reset", body: [
+        try await post("auth/password/reset", body: [
             "loginId": loginId,
             "redirectUrl": redirectURL,
         ])
@@ -132,14 +132,14 @@ class DescopeClient: HTTPClient {
     }
     
     func passwordGetPolicy() async throws -> PasswordPolicyResponse {
-        return try await get("password/policy")
+        return try await get("auth/password/policy")
     }
 
     
     // MARK: - Magic Link
     
     func magicLinkSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> MaskedAddress {
-        return try await post("magiclink/signup/\(method.rawValue)", body: [
+        return try await post("auth/magiclink/signup/\(method.rawValue)", body: [
             "loginId": loginId,
             "user": details?.dictValue,
             "uri": uri,
@@ -147,27 +147,27 @@ class DescopeClient: HTTPClient {
     }
     
     func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
-        return try await post("magiclink/signin/\(method.rawValue)", body: [
+        return try await post("auth/magiclink/signin/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
     func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
-        return try await post("magiclink/signup-in/\(method.rawValue)", body: [
+        return try await post("auth/magiclink/signup-in/\(method.rawValue)", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
     func magicLinkVerify(token: String) async throws -> JWTResponse {
-        return try await post("magiclink/verify", body: [
+        return try await post("auth/magiclink/verify", body: [
             "token": token,
         ])
     }
     
     func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
-        return try await post("magiclink/update/email", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "uri": uri,
@@ -178,7 +178,7 @@ class DescopeClient: HTTPClient {
     
     func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
-        return try await post("magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
             "uri": uri,
@@ -196,7 +196,7 @@ class DescopeClient: HTTPClient {
     }
     
     func enchantedLinkSignUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await post("enchantedlink/signup/email", body: [
+        return try await post("auth/enchantedlink/signup/email", body: [
             "loginId": loginId,
             "user": details?.dictValue,
             "uri": uri,
@@ -204,21 +204,21 @@ class DescopeClient: HTTPClient {
     }
     
     func enchantedLinkSignIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        try await post("enchantedlink/signin/email", body: [
+        try await post("auth/enchantedlink/signin/email", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
     func enchantedLinkSignUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        try await post("enchantedlink/signup-in/email", body: [
+        try await post("auth/enchantedlink/signup-in/email", body: [
             "loginId": loginId,
             "uri": uri,
         ])
     }
     
     func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
-        return try await post("enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
+        return try await post("auth/enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
             "uri": uri,
@@ -228,7 +228,7 @@ class DescopeClient: HTTPClient {
     }
     
     func enchantedLinkPendingSession(pendingRef: String) async throws -> JWTResponse {
-        return try await post("enchantedlink/pending-session", body: [
+        return try await post("auth/enchantedlink/pending-session", body: [
             "pendingRef": pendingRef,
         ])
     }
@@ -240,14 +240,14 @@ class DescopeClient: HTTPClient {
     }
     
     func oauthStart(provider: OAuthProvider, redirectURL: String?) async throws -> OAuthResponse {
-        return try await post("oauth/authorize", params: [
+        return try await post("auth/oauth/authorize", params: [
             "provider": provider.rawValue,
             "redirectURL": redirectURL,
         ])
     }
     
     func oauthExchange(code: String) async throws -> JWTResponse {
-        return try await post("oauth/exchange", body: [
+        return try await post("auth/oauth/exchange", body: [
             "code": code
         ])
     }
@@ -259,14 +259,14 @@ class DescopeClient: HTTPClient {
     }
     
     func ssoStart(emailOrTenantName: String, redirectURL: String?) async throws -> OAuthResponse {
-        return try await post("saml/authorize", params: [
+        return try await post("auth/saml/authorize", params: [
             "tenant": emailOrTenantName,
             "redirectURL": redirectURL,
         ])
     }
     
     func ssoExchange(code: String) async throws -> JWTResponse {
-        return try await post("saml/exchange", body: [
+        return try await post("auth/saml/exchange", body: [
             "code": code
         ])
     }
@@ -278,7 +278,16 @@ class DescopeClient: HTTPClient {
     }
     
     func accessKeyExchange(_ accessKey: String) async throws -> AccessKeyExchangeResponse {
-        return try await post("accesskey/exchange", headers: authorization(with: accessKey))
+        return try await post("auth/accesskey/exchange", headers: authorization(with: accessKey))
+    }
+    
+    // Mark: - Flow
+    
+    func flowExchange(authorizationCode: String, codeVerifier: String) async throws -> JWTResponse {
+        return try await post("flow/exchange", body: [
+            "authorizationCode": authorizationCode,
+            "codeVerifier": codeVerifier,
+        ])
     }
     
     // MARK: - Others
@@ -334,7 +343,7 @@ class DescopeClient: HTTPClient {
     // MARK: - Internal
     
     override var basePath: String {
-        return "v1/auth"
+        return "v1"
     }
     
     override var defaultHeaders: [String: String] {

@@ -161,7 +161,9 @@ The user will receive a code using the selected delivery method. Verify
 that code using:
 
 ```swift
-let descopeSession = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
+let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
+let session = DescopeSession(from: authResponse)
+Descope.sessionManager.manageSession(session)
 ```
 
 ### Magic Link
@@ -183,7 +185,7 @@ To verify a magic link, your redirect page must call the validation function
 on the token (`t`) parameter (`https://your-redirect-address.com/verify?t=<token>`):
 
 ```swift
-let descopeSession = try await Descope.magiclink.verify(token: "<token>")
+let authResponse = try await Descope.magiclink.verify(token: "<token>")
 ```
 
 ### OAuth
@@ -219,7 +221,9 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
     // ... Trigger asynchronously
 
     // Exchange code for session
-    let descopeSession = try await Descope.oauth.exchange(code: code)
+    let authResponse = try await Descope.oauth.exchange(code: code)
+    let session = DescopeSession(from: authResponse)
+    Descope.sessionManager.manageSession(session)
 }
 ```
 
@@ -256,7 +260,9 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
     // ... Trigger asynchronously
 
     // Exchange code for session
-    let descopeSession = try await Descope.sso.exchange(code: code)
+    let authResponse = try await Descope.sso.exchange(code: code)
+    let session = DescopeSession(from: authResponse)
+    Descope.sessionManager.manageSession(session)
 }
 ```
 
@@ -285,5 +291,5 @@ image or inserting the key manually. After that, signing in is done using the
 code the app produces.
 
 ```swift
-let descopeSession = try await Descope.totp.verify(loginId: "andy@example.com", code: "987654")
+let authResponse = try await Descope.totp.verify(loginId: "andy@example.com", code: "987654")
 ```

@@ -11,9 +11,12 @@ public struct DescopeConfig {
 
     /// An optional object to override how HTTP requests are performed.
     ///
-    /// The default value of this property is always `nil`, and the SDK uses its own internal
-    /// `URLSession` object to perform HTTP requests. In most cases this property should
-    /// only be used when testing code that uses the Descope SDK.
+    /// The default value of this property is always `nil`, and the SDK uses its own
+    /// internal `URLSession` object to perform HTTP requests.
+    ///
+    /// This property can be useful to test code that uses the Descope SDK without any
+    /// network requests actually taking place. In most other cases there shouldn't be
+    /// any need to use it.
     public var networking: Networking? = nil
     
     /// Creates a new ``DescopeConfig`` object.
@@ -27,7 +30,10 @@ public struct DescopeConfig {
         self.projectId = projectId
         self.baseURL = baseURL ?? self.baseURL
     }
-    
+}
+
+/// Optional features primarily for testing and debugging
+extension DescopeConfig {
     /// The ``Networking`` abstract class can be used to override how HTTP requests
     /// are performed by the SDK when calling the Descope server.
     ///

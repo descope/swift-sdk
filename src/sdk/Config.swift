@@ -75,6 +75,10 @@ extension DescopeConfig {
     ///         }
     ///     }
     open class Networking {
+        /// Creates a new ``Networking`` object.
+        public init() {
+        }
+
         /// Loads data using a `URLRequest` and returns the `data` and `response`.
         open func call(request: URLRequest) async throws -> (Data, URLResponse) {
             throw DescopeError.networkError.with(message: "Custom implementations must override the call(request:) method")

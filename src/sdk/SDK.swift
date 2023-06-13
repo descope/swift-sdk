@@ -31,9 +31,11 @@ public class DescopeSDK {
     /// Provides functions for authentication with passwords.
     public let password: DescopePassword
     
+    /// Provides functions for authentication using flows.
+    public let flow: DescopeFlow
+
     /// Provides functions for exchanging access keys for session tokens.
     public let accessKey: DescopeAccessKey
-    public let flow: DescopeFlow
 
     /// Manages the storage and lifetime of a ``DescopeSession``.
     ///

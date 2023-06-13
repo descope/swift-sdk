@@ -4,9 +4,9 @@ import Foundation
 class DescopeClient: HTTPClient {
     let config: DescopeConfig
     
-    init(config: DescopeConfig, session: URLSession? = nil) {
+    init(config: DescopeConfig) {
         self.config = config
-        super.init(baseURL: config.baseURL, session: session)
+        super.init(baseURL: config.baseURL, networking: config.networking)
     }
     
     // MARK: - OTP

@@ -3,19 +3,11 @@ import Foundation
 
 class HTTPClient {
     let baseURL: String
-    let session: URLSession
-    let shouldInvalidateSession: Bool
+    let networking: DescopeConfig.Networking
     
-    init(baseURL: String, session: URLSession? = nil) {
+    init(baseURL: String, networking: DescopeConfig.Networking?) {
         self.baseURL = baseURL
-        self.session = session ?? makeURLSession()
-        self.shouldInvalidateSession = session == nil
-    }
-    
-    deinit {
-        if shouldInvalidateSession {
-            session.finishTasksAndInvalidate()
-        }
+        self.networking = networking ?? DefaultNetworking()
     }
     
     // Convenience response functions
@@ -97,7 +89,7 @@ class HTTPClient {
     
     private func sendRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
-            return try await session.data(for: request)
+            return try await networking.call(request: request)
         } catch {
             throw DescopeError.networkError.with(cause: error)
         }
@@ -164,7 +156,19 @@ private func mergeHeaders(_ headers: [String: String], with defaults: [String: S
     return result
 }
 
-// URLSession
+// Network
+
+private class DefaultNetworking: DescopeConfig.Networking {
+    private let session = makeURLSession()
+    
+    deinit {
+        session.finishTasksAndInvalidate()
+    }
+    
+    override func call(request: URLRequest) async throws -> (Data, URLResponse) {
+        return try await session.data(for: request)
+    }
+}
 
 private func makeURLSession() -> URLSession {
     #if DEBUG

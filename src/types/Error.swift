@@ -54,7 +54,7 @@ public struct DescopeError: Error {
     
     /// An optional underlying error that caused this error.
     ///
-    /// For example, when a `DescopeError.networkRequest` is caught the ``cause`` property
+    /// For example, when a ``DescopeError/networkError`` is caught the ``cause`` property
     /// will usually have the `NSError` object thrown by the internal `URLSession` call.
     public var cause: Error?
 }

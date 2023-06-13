@@ -48,34 +48,34 @@ public enum Descope {
 
 /// Authentication functions that call the Descope API.
 public extension Descope {
-    /// General functions.
+    /// Provides functions for managing authenticated sessions.
     static var auth: DescopeAuth { sdk.auth }
     
-    /// Authentication with OTP codes via email or phone.
+    /// Provides functions for authentication with OTP codes via email or phone.
     static var otp: DescopeOTP { sdk.otp }
     
-    /// Authentication with TOTP codes.
+    /// Provides functions for authentication with TOTP codes.
     static var totp: DescopeTOTP { sdk.totp }
     
-    /// Authentication with magic links.
+    /// Provides functions for authentication with magic links.
     static var magicLink: DescopeMagicLink { sdk.magicLink }
     
-    /// Authentication with enchanted links.
+    /// Provides functions for authentication with enchanted links.
     static var enchantedLink: DescopeEnchantedLink { sdk.enchantedLink }
     
-    /// Authentication with OAuth.
+    /// Provides functions for authentication with OAuth.
     static var oauth: DescopeOAuth { sdk.oauth }
     
-    /// Authentication with SSO.
+    /// Provides functions for authentication with SSO.
     static var sso: DescopeSSO { sdk.sso }
     
-    /// Authentication with passwords.
+    /// Provides functions for authentication with passwords.
     static var password: DescopePassword { sdk.password }
 
-    // Authenticate using flows.
+    /// Provides functions for authentication using flows.
     static var flow: DescopeFlow { sdk.flow }
     
-    /// Exchanging access keys for session tokens.
+    /// Provides functions for exchanging access keys for session tokens.
     static var accessKey: DescopeAccessKey { sdk.accessKey }
     
     /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.

@@ -31,7 +31,7 @@ private func escape(_ str: String) -> String {
 
 /// Returns details about the SDK
 private func sdkProduct() -> String {
-    return "\(Descope.name)/\(Descope.version)"
+    return "\(DescopeSDK.name)/\(DescopeSDK.version)"
 }
 
 /// Returns details about the host application that uses the SDK

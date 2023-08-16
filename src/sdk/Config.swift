@@ -83,7 +83,7 @@ extension DescopeConfig {
         ///     its contents are only provided in `debug` builds. In `release` builds it
         ///     is always an empty array.
         open func output(level: Level, message: StaticString, debug: [Any]) {
-            var text = "[\(Descope.name)] \(message)"
+            var text = "[\(DescopeSDK.name)] \(message)"
             if !debug.isEmpty {
                 text += " (" + debug.map { String(describing: $0) }.joined(separator: ", ") + ")"
             }

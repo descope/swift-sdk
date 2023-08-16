@@ -82,12 +82,3 @@ public extension Descope {
     /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.
     private static let sdk = DescopeSDK(config: config)
 }
-
-/// SDK information
-public extension Descope {
-    /// The Descope SDK name
-    static let name = "DescopeKit"
-    
-    /// The Descope SDK version
-    static let version = "0.9.1"
-}

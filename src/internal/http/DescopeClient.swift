@@ -350,7 +350,7 @@ class DescopeClient: HTTPClient {
         return [
             "Authorization": "Bearer \(config.projectId)",
             "x-descope-sdk-name": "swift",
-            "x-descope-sdk-version": Descope.version,
+            "x-descope-sdk-version": DescopeSDK.version,
         ]
     }
     

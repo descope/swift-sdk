@@ -97,6 +97,15 @@ public class DescopeSDK {
     }
 }
 
+/// SDK information
+public extension DescopeSDK {
+    /// The Descope SDK name
+    static let name = "DescopeKit"
+    
+    /// The Descope SDK version
+    static let version = "0.9.1"
+}
+
 // Internal
 
 private extension DescopeSessionManager {

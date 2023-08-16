@@ -1,5 +1,7 @@
 
-import Foundation
+extension DescopeConfig {
+    static let initial: DescopeConfig = DescopeConfig(projectId: "")
+}
 
 extension DescopeError {
     func with(desc: String) -> DescopeError {

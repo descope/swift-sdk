@@ -1,9 +1,10 @@
 
 /// Provides functions for working with the Descope API.
 ///
-/// This singleton object is provided as a convenience that should be suitable for most
-/// app architectures. If you prefer a different approach you can also create an instance
-/// of the ``DescopeSDK`` class instead.
+/// This singleton object is provided as a simple way to access the Descope SDK from anywhere
+/// in your code. It should be suitable for most app architectures, but if you prefer a different
+/// approach you can also create an instance of the ``DescopeSDK`` class instead and pass it
+/// to wherever it's needed.
 public enum Descope {
     /// The projectId of your Descope project.
     ///

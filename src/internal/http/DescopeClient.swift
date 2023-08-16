@@ -6,7 +6,7 @@ class DescopeClient: HTTPClient {
     
     init(config: DescopeConfig) {
         self.config = config
-        super.init(baseURL: config.baseURL, networking: config.networking)
+        super.init(baseURL: config.baseURL, logger: config.logger, networking: config.networking)
     }
     
     // MARK: - OTP

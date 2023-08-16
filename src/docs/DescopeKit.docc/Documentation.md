@@ -13,6 +13,7 @@ on the [Descope website](https://descope.com).
 ### Essentials
 
 - ``Descope``
+- ``DescopeConfig``
 
 ### User Sessions
 
@@ -36,6 +37,11 @@ on the [Descope website](https://descope.com).
 - ``DescopePassword``
 - ``DescopeAccessKey``
 
+### Flows
+
+- ``DescopeFlow``
+- ``DescopeFlowRunner``
+
 ### Response Types
 
 - ``AuthenticationResponse``
@@ -54,7 +60,6 @@ on the [Descope website](https://descope.com).
 ### Others
 
 - ``DescopeSDK``
-- ``DescopeConfig``
 - ``DescopeToken``
 - ``DescopeSessionLifecycle``
 - ``DescopeSessionStorage``

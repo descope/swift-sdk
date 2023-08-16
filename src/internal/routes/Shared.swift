@@ -1,6 +1,16 @@
 
 import Foundation
 
+protocol Route {
+    var client: DescopeClient { get }
+}
+
+extension Route {
+    func log(_ level: DescopeConfig.Logger.Level, _ message: StaticString, _ values: Any?...) {
+        client.config.logger?.log(level, message, values)
+    }
+}
+
 extension DescopeClient.UserResponse {
     func convert() -> DescopeUser {
         let createdAt = Date(timeIntervalSince1970: TimeInterval(createdTime))

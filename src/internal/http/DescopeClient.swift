@@ -6,7 +6,7 @@ class DescopeClient: HTTPClient {
     
     init(config: DescopeConfig) {
         self.config = config
-        super.init(baseURL: config.baseURL, networking: config.networking)
+        super.init(baseURL: config.baseURL, logger: config.logger, networkClient: config.networkClient)
     }
     
     // MARK: - OTP
@@ -350,7 +350,7 @@ class DescopeClient: HTTPClient {
         return [
             "Authorization": "Bearer \(config.projectId)",
             "x-descope-sdk-name": "swift",
-            "x-descope-sdk-version": Descope.version,
+            "x-descope-sdk-version": DescopeSDK.version,
         ]
     }
     

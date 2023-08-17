@@ -38,9 +38,9 @@ extension MockHTTP {
         return URLSession(configuration: sessionConfig)
     }()
     
-    static var networking: DescopeConfig.Networking = {
-        class Client: DescopeConfig.Networking {
-            override func call(request: URLRequest) async throws -> (Data, URLResponse) {
+    static var networkClient: DescopeNetworkClient = {
+        class Client: DescopeNetworkClient {
+            func call(request: URLRequest) async throws -> (Data, URLResponse) {
                 return try await session.data(for: request)
             }
         }

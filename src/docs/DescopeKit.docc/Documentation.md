@@ -57,6 +57,11 @@ on the [Descope website](https://descope.com).
 - ``DeliveryMethod``
 - ``OAuthProvider``
 
+### Development
+
+- ``DescopeLogger``
+- ``DescopeNetworkClient``
+
 ### Others
 
 - ``DescopeSDK``

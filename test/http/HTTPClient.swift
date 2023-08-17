@@ -3,7 +3,7 @@ import XCTest
 @testable import DescopeKit
 
 class TestHttpMethods: XCTestCase {
-    let client = HTTPClient(baseURL: "http://example", logger: nil, networking: MockHTTP.networking)
+    let client = HTTPClient(baseURL: "http://example", logger: nil, networkClient: MockHTTP.networkClient)
     
     func testGet() async throws {
         MockHTTP.push(json: MockResponse.json, headers: MockResponse.headers) { request in

@@ -6,7 +6,7 @@ protocol Route {
 }
 
 extension Route {
-    func log(_ level: DescopeConfig.Logger.Level, _ message: StaticString, _ values: Any?...) {
+    func log(_ level: DescopeLogger.Level, _ message: StaticString, _ values: Any?...) {
         client.config.logger?.log(level, message, values)
     }
 }

@@ -3,13 +3,13 @@ import Foundation
 
 class HTTPClient {
     let baseURL: String
-    let logger: DescopeConfig.Logger?
-    let networking: DescopeConfig.Networking
+    let logger: DescopeLogger?
+    let networkClient: DescopeNetworkClient
     
-    init(baseURL: String, logger: DescopeConfig.Logger?, networking: DescopeConfig.Networking?) {
+    init(baseURL: String, logger: DescopeLogger?, networkClient: DescopeNetworkClient?) {
         self.baseURL = baseURL
         self.logger = logger
-        self.networking = networking ?? DefaultNetworking()
+        self.networkClient = networkClient ?? DefaultNetworkClient()
     }
     
     // Convenience response functions
@@ -112,7 +112,7 @@ class HTTPClient {
     
     private func sendRequest(_ request: URLRequest) async throws -> (Data, URLResponse) {
         do {
-            return try await networking.call(request: request)
+            return try await networkClient.call(request: request)
         } catch {
             logger?.log(.error, "Network call failed with network error", request.url, error)
             throw DescopeError.networkError.with(cause: error)
@@ -182,14 +182,14 @@ private func mergeHeaders(_ headers: [String: String], with defaults: [String: S
 
 // Network
 
-private class DefaultNetworking: DescopeConfig.Networking {
+private class DefaultNetworkClient: DescopeNetworkClient {
     private let session = makeURLSession()
     
     deinit {
         session.finishTasksAndInvalidate()
     }
     
-    override func call(request: URLRequest) async throws -> (Data, URLResponse) {
+    func call(request: URLRequest) async throws -> (Data, URLResponse) {
         return try await session.data(for: request)
     }
 }

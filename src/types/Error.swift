@@ -153,7 +153,7 @@ extension DescopeError: LocalizedError {
 extension DescopeError {
     /// Thrown if a call to the Descope API fails in an unexpected manner.
     ///
-    /// This should only be thrown when there's no error reponse body to parse or the body
+    /// This should only be thrown when there's no error response body to parse or the body
     /// isn't in the expected format. The value of ``desc`` is overwritten with a more specific
     /// value when possible.
     static let httpError = DescopeError.sdkError("S010002", "Server request failed")

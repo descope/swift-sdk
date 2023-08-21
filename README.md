@@ -313,7 +313,7 @@ let authResponse = try await Descope.password.signUp(loginId: "andy@example.com"
 Authenticate an existing user using a password:
 
 ```swift
-let authResponse = try await Descope.password.signIn(loginId: "andy@example.com", password: "securePassword123")
+let authResponse = try await Descope.password.signIn(loginId: "andy@example.com", password: "securePassword123!")
 ```
 
 #### Update Password
@@ -321,7 +321,7 @@ let authResponse = try await Descope.password.signIn(loginId: "andy@example.com"
 If you need to update a user's password:
 
 ```swift
-try await Descope.password.update(loginId: "andy@example.com", newPassword: "newSecurePassword456", refreshJwt: "yourRefreshJWT")
+try await Descope.password.update(loginId: "andy@example.com", newPassword: "newSecurePassword456!", refreshJwt: "user-refresh-jwt")
 ```
 
 #### Replace Password

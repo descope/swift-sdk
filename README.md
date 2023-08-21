@@ -303,7 +303,7 @@ Authenticate users using a password.
 To create a new user that can later sign in with a password:
 
 ```swift
-let authResponse = try await descope.password.signUp(loginId: "andy@example.com", password: "securePassword123!", details: SignUpDetails(
+let authResponse = try await Descope.password.signUp(loginId: "andy@example.com", password: "securePassword123!", details: SignUpDetails(
     name: "Andy Rhoads"
 ))
 ```
@@ -313,7 +313,7 @@ let authResponse = try await descope.password.signUp(loginId: "andy@example.com"
 Authenticate an existing user using a password:
 
 ```swift
-let authResponse = try await descope.password.signIn(loginId: "andy@example.com", password: "securePassword123")
+let authResponse = try await Descope.password.signIn(loginId: "andy@example.com", password: "securePassword123")
 ```
 
 #### Update Password
@@ -321,7 +321,7 @@ let authResponse = try await descope.password.signIn(loginId: "andy@example.com"
 If you need to update a user's password:
 
 ```swift
-try await descope.password.update(loginId: "andy@example.com", newPassword: "newSecurePassword456", refreshJwt: "yourRefreshJWT")
+try await Descope.password.update(loginId: "andy@example.com", newPassword: "newSecurePassword456", refreshJwt: "yourRefreshJWT")
 ```
 
 #### Replace Password
@@ -329,7 +329,7 @@ try await descope.password.update(loginId: "andy@example.com", newPassword: "new
 To replace a user's password by providing their current password:
 
 ```swift
-let authResponse = try await descope.password.replace(loginId: "andy@example.com", oldPassword: "SecurePassword123!", newPassword: "NewSecurePassword456!")
+let authResponse = try await Descope.password.replace(loginId: "andy@example.com", oldPassword: "SecurePassword123!", newPassword: "NewSecurePassword456!")
 ```
 
 #### Send Password Reset Email
@@ -337,5 +337,5 @@ let authResponse = try await descope.password.replace(loginId: "andy@example.com
 Initiate a password reset by sending an email:
 
 ```swift
-try await descope.password.sendReset(loginId: "andy@example.com", redirectURL: "exampleauthschema://my-app.com/handle-reset")
+try await Descope.password.sendReset(loginId: "andy@example.com", redirectURL: "exampleauthschema://my-app.com/handle-reset")
 ```

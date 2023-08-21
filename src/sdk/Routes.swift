@@ -518,7 +518,7 @@ public protocol DescopePassword {
     ///   - loginId: The existing user's loginId.
     ///   - oldPassword: The user's current password.
     ///   - newPassword: The new password to set for the user.
-    ///   - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    ///   - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
     func replace(loginId: String, oldPassword: String, newPassword: String) async throws -> AuthenticationResponse
     
     /// Sends a password reset email to the user.

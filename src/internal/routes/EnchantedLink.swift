@@ -14,12 +14,14 @@ class EnchantedLink: Route, DescopeEnchantedLink {
         return try await client.enchantedLinkSignUp(loginId: loginId, details: details, uri: uri).convert()
     }
     
-    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignIn(loginId: loginId, uri: uri).convert()
+    func signIn(loginId: String, uri: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.enchantedLinkSignIn(loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: loginOptions).convert()
     }
     
-    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignUpOrIn(loginId: loginId, uri: uri).convert()
+    func signUpOrIn(loginId: String, uri: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.enchantedLinkSignUpOrIn(loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: loginOptions).convert()
     }
     
     func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {

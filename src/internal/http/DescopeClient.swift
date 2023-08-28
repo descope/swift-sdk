@@ -73,10 +73,11 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func totpVerify(loginId: String, code: String) async throws -> JWTResponse {
-        return try await post("auth/totp/verify", body: [
+    func totpVerify(loginId: String, code: String, refreshJwt: String?, options: LoginOptions?) async throws -> JWTResponse {
+        return try await post("auth/totp/verify", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "code": code,
+            "loginOptions": options?.dictValue,
         ])
     }
     
@@ -148,17 +149,19 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
-        return try await post("auth/magiclink/signin/\(method.rawValue)", body: [
+    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+        return try await post("auth/magiclink/signin/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "uri": uri,
+            "loginOptions": options?.dictValue,
         ])
     }
     
-    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> MaskedAddress {
-        return try await post("auth/magiclink/signup-in/\(method.rawValue)", body: [
+    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+        return try await post("auth/magiclink/signup-in/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "uri": uri,
+            "loginOptions": options?.dictValue,
         ])
     }
     
@@ -205,17 +208,19 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func enchantedLinkSignIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        try await post("auth/enchantedlink/signin/email", body: [
+    func enchantedLinkSignIn(loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
+        try await post("auth/enchantedlink/signin/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "uri": uri,
+            "loginOptions": options?.dictValue,
         ])
     }
     
-    func enchantedLinkSignUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        try await post("auth/enchantedlink/signup-in/email", body: [
+    func enchantedLinkSignUpOrIn(loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
+        try await post("auth/enchantedlink/signup-in/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "uri": uri,
+            "loginOptions": options?.dictValue,
         ])
     }
     
@@ -241,11 +246,11 @@ class DescopeClient: HTTPClient {
         var url: String
     }
     
-    func oauthStart(provider: OAuthProvider, redirectURL: String?) async throws -> OAuthResponse {
-        return try await post("auth/oauth/authorize", params: [
+    func oauthStart(provider: OAuthProvider, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
+        return try await post("auth/oauth/authorize", headers: authorization(with: refreshJwt), params: [
             "provider": provider.rawValue,
-            "redirectURL": redirectURL,
-        ])
+            "redirectURL": redirectURL
+        ], body: options?.dictValue ?? [:])
     }
     
     func oauthExchange(code: String) async throws -> JWTResponse {
@@ -260,11 +265,11 @@ class DescopeClient: HTTPClient {
         var url: String
     }
     
-    func ssoStart(emailOrTenantName: String, redirectURL: String?) async throws -> OAuthResponse {
-        return try await post("auth/saml/authorize", params: [
+    func ssoStart(emailOrTenantName: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
+        return try await post("auth/saml/authorize", headers: authorization(with: refreshJwt), params: [
             "tenant": emailOrTenantName,
-            "redirectURL": redirectURL,
-        ])
+            "redirectURL": redirectURL
+        ], body: options?.dictValue ?? [:])
     }
     
     func ssoExchange(code: String) async throws -> JWTResponse {

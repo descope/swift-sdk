@@ -91,22 +91,22 @@ public extension DescopeEnchantedLink {
     /// - Important: Make sure an email address is provided via
     ///     the `details` parameter or as the `loginId` itself.
     /// 
-    /// - Important: Make sure a default Enchanted Link URI is configured
+    /// - Important: Make sure a default Enchanted Link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     /// 
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, details: SignUpDetails?, uri: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func signUp(loginId: String, details: SignUpDetails?, redirectURL: String?, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(loginId: loginId, details: details, uri: uri)))
+                completion(.success(try await signUp(loginId: loginId, details: details, redirectURL: redirectURL)))
             } catch {
                 completion(.failure(error))
             }
@@ -119,22 +119,22 @@ public extension DescopeEnchantedLink {
     /// user which link they need to press in the enchanted link email, and then use
     /// the `pendingRef` value to poll until the authentication is verified.
     /// 
-    /// - Important: Make sure a default Enchanted link URI is configured
+    /// - Important: Make sure a default Enchanted link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - options: Additional behaviors to perform during authentication.
     /// 
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signIn(loginId: String, uri: String?, options: [SignInOptions], completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func signIn(loginId: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signIn(loginId: loginId, uri: uri, options: options)))
+                completion(.success(try await signIn(loginId: loginId, redirectURL: redirectURL, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -148,22 +148,22 @@ public extension DescopeEnchantedLink {
     /// user which link they need to press in the enchanted link email, and then use
     /// the `pendingRef` value to poll until the authentication is verified.
     /// 
-    /// - Important: Make sure a default Enchanted link URI is configured
+    /// - Important: Make sure a default Enchanted link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - options: Additional behaviors to perform during authentication.
     /// 
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUpOrIn(loginId: String, uri: String?, options: [SignInOptions], completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func signUpOrIn(loginId: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUpOrIn(loginId: loginId, uri: uri, options: options)))
+                completion(.success(try await signUpOrIn(loginId: loginId, redirectURL: redirectURL, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -183,7 +183,7 @@ public extension DescopeEnchantedLink {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
     ///   - options: Whether to add the new email address as a loginId for the updated user, and
@@ -192,10 +192,10 @@ public extension DescopeEnchantedLink {
     /// 
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<EnchantedLinkResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
+                completion(.success(try await updateEmail(email, loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -294,7 +294,7 @@ public extension DescopeMagicLink {
     ///     the delivery method is given either in the `details` parameter or as
     ///     the `loginId` itself, i.e., the email address, phone number, etc.
     /// 
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
@@ -302,12 +302,12 @@ public extension DescopeMagicLink {
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?, completion: @escaping (Result<String, Error>) -> Void) {
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, redirectURL: String?, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(with: method, loginId: loginId, details: details, uri: uri)))
+                completion(.success(try await signUp(with: method, loginId: loginId, details: details, redirectURL: redirectURL)))
             } catch {
                 completion(.failure(error))
             }
@@ -317,20 +317,20 @@ public extension DescopeMagicLink {
     /// Authenticates an existing user using a magic link, sent via a delivery
     /// method of choice.
     /// 
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - options: Additional behaviors to perform during authentication.
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func signIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signIn(with: method, loginId: loginId, uri: uri, options: options)))
+                completion(.success(try await signIn(with: method, loginId: loginId, redirectURL: redirectURL, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -344,20 +344,20 @@ public extension DescopeMagicLink {
     ///     the delivery method is given either in the `loginId` itself,
     ///     i.e., the email address, phone number, etc.
     /// 
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - options: Additional behaviors to perform during authentication.
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUpOrIn(with: method, loginId: loginId, uri: uri, options: options)))
+                completion(.success(try await signUpOrIn(with: method, loginId: loginId, redirectURL: redirectURL, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -373,16 +373,16 @@ public extension DescopeMagicLink {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
     ///   - options: Whether to add the new email address as a loginId for the updated user, and
     ///     in that case, if another user already has the same email address as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
+    func updateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
+                completion(.success(try await updateEmail(email, loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -402,16 +402,16 @@ public extension DescopeMagicLink {
     ///   - phone: The phone number to add.
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
     ///   - options: Whether to add the new phone number as a loginId for the updated user, and
     ///     in that case, if another user already has the same phone number as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions, completion: @escaping (Result<String, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options)))
+                completion(.success(try await updatePhone(phone, with: method, loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: options)))
             } catch {
                 completion(.failure(error))
             }

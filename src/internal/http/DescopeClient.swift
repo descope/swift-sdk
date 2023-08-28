@@ -141,26 +141,26 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Magic Link
     
-    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> MaskedAddress {
+    func magicLinkSignUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, redirectURL: String?) async throws -> MaskedAddress {
         return try await post("auth/magiclink/signup/\(method.rawValue)", body: [
             "loginId": loginId,
             "user": details?.dictValue,
-            "uri": uri,
+            "redirectUrl": redirectURL,
         ])
     }
     
-    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+    func magicLinkSignIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
         return try await post("auth/magiclink/signin/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "loginOptions": options?.dictValue,
         ])
     }
     
-    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
+    func magicLinkSignUpOrIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> MaskedAddress {
         return try await post("auth/magiclink/signup-in/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "loginOptions": options?.dictValue,
         ])
     }
@@ -171,22 +171,22 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func magicLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
+    func magicLinkUpdateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
         return try await post("auth/magiclink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "addToLoginIDs": options.contains(.addToLoginIds),
             "onMergeUseExisting": options.contains(.onMergeUseExisting),
         ])
     }
     
-    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
+    func magicLinkUpdatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> MaskedAddress {
         try method.ensurePhoneMethod()
         return try await post("auth/magiclink/update/phone/\(method.rawValue)", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "phone": phone,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "addToLoginIDs": options.contains(.addToLoginIds),
             "onMergeUseExisting": options.contains(.onMergeUseExisting),
         ])
@@ -200,35 +200,35 @@ class DescopeClient: HTTPClient {
         var maskedEmail: String
     }
     
-    func enchantedLinkSignUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse {
+    func enchantedLinkSignUp(loginId: String, details: SignUpDetails?, redirectURL: String?) async throws -> EnchantedLinkResponse {
         return try await post("auth/enchantedlink/signup/email", body: [
             "loginId": loginId,
             "user": details?.dictValue,
-            "uri": uri,
+            "redirectUrl": redirectURL,
         ])
     }
     
-    func enchantedLinkSignIn(loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
+    func enchantedLinkSignIn(loginId: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
         try await post("auth/enchantedlink/signin/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "loginOptions": options?.dictValue,
         ])
     }
     
-    func enchantedLinkSignUpOrIn(loginId: String, uri: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
+    func enchantedLinkSignUpOrIn(loginId: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> EnchantedLinkResponse {
         try await post("auth/enchantedlink/signup-in/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "loginOptions": options?.dictValue,
         ])
     }
     
-    func enchantedLinkUpdateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
+    func enchantedLinkUpdateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
         return try await post("auth/enchantedlink/update/email", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
             "email": email,
-            "uri": uri,
+            "redirectUrl": redirectURL,
             "addToLoginIDs": options.contains(.addToLoginIds),
             "onMergeUseExisting": options.contains(.onMergeUseExisting),
         ])
@@ -249,7 +249,7 @@ class DescopeClient: HTTPClient {
     func oauthStart(provider: OAuthProvider, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
         return try await post("auth/oauth/authorize", headers: authorization(with: refreshJwt), params: [
             "provider": provider.rawValue,
-            "redirectURL": redirectURL
+            "redirectUrl": redirectURL
         ], body: options?.dictValue ?? [:])
     }
     
@@ -268,7 +268,7 @@ class DescopeClient: HTTPClient {
     func ssoStart(emailOrTenantName: String, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
         return try await post("auth/saml/authorize", headers: authorization(with: refreshJwt), params: [
             "tenant": emailOrTenantName,
-            "redirectURL": redirectURL
+            "redirectUrl": redirectURL
         ], body: options?.dictValue ?? [:])
     }
     

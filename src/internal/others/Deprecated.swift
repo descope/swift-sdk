@@ -34,25 +34,25 @@ public extension DescopeTOTP {
 
 public extension DescopeMagicLink {
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
-        return try await signIn(with: method, loginId: loginId, uri: uri, options: [])
+    func signIn(with method: DeliveryMethod, loginId: String, redirectURL: String?) async throws -> String {
+        return try await signIn(with: method, loginId: loginId, redirectURL: redirectURL, options: [])
     }
     
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
-        return try await signUpOrIn(with: method, loginId: loginId, uri: uri, options: [])
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, redirectURL: String?) async throws -> String {
+        return try await signUpOrIn(with: method, loginId: loginId, redirectURL: redirectURL, options: [])
     }
 }
 
 public extension DescopeEnchantedLink {
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await signIn(loginId: loginId, uri: uri, options: [])
+    func signIn(loginId: String, redirectURL: String?) async throws -> EnchantedLinkResponse {
+        return try await signIn(loginId: loginId, redirectURL: redirectURL, options: [])
     }
     
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await signUpOrIn(loginId: loginId, uri: uri, options: [])
+    func signUpOrIn(loginId: String, redirectURL: String?) async throws -> EnchantedLinkResponse {
+        return try await signUpOrIn(loginId: loginId, redirectURL: redirectURL, options: [])
     }
 }
 

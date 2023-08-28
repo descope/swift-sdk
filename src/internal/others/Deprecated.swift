@@ -24,3 +24,48 @@ public extension DescopeOTP {
         return try await signUpOrIn(with: method, loginId: loginId, options: [])
     }
 }
+
+public extension DescopeTOTP {
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func verify(loginId: String, code: String) async throws -> AuthenticationResponse {
+        return try await verify(loginId: loginId, code: code, options: [])
+    }
+}
+
+public extension DescopeMagicLink {
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
+        return try await signIn(with: method, loginId: loginId, uri: uri, options: [])
+    }
+    
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String {
+        return try await signUpOrIn(with: method, loginId: loginId, uri: uri, options: [])
+    }
+}
+
+public extension DescopeEnchantedLink {
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
+        return try await signIn(loginId: loginId, uri: uri, options: [])
+    }
+    
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
+        return try await signUpOrIn(loginId: loginId, uri: uri, options: [])
+    }
+}
+
+public extension DescopeOAuth {
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func start(provider: OAuthProvider, redirectURL: String?) async throws -> String {
+        return try await start(provider: provider, redirectURL: redirectURL, options: [])
+    }
+}
+
+public extension DescopeSSO {
+    @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
+    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String {
+        return try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: [])
+    }
+}

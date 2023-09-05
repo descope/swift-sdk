@@ -111,8 +111,8 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func passwordReplace(loginId: String, oldPassword: String, newPassword: String) async throws {
-        try await post("auth/password/replace", body: [
+    func passwordReplace(loginId: String, oldPassword: String, newPassword: String) async throws -> JWTResponse {
+        return try await post("auth/password/replace", body: [
             "loginId": loginId,
             "oldPassword": oldPassword,
             "newPassword": newPassword,

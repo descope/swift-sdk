@@ -682,7 +682,8 @@ public extension DescopePassword {
     ///   - loginId: The existing user's loginId.
     ///   - oldPassword: The user's current password.
     ///   - newPassword: The new password to set for the user.
-    func replace(loginId: String, oldPassword: String, newPassword: String, completion: @escaping (Result<Void, Error>) -> Void) {
+    ///   - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
+    func replace(loginId: String, oldPassword: String, newPassword: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await replace(loginId: loginId, oldPassword: oldPassword, newPassword: newPassword)))

@@ -18,8 +18,8 @@ class Password: DescopePassword {
         try await client.passwordUpdate(loginId: loginId, newPassword: newPassword, refreshJwt: refreshJwt)
     }
     
-    func replace(loginId: String, oldPassword: String, newPassword: String) async throws {
-        try await client.passwordReplace(loginId: loginId, oldPassword: oldPassword, newPassword: newPassword)
+    func replace(loginId: String, oldPassword: String, newPassword: String) async throws -> AuthenticationResponse {
+        try await client.passwordReplace(loginId: loginId, oldPassword: oldPassword, newPassword: newPassword).convert()
     }
     
     func sendReset(loginId: String, redirectURL: String?) async throws {

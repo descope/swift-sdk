@@ -10,20 +10,22 @@ class EnchantedLink: Route, DescopeEnchantedLink {
         self.client = client
     }
     
-    func signUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignUp(loginId: loginId, details: details, uri: uri).convert()
+    func signUp(loginId: String, details: SignUpDetails?, redirectURL: String?) async throws -> EnchantedLinkResponse {
+        return try await client.enchantedLinkSignUp(loginId: loginId, details: details, redirectURL: redirectURL).convert()
     }
     
-    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignIn(loginId: loginId, uri: uri).convert()
+    func signIn(loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.enchantedLinkSignIn(loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: loginOptions).convert()
     }
     
-    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkSignUpOrIn(loginId: loginId, uri: uri).convert()
+    func signUpOrIn(loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.enchantedLinkSignUpOrIn(loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: loginOptions).convert()
     }
     
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
-        return try await client.enchantedLinkUpdateEmail(email, loginId: loginId, uri: uri, refreshJwt: refreshJwt, options: options).convert()
+    func updateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse {
+        return try await client.enchantedLinkUpdateEmail(email, loginId: loginId, redirectURL: redirectURL, refreshJwt: refreshJwt, options: options).convert()
     }
     
     func checkForSession(pendingRef: String) async throws -> AuthenticationResponse {

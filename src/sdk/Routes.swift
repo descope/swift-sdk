@@ -59,7 +59,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
-    func signIn(with method: DeliveryMethod, loginId: String) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String
     
     /// Authenticates an existing user if one exists, or creates a new user
     /// using an OTP, sent via a delivery method of choice.
@@ -72,7 +73,8 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier
-    func signUpOrIn(with method: DeliveryMethod, loginId: String) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, options: [SignInOptions]) async throws -> String
     
     /// Verifies an OTP code sent to the user.
     ///
@@ -94,7 +96,7 @@ public protocol DescopeOTP {
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
-    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///   - options: Whether to add the new email address as a loginId for the updated user, and
     ///     in that case, if another user already has the same email address as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
     func updateEmail(_ email: String, loginId: String, refreshJwt: String, options: UpdateOptions) async throws -> String
@@ -112,7 +114,7 @@ public protocol DescopeOTP {
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
-    ///   - options: Whether to add the new phone number as a loginId for the existing user, and
+    ///   - options: Whether to add the new phone number as a loginId for the updated user, and
     ///     in that case, if another user already has the same phone number as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
     func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, refreshJwt: String, options: UpdateOptions) async throws -> String
@@ -155,9 +157,10 @@ public protocol DescopeTOTP {
     /// - Parameters:
     ///   - loginId: The `loginId` of the user trying to log in.
     ///   - code: The code to validate.
+    ///   - options: Additional behaviors to perform during authentication.
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
-    func verify(loginId: String, code: String) async throws -> AuthenticationResponse
+    func verify(loginId: String, code: String, options: [SignInOptions]) async throws -> AuthenticationResponse
 }
 
 
@@ -176,7 +179,7 @@ public protocol DescopeMagicLink {
     ///     the delivery method is given either in the `details` parameter or as
     ///     the `loginId` itself, i.e., the email address, phone number, etc.
     ///
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
@@ -184,23 +187,24 @@ public protocol DescopeMagicLink {
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, uri: String?) async throws -> String
+    func signUp(with method: DeliveryMethod, loginId: String, details: SignUpDetails?, redirectURL: String?) async throws -> String
     
     /// Authenticates an existing user using a magic link, sent via a delivery
     /// method of choice.
     ///
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> String
     
     /// Authenticates an existing user if one exists, or creates a new user
     /// using a magic link, sent via a delivery method of choice.
@@ -209,16 +213,17 @@ public protocol DescopeMagicLink {
     ///     the delivery method is given either in the `loginId` itself,
     ///     i.e., the email address, phone number, etc.
     ///
-    /// - Important: Make sure a default magic link URI is configured
+    /// - Important: Make sure a default magic link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
     ///   - method: Deliver the magic link using this delivery method.
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
-    func signUpOrIn(with method: DeliveryMethod, loginId: String, uri: String?) async throws -> String
+    ///   - options: Additional behaviors to perform during authentication.
+    func signUpOrIn(with method: DeliveryMethod, loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> String
     
     /// Updates an existing user by adding an email address.
     ///
@@ -229,13 +234,13 @@ public protocol DescopeMagicLink {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
-    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///   - options: Whether to add the new email address as a loginId for the updated user, and
     ///     in that case, if another user already has the same email address as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> String
+    func updateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> String
     
     /// Updates an existing user by adding a phone number.
     ///
@@ -250,13 +255,13 @@ public protocol DescopeMagicLink {
     ///   - phone: The phone number to add.
     ///   - method: Deliver the OTP code using this delivery method.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
-    ///   - options: Whether to add the new phone number as a loginId for the existing user, and
+    ///   - options: Whether to add the new phone number as a loginId for the updated user, and
     ///     in that case, if another user already has the same phone number as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
-    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> String
+    func updatePhone(_ phone: String, with method: DeliveryMethod, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> String
     
     /// Verifies a magic link token.
     ///
@@ -290,19 +295,19 @@ public protocol DescopeEnchantedLink {
     /// - Important: Make sure an email address is provided via
     ///     the `details` parameter or as the `loginId` itself.
     ///
-    /// - Important: Make sure a default Enchanted Link URI is configured
+    /// - Important: Make sure a default Enchanted Link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUp(loginId: String, details: SignUpDetails?, uri: String?) async throws -> EnchantedLinkResponse
+    func signUp(loginId: String, details: SignUpDetails?, redirectURL: String?) async throws -> EnchantedLinkResponse
     
     /// Authenticates an existing user using an enchanted link, sent via email.
     ///
@@ -310,18 +315,19 @@ public protocol DescopeEnchantedLink {
     /// user which link they need to press in the enchanted link email, and then use
     /// the `pendingRef` value to poll until the authentication is verified.
     ///
-    /// - Important: Make sure a default Enchanted link URI is configured
+    /// - Important: Make sure a default Enchanted link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
+    ///   - options: Additional behaviors to perform during authentication.
     ///
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse
+    func signIn(loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse
     
     /// Authenticates an existing user if one exists, or create a new user using an
     /// enchanted link, sent via email.
@@ -330,18 +336,19 @@ public protocol DescopeEnchantedLink {
     /// user which link they need to press in the enchanted link email, and then use
     /// the `pendingRef` value to poll until the authentication is verified.
     ///
-    /// - Important: Make sure a default Enchanted link URI is configured
+    /// - Important: Make sure a default Enchanted link URL is configured
     ///     in the Descope console, or provided by this call.
     ///
     /// - Parameters:
     ///   - loginId: What identifies the user when logging in, typically
     ///     an email, phone, or any other unique identifier.
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
+    ///   - options: Additional behaviors to perform during authentication.
     ///
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func signUpOrIn(loginId: String, uri: String?) async throws -> EnchantedLinkResponse
+    func signUpOrIn(loginId: String, redirectURL: String?, options: [SignInOptions]) async throws -> EnchantedLinkResponse
     
     /// Updates an existing user by adding an email address.
     ///
@@ -356,16 +363,16 @@ public protocol DescopeEnchantedLink {
     /// - Parameters:
     ///   - email: The email address to add.
     ///   - loginId: The existing user's loginId
-    ///   - uri: Optional URI that will be used to generate the magic link.
+    ///   - redirectURL: Optional URL that will be used to generate the magic link.
     ///     If not given, the project default will be used.
     ///   - refreshJwt: The existing user's `refreshJwt` from an active ``DescopeSession``.
-    ///   - options: Whether to add the new email address as a loginId for the existing user, and
+    ///   - options: Whether to add the new email address as a loginId for the updated user, and
     ///     in that case, if another user already has the same email address as a loginId how to
     ///     merge the two users. See the documentation for ``UpdateOptions`` for more details.
     ///
     /// - Returns: An ``EnchantedLinkResponse`` object with the `linkId` to show the
     ///     user and `pendingRef` for polling for the session.
-    func updateEmail(_ email: String, loginId: String, uri: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse
+    func updateEmail(_ email: String, loginId: String, redirectURL: String?, refreshJwt: String, options: UpdateOptions) async throws -> EnchantedLinkResponse
     
     /// Checks if an enchanted link authentication has been verified by the user.
     ///
@@ -423,10 +430,11 @@ public protocol DescopeOAuth {
     ///   - provider: The provider the user wishes to be authenticated by.
     ///   - redirectURL: An optional parameter to generate the OAuth link.
     ///     If not given, the project default will be used.
+    ///   - options: Require additional behaviors when authenticating a user.
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?) async throws -> String
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> String
     
     /// Completes an OAuth redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.
@@ -457,10 +465,11 @@ public protocol DescopeSSO {
     ///   - provider: The provider the user wishes to be authenticated by.
     ///   - redirectURL: An optional parameter to generate the SSO link.
     ///     If not given, the project default will be used.
+    ///   - options: Require additional behaviors when authenticating a user.
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String
+    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions]) async throws -> String
     
     /// Completes an SSO redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.

@@ -6,8 +6,10 @@ class SSO: DescopeSSO {
         self.client = client
     }
     
-    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String {
-        return try await client.ssoStart(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL).url
+    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions]) async throws -> String {
+        let (refreshJwt, loginOptions) = try options.convert()
+        let response = try await client.ssoStart(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, refreshJwt: refreshJwt, options: loginOptions)
+        return response.url
     }
     
     func exchange(code: String) async throws -> AuthenticationResponse {

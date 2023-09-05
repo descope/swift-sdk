@@ -34,24 +34,85 @@ public struct SignUpDetails {
     }
 }
 
-/// Used to configure how user details are updated.
+/// Used to require additional behaviors when authenticating a user.
+public enum SignInOptions {
+    /// Adds additional custom claims to the user's JWT during authentication.
+    ///
+    /// For example, the following code starts an OTP sign in and requests a custom claim
+    /// with the authenticated user's full name:
+    ///
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .customClaims(["name": "{{user.name}}"]),
+    ///     ])
+    ///
+    /// - Important: Any custom claims added via this method are considered insecure and will
+    /// be nested under the `nsec` custom claim.
+    case customClaims([String: Any])
+    
+    /// Used to add layered security to your app by implementing Step-up authentication.
+    ///
+    ///     guard let session = Descope.sessionManager.session else { return }
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .stepup(refreshJwt: session.refreshJwt),
+    ///     ])
+    ///
+    /// After the Step-up authentication completes successfully the returned session JWT will
+    /// have an `su` claim with a value of `true`.
+    ///
+    /// - Note: The `su` claim is not set on the refresh JWT.
+    case stepup(refreshJwt: String)
+    
+    /// Used to add layered security to your app by implementing Multi-factor authentication.
+    ///
+    /// Assuming the user has already signed in successfully with one authentication method,
+    /// we can take the `refreshJwt` and pass it as an `mfa` option to another authentication
+    /// method.
+    ///
+    ///     guard let session = Descope.sessionManager.session else { return }
+    ///     try await Descope.otp.signIn(with: .email, loginId: "andy@example.com", options: [
+    ///         .mfa(refreshJwt: session.refreshJwt),
+    ///     ])
+    ///
+    /// After the MFA authentication completes successfully the `amr` claim in both the session
+    /// and refresh JWTs will be an array with an entry for each authentication method used.
+    case mfa(refreshJwt: String)
+}
+
+/// Used to configure how users are updated.
 public struct UpdateOptions: OptionSet {
-    /// When updating a user's email address or phone number if this option is set
-    /// the new value will be added to the user's list of `loginIds`.
+    /// Whether to allow sign in from a new `loginId` after an update.
+    ///
+    /// When a user's email address or phone number are updated and this option is set
+    /// the new value is added to the user's list of `loginIds`, and the user from that
+    /// point on will be able to use it to sign in.
     public static let addToLoginIds = UpdateOptions(rawValue: 1)
     
-    /// When updating a user with the ``addToLoginIds`` option, if another user already
-    /// has the same email address or phone number as a `loginId` the two users are
-    /// merged and one of them is deleted.
+    /// Whether to keep or delete the current user when merging two users after an update.
     ///
-    /// By default, the other user's details are merged into the current user and the
-    /// other user is then deleted. In other words, the user who the `refreshJwt` belongs
-    /// to is kept.
+    /// When updating a user's email address or phone number with the ``addToUserLoginIds``
+    /// option set, if another user in the the system already has the same email address
+    /// or phone number as the one being added in their list of `loginIds` the two users
+    /// are merged and one of them is deleted.
     ///
-    /// If this option is set however then the current user is merged into the other
-    /// user, and the current user is discarded. In this case the ``DescopeSession``
-    /// and its `refreshJwt` will no longer be valid, and an ``AuthenticationResponse``
-    /// is returned for the other user instead.
+    /// This scenario can happen when a user uses multiple authentication methods
+    /// and ends up with multiple accounts. For example, a user might sign in with
+    /// their email address at first. Then at some point later they reinstall the
+    /// app and use OAuth to authenticate, and a new user account is created. If
+    /// the user then updates their account and adds their email address the
+    /// two accounts need to be merged.
+    ///
+    /// Let's define the "updated user" to be the user being updated and whom
+    /// the `refreshJwt` belongs to, and the "existing user" to be another user in
+    /// the system with the same `loginId`.
+    ///
+    /// By default, the updated user is kept, the existing user's details are merged
+    /// into the updated user, and the existing user is then deleted.
+    ///
+    /// If this option is set however then the current user is merged into the existing
+    /// user, and the current user is deleted. In this case the ``DescopeSession`` and
+    /// its `refreshJwt` that was used to initiate the update operation will no longer
+    /// be valid, and an ``AuthenticationResponse`` is returned for the existing user
+    /// instead.
     public static let onMergeUseExisting = UpdateOptions(rawValue: 2)
     
     public let rawValue: Int

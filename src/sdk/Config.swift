@@ -55,6 +55,11 @@ public struct DescopeConfig {
 /// You can also customize how logging functions in the Descope SDK by creating a subclass
 /// of ``DescopeLogger`` and overriding the ``output(level:message:debug:)`` method. See the
 /// documentation for that method for more details.
+///
+/// - Important: Runtime values such as request bodies or responses are only included
+///     in log messages when the SDK is compiled in debug mode. Even with a custom subclass
+///     of ``DescopeLogger``, when the SDK is compiled for release the log messages will only
+///     contain constant strings.
 open class DescopeLogger {
     /// The severity of a log message.
     public enum Level: Int {

@@ -15,8 +15,9 @@ class TOTP: DescopeTOTP {
         return try await client.totpSignUp(loginId: loginId, details: details).convert()
     }
     
-    func verify(loginId: String, code: String) async throws -> AuthenticationResponse {
-        return try await client.totpVerify(loginId: loginId, code: code).convert()
+    func verify(loginId: String, code: String, options: [SignInOptions]) async throws -> AuthenticationResponse {
+        let (refreshJwt, loginOptions) = try options.convert()
+        return try await client.totpVerify(loginId: loginId, code: code, refreshJwt: refreshJwt, options: loginOptions).convert()
     }
     
     func update(loginId: String, refreshJwt: String) async throws -> TOTPResponse {

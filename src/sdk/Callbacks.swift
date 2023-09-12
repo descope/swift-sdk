@@ -443,11 +443,17 @@ public extension DescopeOAuth {
     /// 
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     /// 
+    ///     // use one of the built in constants for the OAuth provider
+    ///     let authURL = try await Descope.oauth.start(provider: .apple, redirectURL: nil)
+    /// 
+    ///     // or pass a string with the name of a custom provider
+    ///     let authURL = try await Descope.oauth.start(provider: "myprovider", redirectURL: nil)
+    /// 
     /// - Important: Make sure a default OAuth redirect URL is configured
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
-    ///   - provider: The provider the user wishes to be authenticated by.
+    ///   - provider: The provider the user wishes to authenticate with.
     ///   - redirectURL: An optional parameter to generate the OAuth link.
     ///     If not given, the project default will be used.
     ///   - options: Require additional behaviors when authenticating a user.
@@ -743,7 +749,7 @@ public extension DescopeSSO {
     ///     in the Descope console, or provided by this call.
     /// 
     /// - Parameters:
-    ///   - provider: The provider the user wishes to be authenticated by.
+    ///   - emailOrTenantName: The user's email address or tenant name.
     ///   - redirectURL: An optional parameter to generate the SSO link.
     ///     If not given, the project default will be used.
     ///   - options: Require additional behaviors when authenticating a user.

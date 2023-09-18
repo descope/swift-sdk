@@ -20,6 +20,7 @@ public struct OAuthProvider: ExpressibleByStringLiteral {
     public static let gitlab: OAuthProvider = "gitlab"
     public static let apple: OAuthProvider = "apple"
     public static let slack: OAuthProvider = "slack"
+    public static let discord: OAuthProvider = "discord"
 
     public let name: String
     

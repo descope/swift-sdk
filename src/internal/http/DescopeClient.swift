@@ -248,7 +248,7 @@ class DescopeClient: HTTPClient {
     
     func oauthStart(provider: OAuthProvider, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
         return try await post("auth/oauth/authorize", headers: authorization(with: refreshJwt), params: [
-            "provider": provider.rawValue,
+            "provider": provider.name,
             "redirectUrl": redirectURL
         ], body: options?.dictValue ?? [:])
     }

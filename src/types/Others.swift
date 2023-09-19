@@ -12,13 +12,21 @@ public enum DeliveryMethod: String {
 }
 
 /// The provider to use in an OAuth flow.
-public enum OAuthProvider: String {
-    case facebook
-    case github
-    case google
-    case microsoft
-    case gitlab
-    case apple
+public struct OAuthProvider: ExpressibleByStringLiteral {
+    public static let facebook: OAuthProvider = "facebook"
+    public static let github: OAuthProvider = "github"
+    public static let google: OAuthProvider = "google"
+    public static let microsoft: OAuthProvider = "microsoft"
+    public static let gitlab: OAuthProvider = "gitlab"
+    public static let apple: OAuthProvider = "apple"
+    public static let slack: OAuthProvider = "slack"
+    public static let discord: OAuthProvider = "discord"
+
+    public let name: String
+    
+    public init(stringLiteral value: String) {
+        name = value
+    }
 }
 
 /// Used to provide additional details about a user in sign up calls.

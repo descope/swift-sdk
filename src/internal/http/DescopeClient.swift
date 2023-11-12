@@ -313,10 +313,11 @@ class DescopeClient: HTTPClient {
     
     // MARK: - Shared
     
+    static let sessionCookieName = "DS"
     static let refreshCookieName = "DSR"
     
     struct JWTResponse: JSONResponse {
-        var sessionJwt: String
+        var sessionJwt: String?
         var refreshJwt: String?
         var user: UserResponse?
         var firstSeen: Bool
@@ -324,8 +325,13 @@ class DescopeClient: HTTPClient {
         mutating func setValues(from response: HTTPURLResponse) {
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
-            for cookie in cookies where cookie.name == refreshCookieName {
-                refreshJwt = cookie.value
+            for cookie in cookies where !cookie.value.isEmpty {
+                if cookie.name == sessionCookieName {
+                    sessionJwt = cookie.value
+                }
+                if cookie.name == refreshCookieName {
+                    refreshJwt = cookie.value
+                }
             }
         }
     }

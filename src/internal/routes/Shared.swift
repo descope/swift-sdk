@@ -35,14 +35,14 @@ extension DescopeClient.UserResponse {
 
 extension DescopeClient.JWTResponse {
     func convert() throws -> AuthenticationResponse {
-        guard let refreshJwt else { throw DescopeError.decodeError.with(message: "Missing refresh JWT") }
+        guard let sessionJwt, !sessionJwt.isEmpty else { throw DescopeError.decodeError.with(message: "Missing session JWT") }
+        guard let refreshJwt, !refreshJwt.isEmpty else { throw DescopeError.decodeError.with(message: "Missing refresh JWT") }
         guard let user else { throw DescopeError.decodeError.with(message: "Missing user details") }
         return try AuthenticationResponse(sessionToken: Token(jwt: sessionJwt), refreshToken: Token(jwt: refreshJwt), isFirstAuthentication: firstSeen, user: user.convert())
     }
-}
-
-extension DescopeClient.JWTResponse {
+    
     func convert() throws -> RefreshResponse {
+        guard let sessionJwt, !sessionJwt.isEmpty else { throw DescopeError.decodeError.with(message: "Missing session JWT") }
         var refreshToken: DescopeToken?
         if let refreshJwt, !refreshJwt.isEmpty {
             refreshToken = try Token(jwt: refreshJwt)

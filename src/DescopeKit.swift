@@ -58,6 +58,12 @@ public extension Descope {
     /// Provides functions for authentication with TOTP codes.
     static var totp: DescopeTOTP { sdk.totp }
     
+    /// Provides functions for authentication with passkeys.
+    static var passkey: DescopePasskey { sdk.passkey }
+
+    /// Provides functions for authentication with passwords.
+    static var password: DescopePassword { sdk.password }
+
     /// Provides functions for authentication with magic links.
     static var magicLink: DescopeMagicLink { sdk.magicLink }
     
@@ -70,9 +76,6 @@ public extension Descope {
     /// Provides functions for authentication with SSO.
     static var sso: DescopeSSO { sdk.sso }
     
-    /// Provides functions for authentication with passwords.
-    static var password: DescopePassword { sdk.password }
-
     /// Provides functions for authentication using flows.
     static var flow: DescopeFlow { sdk.flow }
     

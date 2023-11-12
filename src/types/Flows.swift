@@ -16,6 +16,7 @@ import AuthenticationServices
 ///                 let authResponse = try await Descope.flow.start(runner: runner)
 ///                 let session = DescopeSession(from: authResponse)
 ///                 Descope.sessionManager.manageSession(session)
+///                 showHomeScreen()
 ///             } catch DescopeError.flowCancelled {
 ///                 // do nothing
 ///             } catch {
@@ -95,17 +96,17 @@ public class DescopeFlowRunner {
 
     /// Cancels the flow run.
     ///
-    /// You can cancel any ongoing flow via the ``DescopeFlow/current`` property on
-    /// ``Descope/flow`` object, or by holding on to the ``DescopeFlowRunner`` instance directly.
+    /// You can cancel any ongoing flow via the ``DescopeFlow/current`` property on the
+    /// ``Descope/flow`` object, or by holding on to the ``DescopeFlowRunner`` instance
+    /// directly.  This method can be safely called multiple times.
     ///
-    ///     Task {
-    ///         do {
-    ///             let runner = DescopeFlowRunner(...)
-    ///             let authResponse = try await Descope.flow.start(runner: runner)
-    ///         } catch DescopeError.flowCancelled {
-    ///             print("The flow was cancelled")
-    ///         } catch {
-    ///             // ...
+    ///     do {
+    ///         let runner = DescopeFlowRunner(...)
+    ///         let authResponse = try await Descope.flow.start(runner: runner)
+    ///     } catch DescopeError.flowCancelled {
+    ///         print("The flow was cancelled")
+    ///     } catch {
+    ///         // ...
     ///     }
     ///
     ///     // somewhere else
@@ -142,25 +143,5 @@ public class DescopeFlowRunner {
     }
     
     /// The default context provider that looks for the first key window in the active scene.
-    private let defaultContextProvider = DefaultContextProvider()
-}
-
-// Internal
-
-private class DefaultContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        #if os(macOS)
-        return ASPresentationAnchor()
-        #else
-        let scene = UIApplication.shared.connectedScenes
-            .filter { $0.activationState == .foregroundActive }
-            .compactMap { $0 as? UIWindowScene }
-            .first
-        
-        let keyWindow = scene?.windows
-            .first { $0.isKeyWindow }
-        
-        return keyWindow ?? ASPresentationAnchor()
-        #endif
-    }
+    private let defaultContextProvider = DefaultPresentationContextProvider()
 }

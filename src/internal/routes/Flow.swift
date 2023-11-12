@@ -26,12 +26,7 @@ class Flow: Route, DescopeFlow {
         
         // ensure that whatever the result of this method is we remove the reference
         // to the runner from the current property
-        defer {
-            if current === runner {
-                log(.debug, "Resetting current flow property")
-                current = nil
-            }
-        }
+        defer { resetRunner(runner) }
         
         // we wrap the callback based work with ASWebAuthenticationSession so it fits
         // an async/await code style as any other action the SDK performs. The onCancel
@@ -174,6 +169,13 @@ class Flow: Route, DescopeFlow {
         
         return code
     }
+    
+    
+    private func resetRunner(_ runner: DescopeFlowRunner) {
+        guard current === runner else { return }
+        log(.debug, "Resetting current flow runner property")
+        current = nil
+    }
 }
 
 // Internal
@@ -183,13 +185,6 @@ private extension Data {
         var bytes = [Int8](repeating: 0, count: count)
         guard SecRandomCopyBytes(kSecRandomDefault, count, &bytes) == errSecSuccess else { return nil }
         self = Data(bytes: bytes, count: count)
-    }
-    
-    func base64URLEncodedString(options: Data.Base64EncodingOptions = []) -> String {
-        return base64EncodedString(options: options)
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
     }
 }
 

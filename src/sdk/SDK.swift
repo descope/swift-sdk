@@ -16,6 +16,12 @@ public class DescopeSDK {
     /// Provides functions for authentication with TOTP codes.
     public let totp: DescopeTOTP
     
+    /// Provides functions for authentication with passkeys.
+    public let passkey: DescopePasskey
+
+    /// Provides functions for authentication with passwords.
+    public let password: DescopePassword
+    
     /// Provides functions for authentication with magic links.
     public let magicLink: DescopeMagicLink
     
@@ -27,9 +33,6 @@ public class DescopeSDK {
     
     /// Provides functions for authentication with SSO.
     public let sso: DescopeSSO
-    
-    /// Provides functions for authentication with passwords.
-    public let password: DescopePassword
     
     /// Provides functions for authentication using flows.
     public let flow: DescopeFlow
@@ -85,15 +88,16 @@ public class DescopeSDK {
         assert(config.projectId != "", "The projectId value must not be an empty string")
         self.config = config
         self.auth = Auth(client: client)
-        self.accessKey = AccessKey(client: client)
         self.otp = OTP(client: client)
         self.totp = TOTP(client: client)
+        self.passkey = Passkey(client: client)
         self.password = Password(client: client)
         self.magicLink = MagicLink(client: client)
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
         self.flow = Flow(client: client)
+        self.accessKey = AccessKey(client: client)
     }
 }
 

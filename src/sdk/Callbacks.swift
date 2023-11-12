@@ -1,4 +1,4 @@
-// Generated using Sourcery 2.0.1 — https://github.com/krzysztofzablocki/Sourcery
+// Generated using Sourcery 2.1.2 — https://github.com/krzysztofzablocki/Sourcery
 // DO NOT EDIT
 
 // Regenerate by running:
@@ -612,6 +612,101 @@ public extension DescopeOTP {
         Task {
             do {
                 completion(.success(try await updatePhone(phone, with: method, loginId: loginId, refreshJwt: refreshJwt, options: options)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+}
+
+public extension DescopePasskey {
+    /// Authenticates a new user by creating a new passkey.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - details: Optional details about the user signing up.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    /// 
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *) 
+    func signUp(loginId: String, details: SignUpDetails?, runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signUp(loginId: loginId, details: details, runner: runner)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Authenticates an existing user by prompting for an existing passkey.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - options: Additional behaviors to perform during authentication.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    /// 
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *) 
+    func signIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signIn(loginId: loginId, options: options, runner: runner)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Authenticates an existing user if one exists or creates a new one.
+    /// 
+    /// A new passkey will be created if the user doesn't already exist, otherwise a passkey
+    /// must be available on their device to authenticate with.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - options: Additional behaviors to perform during authentication.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    /// 
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *) 
+    func signUpOrIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await signUpOrIn(loginId: loginId, options: options, runner: runner)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Updates an existing user by adding a new passkey as an authentication method.
+    /// 
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    /// 
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    @available(iOS 15.0, *) 
+    func add(loginId: String, refreshJwt: String, runner: DescopePasskeyRunner, completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await add(loginId: loginId, refreshJwt: refreshJwt, runner: runner)))
             } catch {
                 completion(.failure(error))
             }

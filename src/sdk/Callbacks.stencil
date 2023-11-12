@@ -12,6 +12,9 @@ public extension {{ protocol.name }} {
     {% for line in method.documentation %}
     /// {{ line }}
     {% endfor %}
+    {% for attr in method.attributes %}
+    {% for key, value in method.attributes %}{{ value[0] }}{% endfor %} 
+    {% endfor %}
     func {{ method.callName }}({% for param in method.parameters %}{{ param.asSource }}, {% endfor %}completion: @escaping (Result<{{ method.actualReturnTypeName }}, Error>) -> Void) {
         Task {
             do {

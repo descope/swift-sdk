@@ -573,6 +573,73 @@ public protocol DescopeAccessKey {
     func exchange(accessKey: String) async throws -> DescopeToken
 }
 
+public protocol DescopePasskey {
+    /// Returns the ``DescopePasskeyRunner`` for the current running passkey
+    /// authentication or `nil` if no authentication is currently ongoing.
+    var current: DescopePasskeyRunner? { get }
+    
+    /// Authenticates a new user by creating a new passkey.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - details: Optional details about the user signing up.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    ///
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *)
+    func signUp(loginId: String, details: SignUpDetails?, runner: DescopePasskeyRunner) async throws -> AuthenticationResponse
+    
+    /// Authenticates an existing user by prompting for an existing passkey.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - options: Additional behaviors to perform during authentication.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    ///
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *)
+    func signIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner) async throws -> AuthenticationResponse
+    
+    /// Authenticates an existing user if one exists or creates a new one.
+    ///
+    /// A new passkey will be created if the user doesn't already exist, otherwise a passkey
+    /// must be available on their device to authenticate with.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - options: Additional behaviors to perform during authentication.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    ///
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @available(iOS 15.0, *)
+    func signUpOrIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner) async throws -> AuthenticationResponse
+    
+    /// Updates an existing user by adding a new passkey as an authentication method.
+    ///
+    /// - Parameters:
+    ///   - loginId: What identifies the user when logging in,
+    ///     typically an email, phone, or any other unique identifier.
+    ///   - refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
+    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
+    ///
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
+    ///     method is called on the runner or the authentication view is cancelled by the user.
+    @available(iOS 15.0, *)
+    func add(loginId: String, refreshJwt: String, runner: DescopePasskeyRunner) async throws
+}
+
 /// Authenticate a user using a flow.
 ///
 /// Descope Flows is a visual no-code interface to build screens and authentication flows

@@ -172,3 +172,30 @@ public class DescopeSessionManager {
         storage.saveSession(session)
     }
 }
+
+/// Convenience functions for common tasks.
+public extension DescopeSessionManager {
+    /// Create a new ``DescopeSession`` and set it as an active session in this manager.
+    ///
+    /// You should call this function after a user finishes logging in to the
+    /// host application.
+    ///
+    /// The session is set as the value of the ``session`` property and is saved
+    /// to the keychain so it can be reloaded on the next application launch or
+    /// ``DescopeSessionManager`` instantiation.
+    ///
+    /// - Important: The default ``DescopeSessionStorage`` only keeps at most
+    ///     one session in the keychain for simplicity. If for some reason you
+    ///     have multiple ``DescopeSessionManager`` objects then be aware that
+    ///     unless they use custom `storage` objects they might overwrite
+    ///     each other's saved sessions.
+    func manageSession(from authResponse: AuthenticationResponse) {
+        let session = DescopeSession(from: authResponse)
+        manageSession(session)
+    }
+    
+    ///
+    func authorizeRequest(_ request: inout URLRequest) async throws {
+        try await request.setAuthorization(from: self, config: DescopeConfig(projectId: ""))
+    }
+}

@@ -57,3 +57,18 @@ public extension DescopeSSO {
         return try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: [])
     }
 }
+
+public extension URLRequest {
+    @available(*, deprecated, message: "Use setAuthorization instead")
+    mutating func setAuthorizationHTTPHeaderField(from sessionManager: DescopeSessionManager) async throws {
+        try await setAuthorization(from: sessionManager, config: DescopeConfig)
+    }
+    
+    @available(*, unavailable, message: "Use setAuthorization instead")
+    mutating func setAuthorizationHTTPHeaderField(from session: DescopeSession) {
+    }
+
+    @available(*, unavailable, message: "Use setAuthorization instead")
+    mutating func setAuthorizationHTTPHeaderField(from token: DescopeToken) {
+    }
+}

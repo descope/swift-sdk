@@ -45,6 +45,20 @@ public struct DescopeConfig {
         self.baseURL = baseURL ?? self.baseURL
         self.logger = logger
     }
+    
+    public var authorization: URLRequestAuthorization = .bearerToken
+    
+    ///
+    public enum URLRequestAuthorization {
+        ///
+        case bearerToken
+        
+        ///
+        case httpHeader((DescopeToken) -> (name: String, value: String))
+        
+        ///
+        case custom((DescopeToken, inout URLRequest) -> Void)
+    }
 }
 
 /// The ``DescopeLogger`` class can be used to customize logging functionality in the Descope SDK.

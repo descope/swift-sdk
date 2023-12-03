@@ -87,6 +87,66 @@ class DescopeClient: HTTPClient {
         ])
     }
     
+    // MARK: - Passkey
+    
+    struct PasskeyStartResponse: JSONResponse {
+        var transactionId: String
+        var options: String
+        var create: Bool
+    }
+    
+    func passkeySignUpStart(loginId: String, details: SignUpDetails?, origin: String) async throws -> PasskeyStartResponse {
+        return try await post("auth/webauthn/signup/start", body: [
+            "loginId": loginId,
+            "user": details?.dictValue,
+            "origin": origin,
+        ])
+    }
+    
+    func passkeySignUpFinish(transactionId: String, response: String) async throws -> JWTResponse {
+        return try await post("auth/webauthn/signup/finish", body: [
+            "transactionId": transactionId,
+            "response": response,
+        ])
+    }
+    
+    func passkeySignInStart(loginId: String, origin: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
+        return try await post("auth/webauthn/signin/start", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "origin": origin,
+            "loginOptions": options?.dictValue,
+        ])
+    }
+    
+    func passkeySignInFinish(transactionId: String, response: String) async throws -> JWTResponse {
+        return try await post("auth/webauthn/signin/finish", body: [
+            "transactionId": transactionId,
+            "response": response,
+        ])
+    }
+    
+    func passkeySignUpInStart(loginId: String, origin: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
+        return try await post("auth/webauthn/signup-in/start", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "origin": origin,
+            "loginOptions": options?.dictValue,
+        ])
+    }
+    
+    func passkeyAddStart(loginId: String, origin: String, refreshJwt: String) async throws -> PasskeyStartResponse {
+        return try await post("auth/webauthn/update/start", headers: authorization(with: refreshJwt), body: [
+            "loginId": loginId,
+            "origin": origin,
+        ])
+    }
+    
+    func passkeyAddFinish(transactionId: String, response: String) async throws {
+        try await post("auth/webauthn/update/finish", body: [
+            "transactionId": transactionId,
+            "response": response,
+        ])
+    }
+    
     // MARK: - Password
     
     func passwordSignUp(loginId: String, password: String, details: SignUpDetails?) async throws -> JWTResponse {

@@ -31,7 +31,6 @@ public protocol DescopeSessionStorage: AnyObject {
 /// instance of that class to the initializer to create a ``SessionStorage`` object
 /// that uses a different backing store.
 public class SessionStorage: DescopeSessionStorage {
-    
     public let projectId: String
     public let store: Store
     

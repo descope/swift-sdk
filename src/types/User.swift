@@ -70,6 +70,18 @@ public struct DescopeUser: Codable, Equatable {
     /// Whether the phone number has been verified to be a valid authentication method
     /// for this user. If ``phone`` is `nil` then this is always `false`.
     public var isVerifiedPhone: Bool
+    
+    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false) {
+        self.userId = userId
+        self.loginIds = loginIds
+        self.createdAt = createdAt
+        self.name = name
+        self.picture = picture
+        self.email = email
+        self.isVerifiedEmail = isVerifiedEmail
+        self.phone = phone
+        self.isVerifiedPhone = isVerifiedPhone
+    }
 }
 
 extension DescopeUser: CustomStringConvertible {

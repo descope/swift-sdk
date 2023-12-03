@@ -54,8 +54,10 @@ public struct DescopeError: Error {
     
     /// An optional underlying error that caused this error.
     ///
-    /// For example, when a ``DescopeError/networkError`` is caught the ``cause`` property
-    /// will usually have the `NSError` object thrown by the internal `URLSession` call.
+    /// For example, when a ``DescopeError/networkError`` error is thrown the ``cause``
+    /// property will always contain the `NSError` object thrown by the internal `URLSession`
+    /// call. When a ``DescopeError/passkeyFailed`` error is thrown the ``cause`` property
+    /// will often contain an instance of AuthorizationError.
     public var cause: Error?
 }
 
@@ -83,6 +85,10 @@ extension DescopeError {
     
     public static let flowFailed = DescopeError.sdkError("S100001", "Flow failed to run")
     public static let flowCancelled = DescopeError.sdkError("S100002", "Flow cancelled")
+    
+    public static let passkeyFailed = DescopeError.sdkError("S110001", "Passkey operation failed")
+    public static let passkeyCancelled = DescopeError.sdkError("S110002", "Passkey operation cancelled")
+    public static let passkeyTimeout = DescopeError.sdkError("S110003", "Passkey operation timed out")
 }
 
 /// Extension functions for catching ``DescopeError`` values.

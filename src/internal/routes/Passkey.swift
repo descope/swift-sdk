@@ -139,7 +139,7 @@ class Passkey: Route, DescopePasskey {
         authController.performRequests()
 
         // now that we have a reference to the ASAuthorizationController object we set a
-        // cancellation handler on the runner that uses it, to be invoked if the runer's
+        // cancellation handler on the runner that uses it, to be invoked if the runner's
         // cancel() method is called or the async operation is cancelled.
         runner.cancellation = { [weak authController] in
             guard #available(iOS 16.0, macOS 13, *) else { return }

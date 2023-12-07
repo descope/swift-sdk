@@ -4,6 +4,8 @@ import AuthenticationServices
 /// A helper object that encapsulates a single authentication with passkeys.
 @MainActor
 public class DescopePasskeyRunner {
+    /// The domain of the web credential as configured in the Xcode project's
+    /// associated domains.
     public var domain: String
     
     /// Determines where in an application's UI the authentication view should be shown.
@@ -17,7 +19,10 @@ public class DescopePasskeyRunner {
     public weak var presentationContextProvider: ASAuthorizationControllerPresentationContextProviding?
     
     /// Creates a new ``DescopePasskeyRunner`` object that encapsulates a single
-    /// passkey authentifation.
+    /// passkey authentication run.
+    ///
+    /// - Parameter domain: The domain of the web credential as configured in the Xcode
+    ///     project's associated domains.
     public init(domain: String) {
         self.domain = domain
     }

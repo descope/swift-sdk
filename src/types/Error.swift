@@ -86,11 +86,11 @@ extension DescopeError {
     public static let flowFailed = DescopeError.sdkError("S100001", "Flow failed to run")
     public static let flowCancelled = DescopeError.sdkError("S100002", "Flow cancelled")
     
-    public static let passkeyFailed = DescopeError.sdkError("S110001", "Passkey operation failed")
-    public static let passkeyCancelled = DescopeError.sdkError("S110002", "Passkey operation cancelled")
+    public static let passkeyFailed = DescopeError.sdkError("S110001", "Passkey authentication failed")
+    public static let passkeyCancelled = DescopeError.sdkError("S110002", "Passkey authentication cancelled")
     
-    public static let oauthNativeFailed = DescopeError.sdkError("S110001", "Sign In with Apple operation failed")
-    public static let oauthNativeCancelled = DescopeError.sdkError("S110002", "Sign In with Apple operation cancelled")
+    public static let oauthNativeFailed = DescopeError.sdkError("S110001", "Sign in with Apple failed")
+    public static let oauthNativeCancelled = DescopeError.sdkError("S110002", "Sign in with Apple cancelled")
 }
 
 /// Extension functions for catching ``DescopeError`` values.

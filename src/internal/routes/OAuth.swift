@@ -8,10 +8,11 @@ class OAuth: Route, DescopeOAuth {
         self.client = client
     }
     
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> String {
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL {
         let (refreshJwt, loginOptions) = try options.convert()
         let response = try await client.oauthWebStart(provider: provider, redirectURL: redirectURL, refreshJwt: refreshJwt, options: loginOptions)
-        return response.url
+        guard let url = URL(string: response.url) else { throw DescopeError.decodeError.with(message: "Invalid redirect URL") }
+        return url
     }
     
     func exchange(code: String) async throws -> AuthenticationResponse {
@@ -19,17 +20,22 @@ class OAuth: Route, DescopeOAuth {
     }
     
     @MainActor
-    func native(options: [SignInOptions]) async throws -> AuthenticationResponse {
-        log(.info, "Starting authentication using Sign In with Apple")
+    func native(provider: OAuthProvider, options: [SignInOptions]) async throws -> AuthenticationResponse {
+        log(.info, "Starting authentication using Sign in with Apple")
         let (refreshJwt, loginOptions) = try options.convert()
-        let startResponse = try await client.oauthNativeStart(refreshJwt: refreshJwt, options: loginOptions)
-
-        log(.info, "Requesting authorization for Sign In with Apple")
+        let startResponse = try await client.oauthNativeStart(provider: provider, refreshJwt: refreshJwt, options: loginOptions)
+        
+        if startResponse.clientId != Bundle.main.bundleIdentifier {
+            log(.debug, "Sign in with Apple requires an OAuth provider that's configured with a clientId matching the application's bundle identifier", startResponse.clientId, Bundle.main.bundleIdentifier)
+            throw DescopeError.oauthNativeFailed.with(message: "OAuth provider clientId doesn't match bundle identifier")
+        }
+        
+        log(.info, "Requesting authorization for Sign in with Apple", startResponse.clientId)
         let authorization = try await performAuthorization(nonce: startResponse.nonce)
         let (authorizationCode, identityToken, user) = try parseCredential(authorization.credential, implicit: startResponse.implicit)
         
-        log(.info, "Finishing authentication using Sign In with Apple")
-        return try await client.oauthNativeFinish(state: startResponse.state, user: user, authorizationCode: authorizationCode, identityToken: identityToken).convert()
+        log(.info, "Finishing authentication using Sign in with Apple")
+        return try await client.oauthNativeFinish(provider: provider, state: startResponse.state, user: user, authorizationCode: authorizationCode, identityToken: identityToken).convert()
     }
     
     @MainActor

@@ -307,6 +307,7 @@ class DescopeClient: HTTPClient {
     }
     
     struct OAuthNativeStartResponse: JSONResponse {
+        var clientId: String
         var state: String
         var nonce: String
         var implicit: Bool
@@ -325,16 +326,16 @@ class DescopeClient: HTTPClient {
         ])
     }
 
-    func oauthNativeStart(refreshJwt: String?, options: LoginOptions?) async throws -> OAuthNativeStartResponse {
+    func oauthNativeStart(provider: OAuthProvider, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthNativeStartResponse {
         return try await post("auth/oauth/native/start", headers: authorization(with: refreshJwt), body: [
-            "provider": "apple",
+            "provider": provider.name,
             "loginOptions": options?.dictValue
         ])
     }
     
-    func oauthNativeFinish(state: String, user: String?, authorizationCode: String?, identityToken: String?) async throws -> JWTResponse {
+    func oauthNativeFinish(provider: OAuthProvider, state: String, user: String?, authorizationCode: String?, identityToken: String?) async throws -> JWTResponse {
         return try await post("auth/oauth/native/finish", body: [
-            "provider": "apple",
+            "provider": provider.name,
             "state": state,
             "user": user,
             "code": authorizationCode,
@@ -371,7 +372,7 @@ class DescopeClient: HTTPClient {
         return try await post("auth/accesskey/exchange", headers: authorization(with: accessKey))
     }
     
-    // Mark: - Flow
+    // MARK: - Flow
     
     func flowExchange(authorizationCode: String, codeVerifier: String) async throws -> JWTResponse {
         return try await post("flow/exchange", body: [

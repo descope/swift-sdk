@@ -460,7 +460,7 @@ public extension DescopeOAuth {
     /// 
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<URL, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await start(provider: provider, redirectURL: redirectURL, options: options)))
@@ -494,11 +494,15 @@ public extension DescopeOAuth {
     /// a native dialog that lets the user sign in with the Apple ID they're already
     /// using on their device.
     /// 
-    /// - Parameter options: Require additional behaviors when authenticating a user.
+    /// - Parameters:
+    ///   - provider: The provider the user wishes to authenticate with, this will usually
+    ///     either be `.apple` or the name of a custom provider that's configured for Apple.
+    ///   - options: Require additional behaviors when authenticating a user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     /// 
-    /// - Throws: ``DescopeError/oauthNativeFailed`` or ``DescopeError/oauthNativeCancelled``.
+    /// - Throws: ``DescopeError/oauthNativeCancelled`` if the authentication view is aborted
+    ///     or cancelled by the user.
     /// 
     /// - Note: The Sign in with Apple APIs require some setup in your Xcode project,
     ///     including at the very least adding the `Sign in with Apple` capability. You will
@@ -508,10 +512,10 @@ public extension DescopeOAuth {
     /// 
     /// - SeeAlso: For more details about configuring your app and generating client secrets
     ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
-    func native(options: [SignInOptions], completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+    func native(provider: OAuthProvider, options: [SignInOptions], completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await native(options: options)))
+                completion(.success(try await native(provider: provider, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -883,7 +887,7 @@ public extension DescopeSSO {
     /// 
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<URL, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: options)))

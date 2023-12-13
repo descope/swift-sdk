@@ -46,14 +46,14 @@ public extension DescopeEnchantedLink {
 
 public extension DescopeOAuth {
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func start(provider: OAuthProvider, redirectURL: String?) async throws -> String {
+    func start(provider: OAuthProvider, redirectURL: String?) async throws -> URL {
         return try await start(provider: provider, redirectURL: redirectURL, options: [])
     }
 }
 
 public extension DescopeSSO {
     @available(*, deprecated, message: "Pass a value (or an empty array) for the options parameter")
-    func start(emailOrTenantName: String, redirectURL: String?) async throws -> String {
+    func start(emailOrTenantName: String, redirectURL: String?) async throws -> URL {
         return try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: [])
     }
 }

@@ -308,7 +308,7 @@ class DescopeClient: HTTPClient {
     
     struct OAuthNativeStartResponse: JSONResponse {
         var clientId: String
-        var state: String
+        var stateId: String
         var nonce: String
         var implicit: Bool
     }
@@ -333,10 +333,10 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func oauthNativeFinish(provider: OAuthProvider, state: String, user: String?, authorizationCode: String?, identityToken: String?) async throws -> JWTResponse {
+    func oauthNativeFinish(provider: OAuthProvider, stateId: String, user: String?, authorizationCode: String?, identityToken: String?) async throws -> JWTResponse {
         return try await post("auth/oauth/native/finish", body: [
             "provider": provider.name,
-            "state": state,
+            "stateId": stateId,
             "user": user,
             "code": authorizationCode,
             "idToken": identityToken,

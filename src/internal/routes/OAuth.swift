@@ -35,7 +35,7 @@ class OAuth: Route, DescopeOAuth {
         let (authorizationCode, identityToken, user) = try parseCredential(authorization.credential, implicit: startResponse.implicit)
         
         log(.info, "Finishing authentication using Sign in with Apple")
-        return try await client.oauthNativeFinish(provider: provider, state: startResponse.state, user: user, authorizationCode: authorizationCode, identityToken: identityToken).convert()
+        return try await client.oauthNativeFinish(provider: provider, stateId: startResponse.stateId, user: user, authorizationCode: authorizationCode, identityToken: identityToken).convert()
     }
     
     @MainActor

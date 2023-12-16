@@ -494,6 +494,12 @@ public extension DescopeOAuth {
     /// a native dialog that lets the user sign in with the Apple ID they're already
     /// using on their device.
     /// 
+    /// The Sign in with Apple APIs require some setup in your Xcode project, including
+    /// at the very least adding the `Sign in with Apple` capability. You will also need
+    /// to configure the Apple provider in the [Descope console](https://app.descope.com/settings/authentication/social).
+    /// In particular, when using your own account make sure that the `Client ID` value
+    /// matches the Bundle Identifier of your app.
+    /// 
     /// - Parameters:
     ///   - provider: The provider the user wishes to authenticate with, this will usually
     ///     either be `.apple` or the name of a custom provider that's configured for Apple.
@@ -504,11 +510,11 @@ public extension DescopeOAuth {
     /// - Throws: ``DescopeError/oauthNativeCancelled`` if the authentication view is aborted
     ///     or cancelled by the user.
     /// 
-    /// - Note: The Sign in with Apple APIs require some setup in your Xcode project,
-    ///     including at the very least adding the `Sign in with Apple` capability. You will
-    ///     also need to configure the Apple provider in the [Descope console](https://localhost:8080/settings/authentication/social).
-    ///     In particular, when using your own Account make sure that the `Client ID` value
-    ///     matches the Bundle Identifier of your app.
+    /// - Note: This is an asynchronous operation that performs network requests before and
+    ///     after displaying the modal authentication view. It is thus recommended to show an
+    ///     activity indicator or switch the user interface to a loading state before calling
+    ///     this, otherwise the user might accidentally interact with the app when the
+    ///     authentication view is not being displayed.
     /// 
     /// - SeeAlso: For more details about configuring your app and generating client secrets
     ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).

@@ -26,7 +26,7 @@ class OAuth: Route, DescopeOAuth {
         let startResponse = try await client.oauthNativeStart(provider: provider, refreshJwt: refreshJwt, options: loginOptions)
         
         if startResponse.clientId != Bundle.main.bundleIdentifier {
-            log(.debug, "Sign in with Apple requires an OAuth provider that's configured with a clientId matching the application's bundle identifier", startResponse.clientId, Bundle.main.bundleIdentifier)
+            log(.error, "Sign in with Apple requires an OAuth provider that's configured with a clientId matching the application's bundle identifier", startResponse.clientId, Bundle.main.bundleIdentifier)
             throw DescopeError.oauthNativeFailed.with(message: "OAuth provider clientId doesn't match bundle identifier")
         }
         
@@ -76,7 +76,7 @@ class OAuth: Route, DescopeOAuth {
     }
     
     private func parseCredential(_ credential: ASAuthorizationCredential, implicit: Bool) throws -> (authorizationCode: String?, identityToken: String?, user: String?) {
-        guard let credential = credential as? ASAuthorizationAppleIDCredential else { throw DescopeError.oauthNativeFailed.with(message: "Invalid oauth credential type") }
+        guard let credential = credential as? ASAuthorizationAppleIDCredential else { throw DescopeError.oauthNativeFailed.with(message: "Invalid Apple credential type") }
         log(.debug, "Received Apple credential", credential.realUserStatus)
 
         var authorizationCode: String?

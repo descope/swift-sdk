@@ -129,6 +129,6 @@ extension DescopeSession: CustomStringConvertible {
             let label = refreshToken.isExpired ? "expired" : "expires"
             expires = "\(label): \(refreshExpiresAt)"
         }
-        return "DescopeSession(id: \"\(user.userId)\", \(expires))"
+        return "DescopeSession(userId: \"\(user.userId)\", \(expires))"
     }
 }

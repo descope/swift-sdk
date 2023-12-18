@@ -489,10 +489,10 @@ public extension DescopeOAuth {
 
     /// Authenticates the user using the native `Sign in with Apple` dialog.
     /// 
-    /// This API enables a more streamlined authentication flow than the equivalent
-    /// browser-based OAuth flow using the `.apple` provider. The authentication presents
-    /// a native dialog that lets the user sign in with the Apple ID they're already
-    /// using on their device.
+    /// This API enables a more streamlined user experience than the equivalent browser
+    /// based OAuth authentication, when using the `.apple` provider or a custom provider
+    /// that's configured for Apple. The authentication presents a native dialog that lets
+    /// the user sign in with the Apple ID they're already using on their device.
     /// 
     /// The Sign in with Apple APIs require some setup in your Xcode project, including
     /// at the very least adding the `Sign in with Apple` capability. You will also need

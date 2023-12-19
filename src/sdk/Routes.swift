@@ -417,7 +417,7 @@ public protocol DescopeEnchantedLink {
 /// Use the Descope console to configure which authentication provider you'd like to support.
 /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication
 ///
-/// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
+/// - SeeAlso: For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeOAuth {
     /// Starts an OAuth redirect chain to authenticate a user.
     ///
@@ -440,7 +440,7 @@ public protocol DescopeOAuth {
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> String
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL
     
     /// Completes an OAuth redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.
@@ -450,6 +450,39 @@ public protocol DescopeOAuth {
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful exchange.
     func exchange(code: String) async throws -> AuthenticationResponse
+
+    /// Authenticates the user using the native `Sign in with Apple` dialog.
+    ///
+    /// This API enables a more streamlined user experience than the equivalent browser
+    /// based OAuth authentication, when using the `.apple` provider or a custom provider
+    /// that's configured for Apple. The authentication presents a native dialog that lets
+    /// the user sign in with the Apple ID they're already using on their device.
+    ///
+    /// The Sign in with Apple APIs require some setup in your Xcode project, including
+    /// at the very least adding the `Sign in with Apple` capability. You will also need
+    /// to configure the Apple provider in the [Descope console](https://app.descope.com/settings/authentication/social).
+    /// In particular, when using your own account make sure that the `Client ID` value
+    /// matches the Bundle Identifier of your app.
+    ///
+    /// - Parameters:
+    ///   - provider: The provider the user wishes to authenticate with, this will usually
+    ///     either be `.apple` or the name of a custom provider that's configured for Apple.
+    ///   - options: Require additional behaviors when authenticating a user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    ///
+    /// - Throws: ``DescopeError/oauthNativeCancelled`` if the authentication view is aborted
+    ///     or cancelled by the user.
+    ///
+    /// - Note: This is an asynchronous operation that performs network requests before and
+    ///     after displaying the modal authentication view. It is thus recommended to show an
+    ///     activity indicator or switch the user interface to a loading state before calling
+    ///     this, otherwise the user might accidentally interact with the app when the
+    ///     authentication view is not being displayed.
+    ///
+    /// - SeeAlso: For more details about configuring your app and generating client secrets
+    ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
+    func native(provider: OAuthProvider, options: [SignInOptions]) async throws -> AuthenticationResponse
 }
 
 
@@ -475,7 +508,7 @@ public protocol DescopeSSO {
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions]) async throws -> String
+    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions]) async throws -> URL
     
     /// Completes an SSO redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.
@@ -533,7 +566,8 @@ public protocol DescopePassword {
     ///   - loginId: The existing user's loginId.
     ///   - oldPassword: The user's current password.
     ///   - newPassword: The new password to set for the user.
-    ///   - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
     func replace(loginId: String, oldPassword: String, newPassword: String) async throws -> AuthenticationResponse
     
     /// Sends a password reset email to the user.
@@ -573,6 +607,13 @@ public protocol DescopeAccessKey {
     func exchange(accessKey: String) async throws -> DescopeToken
 }
 
+/// Authenticate a user using passkeys.
+///
+/// The authentication functions in this protocol are all asynchronous operations
+/// that perform network requests before and after displaying the modal authentication
+/// view. It is thus recommended to show an activity indicator or switch the user interface
+/// to a loading state before calling these functions, otherwise the user might accidentally
+/// interact with the app when the authentication view is not being displayed.
 public protocol DescopePasskey {
     /// Returns the ``DescopePasskeyRunner`` for the current running passkey
     /// authentication or `nil` if no authentication is currently ongoing.

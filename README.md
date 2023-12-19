@@ -190,17 +190,35 @@ let authResponse = try await Descope.magiclink.verify(token: "<token>")
 
 ### OAuth
 
-Users can authenticate using their social logins, using the OAuth protocol.
-Configure your OAuth settings on the [Descope console](https://app.descope.com/settings/authentication/social).
-To start a flow call:
+When a user wants to use social login with Apple you can leverage the [Sign in with Apple](https://developer.apple.com/sign-in-with-apple/)
+feature to show a native authentication view that allows the user to login using the Apple ID
+they are already logged into on their device. Note that the OAuth provider you choose to use
+must be configured with the application's Bundle Identifier as the Client ID in the
+[Descope console](https://app.descope.com/settings/authentication/social).
+
+```swift
+do {
+    let authResponse = try await Descope.oauth.native(provider: .apple, options: [])
+    let session = DescopeSession(from: authResponse)
+    Descope.sessionManager.manageSession(session)
+    showHomeScreen() 
+} catch DescopeError.oauthNativeCancelled {
+    print("Authentication cancelled")
+} catch {
+    showErrorAlert(error)
+}
+```
+
+Users can authenticate using any other social login providers, using the OAuth protocol via
+a browser based authentication flow. Configure your OAuth settings on the [Descope console](https://app.descope.com/settings/authentication/social).
+To start an OAuth authentication call:
 
 ```swift
 // Choose an oauth provider out of the supported providers
 // If configured globally, the redirect URL is optional. If provided however, it will be used
 // instead of any global configuration.
 // Redirect the user to the returned URL to start the OAuth redirect chain
-let authURL = try await Descope.oauth.start(provider: .github, redirectURL: "exampleauthschema://my-app.com/handle-oauth")
-guard let authURL = URL(string: url) else { return }
+let authURL = try await Descope.oauth.start(provider: .github, redirectURL: "exampleauthschema://my-app.com/handle-oauth", options: [])
 ```
 
 Take the generated URL and authenticate the user using `ASWebAuthenticationSession`
@@ -212,18 +230,17 @@ Exchange it to validate the user:
 ```swift
 // Start the authentication session
 let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "exampleauthschema") { callbackURL, error in
-
     // Extract the returned code
-    guard let url = callbackURL else {return}
-    let component = URLComponents(url: url, resolvingAgainstBaseURL: false)
-    guard let code = component?.queryItems?.first(where: {$0.name == "code"})?.value else { return }
-
-    // ... Trigger asynchronously
-
-    // Exchange code for session
-    let authResponse = try await Descope.oauth.exchange(code: code)
-    let session = DescopeSession(from: authResponse)
-    Descope.sessionManager.manageSession(session)
+    guard let url = callbackURL else { return }
+    let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    guard let code = components?.queryItems?.first(where: { $0.name == "code" })?.value else { return }
+    
+    Task {
+        // Exchange code for session
+        let authResponse = try await Descope.oauth.exchange(code: code)
+        let session = DescopeSession(from: authResponse)
+        Descope.sessionManager.manageSession(session)
+    }
 }
 ```
 
@@ -238,8 +255,7 @@ To start a flow call:
 // If configured globally, the return URL is optional. If provided however, it will be used
 // instead of any global configuration.
 // Redirect the user to the returned URL to start the SSO/SAML redirect chain
-let authURL = try await Descope.sso.start(emailOrTenantName: "my-tenant-ID", redirectURL: "exampleauthschema://my-app.com/handle-saml")
-guard let authURL = URL(string: url) else { return }
+let authURL = try await Descope.sso.start(emailOrTenantName: "my-tenant-ID", redirectURL: "exampleauthschema://my-app.com/handle-saml", options: [])
 ```
 
 Take the generated URL and authenticate the user using `ASWebAuthenticationSession`

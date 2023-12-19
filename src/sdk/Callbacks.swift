@@ -460,7 +460,7 @@ public extension DescopeOAuth {
     /// 
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<URL, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await start(provider: provider, redirectURL: redirectURL, options: options)))
@@ -481,6 +481,47 @@ public extension DescopeOAuth {
         Task {
             do {
                 completion(.success(try await exchange(code: code)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
+    /// Authenticates the user using the native `Sign in with Apple` dialog.
+    /// 
+    /// This API enables a more streamlined user experience than the equivalent browser
+    /// based OAuth authentication, when using the `.apple` provider or a custom provider
+    /// that's configured for Apple. The authentication presents a native dialog that lets
+    /// the user sign in with the Apple ID they're already using on their device.
+    /// 
+    /// The Sign in with Apple APIs require some setup in your Xcode project, including
+    /// at the very least adding the `Sign in with Apple` capability. You will also need
+    /// to configure the Apple provider in the [Descope console](https://app.descope.com/settings/authentication/social).
+    /// In particular, when using your own account make sure that the `Client ID` value
+    /// matches the Bundle Identifier of your app.
+    /// 
+    /// - Parameters:
+    ///   - provider: The provider the user wishes to authenticate with, this will usually
+    ///     either be `.apple` or the name of a custom provider that's configured for Apple.
+    ///   - options: Require additional behaviors when authenticating a user.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    /// 
+    /// - Throws: ``DescopeError/oauthNativeCancelled`` if the authentication view is aborted
+    ///     or cancelled by the user.
+    /// 
+    /// - Note: This is an asynchronous operation that performs network requests before and
+    ///     after displaying the modal authentication view. It is thus recommended to show an
+    ///     activity indicator or switch the user interface to a loading state before calling
+    ///     this, otherwise the user might accidentally interact with the app when the
+    ///     authentication view is not being displayed.
+    /// 
+    /// - SeeAlso: For more details about configuring your app and generating client secrets
+    ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
+    func native(provider: OAuthProvider, options: [SignInOptions], completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await native(provider: provider, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -632,7 +673,7 @@ public extension DescopePasskey {
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
-    @available(iOS 15.0, *) 
+    @available(iOS 15.0, *)
     func signUp(loginId: String, details: SignUpDetails?, runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -655,7 +696,7 @@ public extension DescopePasskey {
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
-    @available(iOS 15.0, *) 
+    @available(iOS 15.0, *)
     func signIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -681,7 +722,7 @@ public extension DescopePasskey {
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
-    @available(iOS 15.0, *) 
+    @available(iOS 15.0, *)
     func signUpOrIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -702,7 +743,7 @@ public extension DescopePasskey {
     /// 
     /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
     ///     method is called on the runner or the authentication view is cancelled by the user.
-    @available(iOS 15.0, *) 
+    @available(iOS 15.0, *)
     func add(loginId: String, refreshJwt: String, runner: DescopePasskeyRunner, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
@@ -783,7 +824,8 @@ public extension DescopePassword {
     ///   - loginId: The existing user's loginId.
     ///   - oldPassword: The user's current password.
     ///   - newPassword: The new password to set for the user.
-    ///   - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful replacement and authentication.
     func replace(loginId: String, oldPassword: String, newPassword: String, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
@@ -851,7 +893,7 @@ public extension DescopeSSO {
     /// 
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<String, Error>) -> Void) {
+    func start(emailOrTenantName: String, redirectURL: String?, options: [SignInOptions], completion: @escaping (Result<URL, Error>) -> Void) {
         Task {
             do {
                 completion(.success(try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: options)))

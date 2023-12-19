@@ -306,19 +306,43 @@ class DescopeClient: HTTPClient {
         var url: String
     }
     
-    func oauthStart(provider: OAuthProvider, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
+    struct OAuthNativeStartResponse: JSONResponse {
+        var clientId: String
+        var stateId: String
+        var nonce: String
+        var implicit: Bool
+    }
+    
+    func oauthWebStart(provider: OAuthProvider, redirectURL: String?, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthResponse {
         return try await post("auth/oauth/authorize", headers: authorization(with: refreshJwt), params: [
             "provider": provider.name,
             "redirectUrl": redirectURL
         ], body: options?.dictValue ?? [:])
     }
     
-    func oauthExchange(code: String) async throws -> JWTResponse {
+    func oauthWebExchange(code: String) async throws -> JWTResponse {
         return try await post("auth/oauth/exchange", body: [
             "code": code
         ])
     }
 
+    func oauthNativeStart(provider: OAuthProvider, refreshJwt: String?, options: LoginOptions?) async throws -> OAuthNativeStartResponse {
+        return try await post("auth/oauth/native/start", headers: authorization(with: refreshJwt), body: [
+            "provider": provider.name,
+            "loginOptions": options?.dictValue
+        ])
+    }
+    
+    func oauthNativeFinish(provider: OAuthProvider, stateId: String, user: String?, authorizationCode: String?, identityToken: String?) async throws -> JWTResponse {
+        return try await post("auth/oauth/native/finish", body: [
+            "provider": provider.name,
+            "stateId": stateId,
+            "user": user,
+            "code": authorizationCode,
+            "idToken": identityToken,
+        ])
+    }
+    
     // MARK: - SSO
     
     struct SSOResponse: JSONResponse {
@@ -348,7 +372,7 @@ class DescopeClient: HTTPClient {
         return try await post("auth/accesskey/exchange", headers: authorization(with: accessKey))
     }
     
-    // Mark: - Flow
+    // MARK: - Flow
     
     func flowExchange(authorizationCode: String, codeVerifier: String) async throws -> JWTResponse {
         return try await post("flow/exchange", body: [
@@ -360,15 +384,15 @@ class DescopeClient: HTTPClient {
     // MARK: - Others
     
     func me(refreshJwt: String) async throws -> UserResponse {
-        return try await get("me", headers: authorization(with: refreshJwt))
+        return try await get("auth/me", headers: authorization(with: refreshJwt))
     }
     
     func refresh(refreshJwt: String) async throws -> JWTResponse {
-        return try await post("refresh", headers: authorization(with: refreshJwt))
+        return try await post("auth/refresh", headers: authorization(with: refreshJwt))
     }
     
     func logout(refreshJwt: String) async throws {
-        try await post("logout", headers: authorization(with: refreshJwt))
+        try await post("auth/logout", headers: authorization(with: refreshJwt))
     }
     
     // MARK: - Shared

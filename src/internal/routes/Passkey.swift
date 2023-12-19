@@ -131,10 +131,10 @@ class Passkey: Route, DescopePasskey {
     
     @MainActor
     private func performAuthorization(request: ASAuthorizationRequest, runner: DescopePasskeyRunner) async throws -> ASAuthorization {
-        let passkeyDelegate = PasskeyDelegate()
+        let authDelegate = AuthorizationDelegate()
         
         let authController = ASAuthorizationController(authorizationRequests: [ request ] )
-        authController.delegate = passkeyDelegate
+        authController.delegate = authDelegate
         authController.presentationContextProvider = runner.contextProvider
         authController.performRequests()
 
@@ -152,7 +152,7 @@ class Passkey: Route, DescopePasskey {
         // is then handled internally by the rest of the code.
         let result = await withTaskCancellationHandler {
             return await withCheckedContinuation { continuation in
-                passkeyDelegate.completion = { result in
+                authDelegate.completion = { result in
                     continuation.resume(returning: result)
                 }
             }
@@ -171,7 +171,7 @@ class Passkey: Route, DescopePasskey {
             throw DescopeError.passkeyCancelled
         case .failure(let error as NSError) where error.domain == "WKErrorDomain" && error.code == 31:
             log(.error, "Passkey authorization timed out", error)
-            throw DescopeError.passkeyTimeout
+            throw DescopeError.passkeyCancelled.with(message: "The operation timed out")
         case .failure(let error):
             log(.error, "Passkey authorization failed", error)
             throw DescopeError.passkeyFailed.with(cause: error)
@@ -303,20 +303,4 @@ private struct AssertionFinish: Codable {
 
 private extension DescopePasskeyRunner {
     var origin: String { "https://\(domain)" }
-}
-
-private typealias PasskeyDelegateCompletion = (Result<ASAuthorization, Error>) -> Void
-
-private class PasskeyDelegate: NSObject, ASAuthorizationControllerDelegate {
-    var completion: PasskeyDelegateCompletion?
-    
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        completion?(.success(authorization))
-        completion = nil
-    }
-
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        completion?(.failure(error))
-        completion = nil
-    }
 }

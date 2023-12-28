@@ -71,7 +71,16 @@ public struct DescopeUser: Codable, Equatable {
     /// for this user. If ``phone`` is `nil` then this is always `false`.
     public var isVerifiedPhone: Bool
     
-    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false) {
+    /// The user's given name.
+    public var givenName: String?
+    
+    /// The user's middle name.
+    public var middleName: String?
+    
+    /// The user's family name.
+    public var familyName: String?
+    
+    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil) {
         self.userId = userId
         self.loginIds = loginIds
         self.createdAt = createdAt
@@ -81,6 +90,9 @@ public struct DescopeUser: Codable, Equatable {
         self.isVerifiedEmail = isVerifiedEmail
         self.phone = phone
         self.isVerifiedPhone = isVerifiedPhone
+        self.givenName = givenName
+        self.middleName = middleName
+        self.familyName = familyName
     }
 }
 

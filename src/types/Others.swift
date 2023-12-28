@@ -34,11 +34,17 @@ public struct SignUpDetails {
     public var name: String?
     public var email: String?
     public var phone: String?
+    public var givenName: String?
+    public var middleName: String?
+    public var familyName: String?
     
-    public init(name: String? = nil, phone: String? = nil, email: String? = nil) {
+    public init(name: String? = nil, phone: String? = nil, email: String? = nil, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil) {
         self.name = name
         self.phone = phone
         self.email = email
+        self.givenName = givenName
+        self.middleName = middleName
+        self.familyName = familyName
     }
 }
 

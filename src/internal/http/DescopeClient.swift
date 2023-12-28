@@ -430,6 +430,9 @@ class DescopeClient: HTTPClient {
         var phone: String?
         var verifiedPhone: Bool = false
         var createdTime: Int
+        var givenName: String?
+        var middleName: String?
+        var familyName: String?
     }
     
     struct MaskedAddress: JSONResponse {
@@ -481,6 +484,9 @@ private extension SignUpDetails {
             "name": name,
             "phone": phone,
             "email": email,
+            "givenName": givenName,
+            "middleName": middleName,
+            "familyName": familyName,
         ]
     }
 }

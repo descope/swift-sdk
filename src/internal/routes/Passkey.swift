@@ -91,8 +91,6 @@ class Passkey: Route, DescopePasskey {
         
         log(.info, "Finishing passkey update", startResponse.transactionId)
         try await client.passkeyAddFinish(transactionId: startResponse.transactionId, response: registerResponse)
-
-        guard !runner.isCancelled else { throw DescopeError.passkeyCancelled }
     }
 
     @MainActor

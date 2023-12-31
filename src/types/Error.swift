@@ -10,7 +10,7 @@ import Foundation
 ///         showErrorAlert(text: err.localizedDescription)
 ///     }
 ///
-/// There are serveral ways to catch and handle a ``DescopeError`` thrown by a Descope SDK
+/// There are several ways to catch and handle a ``DescopeError`` thrown by a Descope SDK
 /// operation, and you can use whichever one is more appropriate in each specific use case.
 ///
 ///     do {
@@ -23,7 +23,7 @@ import Foundation
 ///     } catch let err as DescopeError where err == .networkError {
 ///         // catch a specific kind of error and do something
 ///         // with the error object
-///         logError("A network error has occured", err.cause)
+///         logError("A network error has occurred", err.cause)
 ///         showNetworkErrorRetry()
 ///     } catch {
 ///         // catch any other error

@@ -29,6 +29,15 @@ extension DescopeClient.UserResponse {
             me.phone = phone
             me.isVerifiedPhone = verifiedPhone
         }
+        if let givenName, !givenName.isEmpty {
+            me.givenName = givenName
+        }
+        if let middleName, !middleName.isEmpty {
+            me.middleName = middleName
+        }
+        if let familyName, !familyName.isEmpty {
+            me.familyName = familyName
+        }
         return me
     }
 }

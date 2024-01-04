@@ -80,7 +80,11 @@ public struct DescopeUser: Codable, Equatable {
     /// The user's family name.
     public var familyName: String?
     
-    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil) {
+    /// A mapping of any custom attributes associated with this user.
+    /// User custom attributes are managed via the Descope console.
+    public var customAttributes: [String: Any]
+    
+    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil, customAttributes: [String: Any] = [:]) {
         self.userId = userId
         self.loginIds = loginIds
         self.createdAt = createdAt
@@ -93,6 +97,75 @@ public struct DescopeUser: Codable, Equatable {
         self.givenName = givenName
         self.middleName = middleName
         self.familyName = familyName
+        self.customAttributes = customAttributes
+    }
+    
+    enum CodingKeys: CodingKey {
+        case userId
+        case loginIds
+        case createdAt
+        case name
+        case picture
+        case email
+        case isVerifiedEmail
+        case phone
+        case isVerifiedPhone
+        case givenName
+        case middleName
+        case familyName
+        case customAttributes
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        userId = try values.decode(String.self, forKey: .userId)
+        loginIds = try values.decode(Array<String>.self, forKey: .loginIds)
+        createdAt = try values.decode(Date.self, forKey: .createdAt)
+        name = try values.decode(String?.self, forKey: .name)
+        picture = try values.decode(URL?.self, forKey: .picture)
+        email = try values.decode(String?.self, forKey: .email)
+        isVerifiedEmail = try values.decode(Bool.self, forKey: .isVerifiedEmail)
+        phone = try values.decode(String?.self, forKey: .phone)
+        isVerifiedPhone = try values.decode(Bool.self, forKey: .isVerifiedPhone)
+        givenName = try values.decode(String?.self, forKey: .givenName)
+        middleName = try values.decode(String?.self, forKey: .middleName)
+        familyName = try values.decode(String?.self, forKey: .familyName)
+        let value = try values.nestedContainer(keyedBy: JSONCodingKeys.self, forKey: .customAttributes)
+        customAttributes = decodeJson(container: value)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(loginIds, forKey: .loginIds)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(name, forKey: .name)
+        try container.encode(picture, forKey: .picture)
+        try container.encode(email, forKey: .email)
+        try container.encode(isVerifiedEmail, forKey: .isVerifiedEmail)
+        try container.encode(phone, forKey: .phone)
+        try container.encode(isVerifiedPhone, forKey: .isVerifiedPhone)
+        try container.encode(givenName, forKey: .givenName)
+        try container.encode(middleName, forKey: .middleName)
+        try container.encode(familyName, forKey: .familyName)
+        var nestedContainer = container.nestedContainer(keyedBy: JSONCodingKeys.self, forKey: .customAttributes)
+        try customAttributes.encodeJson(container: &nestedContainer)
+    }
+    
+    public static func == (lhs: DescopeUser, rhs: DescopeUser) -> Bool {
+        return lhs.userId == rhs.userId &&
+        lhs.loginIds == rhs.loginIds &&
+        lhs.createdAt == rhs.createdAt &&
+        lhs.name == rhs.name &&
+        lhs.picture == rhs.picture &&
+        lhs.email == rhs.email &&
+        lhs.isVerifiedEmail == rhs.isVerifiedEmail &&
+        lhs.phone == rhs.phone &&
+        lhs.isVerifiedPhone == rhs.isVerifiedPhone &&
+        lhs.givenName == rhs.givenName &&
+        lhs.middleName == rhs.middleName &&
+        lhs.familyName == rhs.familyName
+        // lhs.customAttributes == rhs.customAttributes
     }
 }
 

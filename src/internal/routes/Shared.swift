@@ -38,6 +38,7 @@ extension DescopeClient.UserResponse {
         if let familyName, !familyName.isEmpty {
             me.familyName = familyName
         }
+        me.customAttributes = customAttributes
         return me
     }
 }

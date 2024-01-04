@@ -433,6 +433,60 @@ class DescopeClient: HTTPClient {
         var givenName: String?
         var middleName: String?
         var familyName: String?
+        var customAttributes: [String: Any] = [:]
+        
+        enum CodingKeys: CodingKey {
+            case userId
+            case loginIds
+            case createdTime
+            case name
+            case picture
+            case email
+            case verifiedEmail
+            case phone
+            case verifiedPhone
+            case givenName
+            case middleName
+            case familyName
+            case customAttributes
+        }
+        
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            userId = try values.decode(String.self, forKey: .userId)
+            loginIds = try values.decode(Array<String>.self, forKey: .loginIds)
+            createdTime = try values.decode(Int.self, forKey: .createdTime)
+            if let value = try? values.decode(String?.self, forKey: .name) {
+                name = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .picture) {
+                picture = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .email) {
+                email = value
+            }
+            if let value = try? values.decode(Bool.self, forKey: .verifiedEmail) {
+                verifiedEmail = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .phone) {
+                phone = value
+            }
+            if let value = try? values.decode(Bool?.self, forKey: .verifiedPhone) {
+                verifiedPhone = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .givenName) {
+                givenName = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .middleName) {
+                middleName = value
+            }
+            if let value = try? values.decode(String?.self, forKey: .familyName) {
+                familyName = value
+            }
+            if let value = try? values.nestedContainer(keyedBy: JSONCodingKeys.self, forKey: .customAttributes) {
+                customAttributes = decodeJson(container: value)
+            }
+        }
     }
     
     struct MaskedAddress: JSONResponse {

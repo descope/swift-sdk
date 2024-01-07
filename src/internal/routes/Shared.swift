@@ -11,33 +11,40 @@ extension Route {
     }
 }
 
-extension DescopeClient.UserResponse {
+extension DescopeClient.UserResponse.UserFields {
     func convert() -> DescopeUser {
         let createdAt = Date(timeIntervalSince1970: TimeInterval(createdTime))
-        var me = DescopeUser(userId: userId, loginIds: loginIds, createdAt: createdAt, isVerifiedEmail: false, isVerifiedPhone: false)
+        var user = DescopeUser(userId: userId, loginIds: loginIds, createdAt: createdAt, isVerifiedEmail: false, isVerifiedPhone: false)
         if let name, !name.isEmpty {
-            me.name = name
-        }
-        if let picture, let url = URL(string: picture) {
-            me.picture = url
+            user.name = name
         }
         if let email, !email.isEmpty {
-            me.email = email
-            me.isVerifiedEmail = verifiedEmail
+            user.email = email
+            user.isVerifiedEmail = verifiedEmail ?? false
         }
         if let phone, !phone.isEmpty {
-            me.phone = phone
-            me.isVerifiedPhone = verifiedPhone
+            user.phone = phone
+            user.isVerifiedPhone = verifiedPhone ?? false
         }
         if let givenName, !givenName.isEmpty {
-            me.givenName = givenName
+            user.givenName = givenName
         }
         if let middleName, !middleName.isEmpty {
-            me.middleName = middleName
+            user.middleName = middleName
         }
         if let familyName, !familyName.isEmpty {
-            me.familyName = familyName
+            user.familyName = familyName
         }
+        if let picture, let url = URL(string: picture) {
+            user.picture = url
+        }
+        return user
+    }
+}
+
+extension DescopeClient.UserResponse {
+    func convert() -> DescopeUser {
+        var me = userFields.convert()
         me.customAttributes = customAttributes
         return me
     }

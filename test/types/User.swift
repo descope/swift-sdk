@@ -12,5 +12,4 @@ class TestUser: XCTestCase {
         guard let aValue = decodedUser.customAttributes["a"] as? String else { return XCTFail("Couldn't get custom attirubte value as String") }
         XCTAssertEqual("yes", aValue)
     }
-    
 }

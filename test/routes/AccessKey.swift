@@ -6,17 +6,15 @@ private let jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXIiLCJuYW1l
 
 class TestAccessKey: XCTestCase {
     func testTokenDecoding() async throws {
-        var config = DescopeConfig(projectId: "foo")
-        config.networkClient = MockHTTP.networkClient
-        let descope = DescopeSDK(config: config)
-        
+        let descope = DescopeSDK.mock()
+
         MockHTTP.push(json: ["sessionJwt": jwt]) { request in
             XCTAssertEqual(request.httpMethod, "POST")
-            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer foo:bar")
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer projId:key")
             XCTAssertEqual(request.httpBody, Data("{}".utf8))
         }
         
-        let token = try await descope.accessKey.exchange(accessKey: "bar")
+        let token = try await descope.accessKey.exchange(accessKey: "key")
         XCTAssertEqual(jwt, token.jwt)
         XCTAssertEqual("bar", token.id)
         XCTAssertEqual("foo", token.projectId)

@@ -123,11 +123,11 @@ class HTTPClient {
 // JSON Response
 
 protocol JSONResponse: Decodable {
-    mutating func setValues(from response: HTTPURLResponse)
+    mutating func setValues(from data: Data, response: HTTPURLResponse) throws
 }
 
 extension JSONResponse {
-    mutating func setValues(from response: HTTPURLResponse) {
+    mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
         // nothing by default
     }
 }
@@ -135,7 +135,7 @@ extension JSONResponse {
 private func decodeJSON<T: JSONResponse>(data: Data, response: HTTPURLResponse) throws -> T {
     do {
         var val = try JSONDecoder().decode(T.self, from: data)
-        val.setValues(from: response)
+        try val.setValues(from: data, response: response)
         return val
     } catch {
         throw DescopeError.decodeError.with(cause: error)

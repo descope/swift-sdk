@@ -44,9 +44,9 @@ extension DescopeClient.UserResponse.UserFields {
 
 extension DescopeClient.UserResponse {
     func convert() -> DescopeUser {
-        var me = userFields.convert()
-        me.customAttributes = customAttributes
-        return me
+        var user = userFields.convert()
+        user.customAttributes = customAttributes
+        return user
     }
 }
 

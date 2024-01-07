@@ -6,7 +6,8 @@ class DescopeClient: HTTPClient {
     
     init(config: DescopeConfig) {
         self.config = config
-        super.init(baseURL: config.baseURL, logger: config.logger, networkClient: config.networkClient)
+        let baseURL = config.baseURL ?? baseURLForProjectId(config.projectId)
+        super.init(baseURL: baseURL, logger: config.logger, networkClient: config.networkClient)
     }
     
     // MARK: - OTP
@@ -491,6 +492,16 @@ class DescopeClient: HTTPClient {
         guard let value else { return [:] }
         return ["Authorization": "Bearer \(config.projectId):\(value)"]
     }
+}
+
+func baseURLForProjectId(_ projectId: String) -> String {
+    let prefix = "https://api"
+    let suffix = "descope.com"
+    guard projectId.count >= 32 else { return "\(prefix).\(suffix)" }
+    let start = projectId.index(projectId.startIndex, offsetBy: 1)
+    let end = projectId.index(start, offsetBy: 3)
+    let region = projectId[start...end]
+    return "\(prefix).\(region).\(suffix)"
 }
 
 private extension SignUpDetails {

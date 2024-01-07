@@ -152,8 +152,7 @@ extension DescopeUser: Codable {
         middleName = try values.decodeIfPresent(String.self, forKey: .middleName)
         familyName = try values.decodeIfPresent(String.self, forKey: .familyName)
         picture = try values.decodeIfPresent(URL.self, forKey: .picture)
-        if let data = try values.decodeIfPresent(Data.self, forKey: .customAttributes) {
-            let json = try JSONSerialization.jsonObject(with: data)
+        if let value = try values.decodeIfPresent(String.self, forKey: .customAttributes), let json = try? JSONSerialization.jsonObject(with: Data(value.utf8)) {
             customAttributes = json as? [String: Any] ?? [:]
         } else {
             customAttributes = [:]
@@ -175,8 +174,8 @@ extension DescopeUser: Codable {
         try values.encodeIfPresent(familyName, forKey: .familyName)
         try values.encodeIfPresent(picture, forKey: .picture)
         // check before trying to serialize to prevent a runtime exception from being triggered
-        if JSONSerialization.isValidJSONObject(customAttributes), let data = try? JSONSerialization.data(withJSONObject: customAttributes) {
-            try values.encode(data, forKey: .customAttributes)
+        if JSONSerialization.isValidJSONObject(customAttributes), let data = try? JSONSerialization.data(withJSONObject: customAttributes), let value = String(bytes: data, encoding: .utf8) {
+            try values.encode(value, forKey: .customAttributes)
         }
     }
 }

@@ -97,7 +97,7 @@ private struct MockResponse: JSONResponse, Equatable {
     static let json: [String: Any] = ["id": instance.id, "st": instance.st]
     static let headers: [String: String] = ["hd": instance.hd!]
     
-    mutating func setValues(from response: HTTPURLResponse) {
+    mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
         guard let headers = response.allHeaderFields as? [String: String] else { return }
         for (name, value) in headers where name == "hd" {
             hd = value

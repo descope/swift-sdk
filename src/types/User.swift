@@ -28,8 +28,8 @@ import Foundation
 /// In the code above we check that there's an active ``DescopeSession`` in the shared
 /// session manager. If so we ask the Descope server for the latest user details and
 /// then update the ``DescopeSession`` with them.
-public struct DescopeUser: Codable, Equatable {
-    
+public struct DescopeUser {
+
     /// The unique identifier for the user in Descope.
     ///
     /// This value never changes after the user is created, and it always matches
@@ -44,12 +44,6 @@ public struct DescopeUser: Codable, Equatable {
     
     /// The time at which the user was created in Descope.
     public var createdAt: Date
-    
-    /// The user's full name.
-    public var name: String?
-    
-    /// The user's profile picture.
-    public var picture: URL?
     
     /// The user's email address.
     ///
@@ -71,6 +65,9 @@ public struct DescopeUser: Codable, Equatable {
     /// for this user. If ``phone`` is `nil` then this is always `false`.
     public var isVerifiedPhone: Bool
     
+    /// The user's full name.
+    public var name: String?
+
     /// The user's given name.
     public var givenName: String?
     
@@ -80,19 +77,27 @@ public struct DescopeUser: Codable, Equatable {
     /// The user's family name.
     public var familyName: String?
     
-    public init(userId: String, loginIds: [String], createdAt: Date, name: String? = nil, picture: URL? = nil, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil) {
+    /// The user's profile picture.
+    public var picture: URL?
+
+    /// A mapping of any custom attributes associated with this user. The custom attributes
+    /// are managed via the Descope console.
+    public var customAttributes: [String: Any]
+    
+    public init(userId: String, loginIds: [String], createdAt: Date, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, name: String? = nil, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil, picture: URL? = nil, customAttributes: [String: Any] = [:]) {
         self.userId = userId
         self.loginIds = loginIds
         self.createdAt = createdAt
-        self.name = name
-        self.picture = picture
         self.email = email
         self.isVerifiedEmail = isVerifiedEmail
         self.phone = phone
         self.isVerifiedPhone = isVerifiedPhone
+        self.name = name
         self.givenName = givenName
         self.middleName = middleName
         self.familyName = familyName
+        self.picture = picture
+        self.customAttributes = customAttributes
     }
 }
 
@@ -109,5 +114,68 @@ extension DescopeUser: CustomStringConvertible {
             extras += ", name: \"\(name)\""
         }
         return "DescopeUser(id: \"\(userId)\"\(extras))"
+    }
+}
+
+extension DescopeUser: Equatable {
+    public static func == (lhs: DescopeUser, rhs: DescopeUser) -> Bool {
+        let lhca = lhs.customAttributes as NSDictionary
+        let rhca = rhs.customAttributes as NSDictionary
+        return lhs.userId == rhs.userId && lhs.loginIds == rhs.loginIds &&
+            lhs.createdAt == rhs.createdAt && lhs.picture == rhs.picture &&
+            lhs.email == rhs.email && lhs.isVerifiedEmail == rhs.isVerifiedEmail &&
+            lhs.phone == rhs.phone && lhs.isVerifiedPhone == rhs.isVerifiedPhone &&
+            lhs.name == rhs.name && lhs.givenName == rhs.givenName &&
+            lhs.middleName == rhs.middleName && lhs.familyName == rhs.familyName &&
+            lhca.isEqual(to: rhca)
+    }
+}
+
+// Unfortunately we can't rely on the compiler for automatic conformance to Codable because
+// the customAttributes dictionary isn't serializable
+extension DescopeUser: Codable {
+    enum CodingKeys: CodingKey {
+        case userId, loginIds, createdAt, email, isVerifiedEmail, phone, isVerifiedPhone, name, givenName, middleName, familyName, picture, customAttributes
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        userId = try values.decode(String.self, forKey: .userId)
+        loginIds = try values.decode([String].self, forKey: .loginIds)
+        createdAt = try values.decode(Date.self, forKey: .createdAt)
+        email = try values.decodeIfPresent(String.self, forKey: .email)
+        isVerifiedEmail = try values.decode(Bool.self, forKey: .isVerifiedEmail)
+        phone = try values.decodeIfPresent(String.self, forKey: .phone)
+        isVerifiedPhone = try values.decode(Bool.self, forKey: .isVerifiedPhone)
+        name = try values.decodeIfPresent(String.self, forKey: .name)
+        givenName = try values.decodeIfPresent(String.self, forKey: .givenName)
+        middleName = try values.decodeIfPresent(String.self, forKey: .middleName)
+        familyName = try values.decodeIfPresent(String.self, forKey: .familyName)
+        picture = try values.decodeIfPresent(URL.self, forKey: .picture)
+        if let value = try values.decodeIfPresent(String.self, forKey: .customAttributes), let json = try? JSONSerialization.jsonObject(with: Data(value.utf8)) {
+            customAttributes = json as? [String: Any] ?? [:]
+        } else {
+            customAttributes = [:]
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(userId, forKey: .userId)
+        try values.encode(loginIds, forKey: .loginIds)
+        try values.encode(createdAt, forKey: .createdAt)
+        try values.encodeIfPresent(email, forKey: .email)
+        try values.encode(isVerifiedEmail, forKey: .isVerifiedEmail)
+        try values.encodeIfPresent(phone, forKey: .phone)
+        try values.encode(isVerifiedPhone, forKey: .isVerifiedPhone)
+        try values.encodeIfPresent(name, forKey: .name)
+        try values.encodeIfPresent(givenName, forKey: .givenName)
+        try values.encodeIfPresent(middleName, forKey: .middleName)
+        try values.encodeIfPresent(familyName, forKey: .familyName)
+        try values.encodeIfPresent(picture, forKey: .picture)
+        // check before trying to serialize to prevent a runtime exception from being triggered
+        if JSONSerialization.isValidJSONObject(customAttributes), let data = try? JSONSerialization.data(withJSONObject: customAttributes), let value = String(bytes: data, encoding: .utf8) {
+            try values.encode(value, forKey: .customAttributes)
+        }
     }
 }

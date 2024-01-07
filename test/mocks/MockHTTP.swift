@@ -57,6 +57,10 @@ extension MockHTTP {
         responses.append((statusCode, nil, nil, error, validator))
     }
     
+    static func push(statusCode: Int = 200, body: String, headers: [String: String]? = nil, validator: RequestValidator? = nil) {
+        responses.append((statusCode, Data(body.utf8), headers, nil, validator))
+    }
+
     static func push(statusCode: Int = 200, json: [String: Any], headers: [String: String]? = nil, validator: RequestValidator? = nil) {
         guard let data = try? JSONSerialization.data(withJSONObject: json) else { preconditionFailure("Failed to serialize JSON") }
         responses.append((statusCode, data, headers, nil, validator))

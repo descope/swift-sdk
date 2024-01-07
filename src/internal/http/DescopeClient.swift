@@ -406,7 +406,7 @@ class DescopeClient: HTTPClient {
         var user: UserResponse?
         var firstSeen: Bool
         
-        mutating func setValues(from response: HTTPURLResponse) {
+        mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
             for cookie in cookies where !cookie.value.isEmpty {
@@ -421,18 +421,33 @@ class DescopeClient: HTTPClient {
     }
     
     struct UserResponse: JSONResponse {
-        var userId: String
-        var loginIds: [String]
-        var name: String?
-        var picture: String?
-        var email: String?
-        var verifiedEmail: Bool = false
-        var phone: String?
-        var verifiedPhone: Bool = false
-        var createdTime: Int
-        var givenName: String?
-        var middleName: String?
-        var familyName: String?
+        // use a nested struct so we can let the compiler generate decoding for most members
+        struct UserFields: Decodable {
+            var userId: String
+            var loginIds: [String]
+            var createdTime: Int
+            var email: String?
+            var verifiedEmail: Bool?
+            var phone: String?
+            var verifiedPhone: Bool?
+            var name: String?
+            var givenName: String?
+            var middleName: String?
+            var familyName: String?
+            var picture: String?
+        }
+
+        var userFields: UserFields
+        var customAttributes: [String: Any] = [:]
+
+        init(from decoder: Decoder) throws {
+            userFields = try UserFields(from: decoder)
+        }
+
+        mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+            customAttributes = json["customAttributes"] as? [String: Any] ?? [:]
+        }
     }
     
     struct MaskedAddress: JSONResponse {

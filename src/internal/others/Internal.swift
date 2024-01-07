@@ -29,7 +29,7 @@ extension Data {
         }
         self.init(base64Encoded: str, options: options)
     }
-
+    
     func base64URLEncodedString(options: Base64EncodingOptions = []) -> String {
         return base64EncodedString(options: options)
             .replacingOccurrences(of: "+", with: "-")
@@ -73,7 +73,7 @@ class AuthorizationDelegate: NSObject, ASAuthorizationControllerDelegate {
         completion?(.success(authorization))
         completion = nil
     }
-
+    
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         completion?(.failure(error))
         completion = nil

@@ -498,9 +498,7 @@ func baseURLForProjectId(_ projectId: String) -> String {
     let prefix = "https://api"
     let suffix = "descope.com"
     guard projectId.count >= 32 else { return "\(prefix).\(suffix)" }
-    let start = projectId.index(projectId.startIndex, offsetBy: 1)
-    let end = projectId.index(start, offsetBy: 3)
-    let region = projectId[start...end]
+    let region = projectId.prefix(5).suffix(4)
     return "\(prefix).\(region).\(suffix)"
 }
 

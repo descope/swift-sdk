@@ -6,9 +6,9 @@ public struct DescopeConfig {
     /// The id of the Descope project.
     public var projectId: String
     
-    /// The base URL of the Descope server.
-    public var baseURL: String = "https://api.descope.com"
-    
+    /// An optional override for the base URL of the Descope server.
+    public var baseURL: String?
+
     /// An optional object to handle logging in the Descope SDK.
     ///
     /// The default value of this property is `nil` and thus logging will be completely
@@ -37,12 +37,12 @@ public struct DescopeConfig {
     /// - Parameters:
     ///   - projectId: The id of the Descope project can be found in the project page in
     ///     the Descope console.
-    ///   - baseURL: An optional override for the URL of the Descope server, in case it
+    ///   - baseURL: An optional override for the base URL of the Descope server, in case it
     ///     needs to be accessed through a CNAME record.
     ///   - logger: An optional object to enable logging in the Descope SDK.
     public init(projectId: String, baseURL: String? = nil, logger: DescopeLogger? = nil) {
         self.projectId = projectId
-        self.baseURL = baseURL ?? self.baseURL
+        self.baseURL = baseURL
         self.logger = logger
     }
 }

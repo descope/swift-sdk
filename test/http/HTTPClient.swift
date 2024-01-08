@@ -60,7 +60,15 @@ class TestHttpMethods: XCTestCase {
         XCTAssertTrue(userAgent.hasPrefix("DescopeKit"))
         XCTAssertTrue(userAgent.contains("xctest"))
     }
-    
+
+    func testbaseURLForProjectId() {
+        XCTAssertEqual("https://api.descope.com", baseURLForProjectId(""))
+        XCTAssertEqual("https://api.descope.com", baseURLForProjectId("Puse"))
+        XCTAssertEqual("https://api.descope.com", baseURLForProjectId("Puse1ar"))
+        XCTAssertEqual("https://api.use1.descope.com", baseURLForProjectId("Puse12aAc4T2V93bddihGEx2Ryhc8e5Z"))
+        XCTAssertEqual("https://api.use1.descope.com", baseURLForProjectId("Puse12aAc4T2V93bddihGEx2Ryhc8e5Zfoobar"))
+    }
+
     func testFailure() async throws {
         do {
             MockHTTP.push(statusCode: 400, json: [:])

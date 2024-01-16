@@ -198,14 +198,16 @@ must be configured with the application's Bundle Identifier as the Client ID in 
 
 ```swift
 do {
+    showLoading(true)
     let authResponse = try await Descope.oauth.native(provider: .apple, options: [])
     let session = DescopeSession(from: authResponse)
     Descope.sessionManager.manageSession(session)
     showHomeScreen() 
 } catch DescopeError.oauthNativeCancelled {
+    showLoading(false)
     print("Authentication cancelled")
 } catch {
-    showErrorAlert(error)
+    showError(error)
 }
 ```
 
@@ -279,6 +281,32 @@ let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "examp
     let authResponse = try await Descope.sso.exchange(code: code)
     let session = DescopeSession(from: authResponse)
     Descope.sessionManager.manageSession(session)
+}
+```
+
+### Passkeys
+
+Users can authenticate by creating or using a [passkey](https://fidoalliance.org/passkeys/).
+Configure your Passkey/WebAuthn settings on the [Descope console](https://app.descope.com/settings/authentication/webauthn).
+Make sure it is enabled and that the top level domain is configured correctly.
+
+After that, go through Apple's [Supporting passkeys](https://developer.apple.com/documentation/authenticationservices/public-private_key_authentication/supporting_passkeys/)
+guide, in particular be sure to have an associated domain configured for your app
+with the `webcredentials` service type, whose value matches the top level domain
+you configured in the Descope console earlier.
+
+```swift
+do {
+    showLoading(true)
+    let authResponse = try await Descope.passkey.native(provider: .apple, options: [])
+    let session = DescopeSession(from: authResponse)
+    Descope.sessionManager.manageSession(session)
+    showHomeScreen() 
+} catch DescopeError.oauthNativeCancelled {
+    showLoading(false)
+    print("Authentication cancelled")
+} catch {
+    showError(error)
 }
 ```
 

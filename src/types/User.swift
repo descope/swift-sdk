@@ -119,15 +119,14 @@ extension DescopeUser: CustomStringConvertible {
 
 extension DescopeUser: Equatable {
     public static func == (lhs: DescopeUser, rhs: DescopeUser) -> Bool {
-        let lhca = lhs.customAttributes as NSDictionary
-        let rhca = rhs.customAttributes as NSDictionary
+        let attrs = lhs.customAttributes as NSDictionary
         return lhs.userId == rhs.userId && lhs.loginIds == rhs.loginIds &&
             lhs.createdAt == rhs.createdAt && lhs.picture == rhs.picture &&
             lhs.email == rhs.email && lhs.isVerifiedEmail == rhs.isVerifiedEmail &&
             lhs.phone == rhs.phone && lhs.isVerifiedPhone == rhs.isVerifiedPhone &&
             lhs.name == rhs.name && lhs.givenName == rhs.givenName &&
             lhs.middleName == rhs.middleName && lhs.familyName == rhs.familyName &&
-            lhca.isEqual(to: rhca)
+            attrs.isEqual(to: rhs.customAttributes)
     }
 }
 

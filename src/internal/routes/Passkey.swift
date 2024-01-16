@@ -18,7 +18,7 @@ class Passkey: Route, DescopePasskey {
         defer { resetRunner(runner) }
         
         log(.info, "Starting passkey sign up", loginId)
-        let startResponse = try await client.passkeySignUpStart(loginId: loginId, details: details, origin: runner.origin)
+        let startResponse = try await client.passkeySignUpStart(loginId: loginId, details: details)
         
         log(.info, "Requesting register authorization for passkey sign up", startResponse.transactionId)
         let registerResponse = try await performRegister(options: startResponse.options, runner: runner)
@@ -38,7 +38,7 @@ class Passkey: Route, DescopePasskey {
         
         log(.info, "Starting passkey sign in", loginId)
         let (refreshJwt, loginOptions) = try options.convert()
-        let startResponse = try await client.passkeySignInStart(loginId: loginId, origin: runner.origin, refreshJwt: refreshJwt, options: loginOptions)
+        let startResponse = try await client.passkeySignInStart(loginId: loginId, refreshJwt: refreshJwt, options: loginOptions)
         
         log(.info, "Requesting assertion authorization for passkey sign in", startResponse.transactionId)
         let assertionResponse = try await performAssertion(options: startResponse.options, runner: runner)
@@ -58,7 +58,7 @@ class Passkey: Route, DescopePasskey {
         
         log(.info, "Starting passkey sign up or in", loginId)
         let (refreshJwt, loginOptions) = try options.convert()
-        let startResponse = try await client.passkeySignUpInStart(loginId: loginId, origin: runner.origin, refreshJwt: refreshJwt, options: loginOptions)
+        let startResponse = try await client.passkeySignUpInStart(loginId: loginId, refreshJwt: refreshJwt, options: loginOptions)
         
         let jwtResponse: DescopeClient.JWTResponse
         if startResponse.create {
@@ -84,7 +84,7 @@ class Passkey: Route, DescopePasskey {
         defer { resetRunner(runner) }
         
         log(.info, "Starting passkey update", loginId)
-        let startResponse = try await client.passkeyAddStart(loginId: loginId, origin: runner.origin, refreshJwt: refreshJwt)
+        let startResponse = try await client.passkeyAddStart(loginId: loginId, refreshJwt: refreshJwt)
         
         log(.info, "Requesting register authorization for passkey update", startResponse.transactionId)
         let registerResponse = try await performRegister(options: startResponse.options, runner: runner)
@@ -98,8 +98,8 @@ class Passkey: Route, DescopePasskey {
     private func performRegister(options: String, runner: DescopePasskeyRunner) async throws -> String {
         let registerOptions = try RegisterOptions(from: options)
         
-        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: runner.domain)
-        
+        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: registerOptions.rpId)
+
         let registerRequest = publicKeyCredentialProvider.createCredentialRegistrationRequest(challenge: registerOptions.challenge, name: registerOptions.user.name, userID: registerOptions.user.id)
         registerRequest.displayName = registerOptions.user.displayName
         registerRequest.userVerificationPreference = .required
@@ -115,7 +115,7 @@ class Passkey: Route, DescopePasskey {
     private func performAssertion(options: String, runner: DescopePasskeyRunner) async throws -> String {
         let assertionOptions = try AssertionOptions(from: options)
         
-        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: runner.domain)
+        let publicKeyCredentialProvider = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: assertionOptions.rpId)
         
         let assertionRequest = publicKeyCredentialProvider.createCredentialAssertionRequest(challenge: assertionOptions.challenge)
         assertionRequest.allowedCredentials = assertionOptions.allowCredentials.map { ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: $0) }
@@ -188,12 +188,14 @@ class Passkey: Route, DescopePasskey {
 
 private struct RegisterOptions {
     var challenge: Data
+    var rpId: String
     var user: (id: Data, name: String, displayName: String?)
-    
+
     init(from options: String) throws {
         guard let root = try? JSONDecoder().decode(Root.self, from: Data(options.utf8)) else { throw DescopeError.decodeError.with(message: "Invalid passkey register options") }
         guard let challengeData = Data(base64URLEncoded: root.publicKey.challenge) else { throw DescopeError.decodeError.with(message: "Invalid passkey challenge") }
         challenge = challengeData
+        rpId = root.publicKey.rp.id
         user = (id: Data(root.publicKey.user.id.utf8), name: root.publicKey.user.name, displayName: root.publicKey.user.displayName)
     }
     
@@ -203,6 +205,7 @@ private struct RegisterOptions {
 
     private struct PublicKey: Codable {
         var challenge: String
+        var rp: RelyingParty
         var user: User
     }
     
@@ -211,16 +214,22 @@ private struct RegisterOptions {
         var name: String
         var displayName: String?
     }
+
+    private struct RelyingParty: Codable {
+        var id: String
+    }
 }
 
 private struct AssertionOptions {
     var challenge: Data
+    var rpId: String
     var allowCredentials: [Data]
     
     init(from options: String) throws {
         guard let root = try? JSONDecoder().decode(Root.self, from: Data(options.utf8)) else { throw DescopeError.decodeError.with(message: "Invalid passkey assertion options") }
         guard let challengeData = Data(base64URLEncoded: root.publicKey.challenge) else { throw DescopeError.decodeError.with(message: "Invalid passkey challenge") }
         challenge = challengeData
+        rpId = root.publicKey.rpId
         allowCredentials = try root.publicKey.allowCredentials.map {
             guard let credentialId = Data(base64URLEncoded: $0.id) else { throw DescopeError.decodeError.with(message: "Invalid credential id") }
             return credentialId
@@ -233,6 +242,7 @@ private struct AssertionOptions {
 
     private struct PublicKey: Codable {
         var challenge: String
+        var rpId: String
         var allowCredentials: [Credential] = []
     }
     
@@ -297,8 +307,4 @@ private struct AssertionFinish: Codable {
         guard let encodedObject = try? JSONEncoder().encode(object), let encoded = String(bytes: encodedObject, encoding: .utf8) else { throw DescopeError.encodeError.with(message: "Invalid assertion finish object") }
         return encoded
     }
-}
-
-private extension DescopePasskeyRunner {
-    var origin: String { "https://\(domain)" }
 }

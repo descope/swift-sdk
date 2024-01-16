@@ -96,11 +96,10 @@ class DescopeClient: HTTPClient {
         var create: Bool
     }
     
-    func passkeySignUpStart(loginId: String, details: SignUpDetails?, origin: String) async throws -> PasskeyStartResponse {
+    func passkeySignUpStart(loginId: String, details: SignUpDetails?) async throws -> PasskeyStartResponse {
         return try await post("auth/webauthn/signup/start", body: [
             "loginId": loginId,
             "user": details?.dictValue,
-            "origin": origin,
         ])
     }
     
@@ -111,10 +110,9 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func passkeySignInStart(loginId: String, origin: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
+    func passkeySignInStart(loginId: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
         return try await post("auth/webauthn/signin/start", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "origin": origin,
             "loginOptions": options?.dictValue,
         ])
     }
@@ -126,18 +124,16 @@ class DescopeClient: HTTPClient {
         ])
     }
     
-    func passkeySignUpInStart(loginId: String, origin: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
+    func passkeySignUpInStart(loginId: String, refreshJwt: String?, options: LoginOptions?) async throws -> PasskeyStartResponse {
         return try await post("auth/webauthn/signup-in/start", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "origin": origin,
             "loginOptions": options?.dictValue,
         ])
     }
     
-    func passkeyAddStart(loginId: String, origin: String, refreshJwt: String) async throws -> PasskeyStartResponse {
+    func passkeyAddStart(loginId: String, refreshJwt: String) async throws -> PasskeyStartResponse {
         return try await post("auth/webauthn/update/start", headers: authorization(with: refreshJwt), body: [
             "loginId": loginId,
-            "origin": origin,
         ])
     }
     

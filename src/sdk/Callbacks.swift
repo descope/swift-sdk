@@ -667,17 +667,16 @@ public extension DescopePasskey {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
-    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
     /// 
     /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
-    func signUp(loginId: String, details: SignUpDetails?, runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+    func signUp(loginId: String, details: SignUpDetails?, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUp(loginId: loginId, details: details, runner: runner)))
+                completion(.success(try await signUp(loginId: loginId, details: details)))
             } catch {
                 completion(.failure(error))
             }
@@ -690,17 +689,16 @@ public extension DescopePasskey {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - options: Additional behaviors to perform during authentication.
-    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
     /// 
     /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
-    func signIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+    func signIn(loginId: String, options: [SignInOptions], completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signIn(loginId: loginId, options: options, runner: runner)))
+                completion(.success(try await signIn(loginId: loginId, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -716,17 +714,16 @@ public extension DescopePasskey {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - options: Additional behaviors to perform during authentication.
-    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
     /// 
     /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
     ///     method is called on the runner or the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
-    func signUpOrIn(loginId: String, options: [SignInOptions], runner: DescopePasskeyRunner, completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
+    func signUpOrIn(loginId: String, options: [SignInOptions], completion: @escaping (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await signUpOrIn(loginId: loginId, options: options, runner: runner)))
+                completion(.success(try await signUpOrIn(loginId: loginId, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -739,15 +736,14 @@ public extension DescopePasskey {
     ///   - loginId: What identifies the user when logging in,
     ///     typically an email, phone, or any other unique identifier.
     ///   - refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
-    ///   - runner: A ``DescopePasskeyRunner`` that manages this operation.
     /// 
     /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
     ///     method is called on the runner or the authentication view is cancelled by the user.
     @available(iOS 15.0, *)
-    func add(loginId: String, refreshJwt: String, runner: DescopePasskeyRunner, completion: @escaping (Result<Void, Error>) -> Void) {
+    func add(loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await add(loginId: loginId, refreshJwt: refreshJwt, runner: runner)))
+                completion(.success(try await add(loginId: loginId, refreshJwt: refreshJwt)))
             } catch {
                 completion(.failure(error))
             }

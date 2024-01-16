@@ -292,7 +292,7 @@ Make sure it is enabled and that the top level domain is configured correctly.
 
 After that, go through Apple's [Supporting passkeys](https://developer.apple.com/documentation/authenticationservices/public-private_key_authentication/supporting_passkeys/)
 guide, in particular be sure to have an associated domain configured for your app
-with the `webcredentials` service type and whose domai matches the top level domain
+with the `webcredentials` service type, whose value matches the top level domain
 you configured in the Descope console earlier.
 
 ```swift

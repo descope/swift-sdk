@@ -378,6 +378,13 @@ class DescopeClient: HTTPClient {
         ])
     }
     
+    func flowPrime(codeChallenge: String, flowId: String, refreshJwt: String) async throws {
+        try await post("flow/prime", headers: authorization(with: refreshJwt), body: [
+            "codeChallenge": codeChallenge,
+            "flowId": flowId,
+        ])
+    }
+    
     // MARK: - Others
     
     func me(refreshJwt: String) async throws -> UserResponse {

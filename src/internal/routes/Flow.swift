@@ -18,7 +18,11 @@ class Flow: Route, DescopeFlow {
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse {
         // adds some required query parameters to the flow URL to facilitate PKCE and
         // redirection at the end of the flow
-        let (initialURL, codeVerifier) = try prepareInitialRequest(for: runner)
+        let (initialURL, codeVerifier, codeChallenge) = try prepareInitialRequest(for: runner)
+        // prime the flow if the runner has flow authentication info
+        if let flowAuthentication = runner.flowAuthentication {
+            try await client.flowPrime(codeChallenge: codeChallenge, flowId: flowAuthentication.flowId, refreshJwt: flowAuthentication.refreshJwt)
+        }
         log(.info, "Starting flow authentication", initialURL)
         
         // sets the flow we're about to present as the current flow
@@ -188,7 +192,7 @@ private extension Data {
     }
 }
 
-private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url: URL, codeVerifier: String) {
+private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url: URL, codeVerifier: String, codeChallenge: String) {
     guard let randomBytes = Data(randomBytesCount: 32) else { throw DescopeError.flowFailed.with(message: "Error generating random bytes") }
     let hashedBytes = Data(SHA256.hash(data: randomBytes))
     
@@ -208,7 +212,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
 
     guard let initialURL = components.url else { throw DescopeError.flowFailed.with(message: "Failed to create flow URL") }
     
-    return (initialURL, codeVerifier)
+    return (initialURL, codeVerifier, codeChallenge)
 }
 
 private func prepareRedirectRequest(for runner: DescopeFlowRunner, redirectURL: URL) -> URL? {

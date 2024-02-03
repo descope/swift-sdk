@@ -30,8 +30,30 @@ import AuthenticationServices
 ///     email. See the documentation for ``resume(with:)`` for more details.
 @MainActor
 public class DescopeFlowRunner {
+    /// Provide authentication info if the flow is being run by an already
+    /// authenticated user.
+    public struct Authentication {
+        /// The flow ID about to be run
+        public var flowId: String
+        /// The refresh JWT from and active descope session
+        public var refreshJwt: String
+        
+        /// Creates a new ``DescopeFlowRunner.Authentication`` object that encapsulates the
+        /// information required to run a flow for an authenticated user.
+        ///
+        /// - Parameter flowId: The flow ID about to be run.
+        /// - Parameter refreshJwt: The refresh JWT from and active descope session
+        public init(flowId: String, refreshJwt: String) {
+            self.flowId = flowId
+            self.refreshJwt = refreshJwt
+        }
+    }
+    
     /// The URL where the flow is hosted.
     public let flowURL: String
+    
+    /// Optional authentication info to allow running flows for authenticated users
+    public var flowAuthentication: Authentication?
     
     /// Whether the authentication view is allowed to access shared user data.
     ///

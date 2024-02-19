@@ -30,11 +30,12 @@ on the [Descope website](https://descope.com).
 - ``DescopeAuth``
 - ``DescopeOTP``
 - ``DescopeTOTP``
+- ``DescopePasskey``
+- ``DescopePassword``
 - ``DescopeMagicLink``
 - ``DescopeEnchantedLink``
 - ``DescopeOAuth``
 - ``DescopeSSO``
-- ``DescopePassword``
 - ``DescopeAccessKey``
 
 ### Flows
@@ -53,6 +54,7 @@ on the [Descope website](https://descope.com).
 ### Parameter Types
 
 - ``SignUpDetails``
+- ``SignInOptions``
 - ``UpdateOptions``
 - ``DeliveryMethod``
 - ``OAuthProvider``

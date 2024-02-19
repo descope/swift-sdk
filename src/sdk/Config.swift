@@ -4,7 +4,7 @@ import Foundation
 /// The configuration of the Descope SDK.
 public struct DescopeConfig {
     /// The id of the Descope project.
-    public var projectId: String
+    public var projectId: String = ""
     
     /// An optional override for the base URL of the Descope server.
     public var baseURL: String?
@@ -15,7 +15,9 @@ public struct DescopeConfig {
     /// disabled. During development if you encounter any issues you can create an
     /// instance of the ``DescopeLogger`` class to enable logging.
     ///
-    ///     Descope.config = DescopeConfig(projectId: "...", logger: DescopeLogger())
+    ///     Descope.setup(projectId: "...") { config in
+    ///         config.logger = DescopeLogger()
+    ///     }
     ///
     /// If your application uses some logging framework or third party service you can forward
     /// the Descope SDK log messages to it by creating a new subclass of ``DescopeLogger`` and
@@ -31,20 +33,6 @@ public struct DescopeConfig {
     /// network requests actually taking place. In most other cases there shouldn't be
     /// any need to use it.
     public var networkClient: DescopeNetworkClient? = nil
-    
-    /// Creates a new ``DescopeConfig`` object.
-    ///
-    /// - Parameters:
-    ///   - projectId: The id of the Descope project can be found in the project page in
-    ///     the Descope console.
-    ///   - baseURL: An optional override for the base URL of the Descope server, in case it
-    ///     needs to be accessed through a CNAME record.
-    ///   - logger: An optional object to enable logging in the Descope SDK.
-    public init(projectId: String, baseURL: String? = nil, logger: DescopeLogger? = nil) {
-        self.projectId = projectId
-        self.baseURL = baseURL
-        self.logger = logger
-    }
 }
 
 /// The ``DescopeLogger`` class can be used to customize logging functionality in the Descope SDK.
@@ -128,9 +116,9 @@ open class DescopeLogger {
 /// the Descope SDK to use the same `URLSession` instance we use elsewhere we can
 /// use code such as this:
 ///
-///     var config = DescopeConfig(projectId: "...")
-///     config.networkClient = AppNetworkClient(session: appSession)
-///     let descopeSDK = DescopeSDK(config: config)
+///     let descopeSDK = DescopeSDK(projectId: "...") { config in
+///         config.networkClient = AppNetworkClient(session: appSession)
+///     }
 ///
 ///     // ... elsewhere
 ///

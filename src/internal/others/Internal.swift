@@ -1,8 +1,8 @@
 
 import AuthenticationServices
 
-extension DescopeConfig {
-    static let initial: DescopeConfig = DescopeConfig(projectId: "")
+extension DescopeSDK {
+    static let initial: DescopeSDK = DescopeSDK(projectId: "")
 }
 
 extension DescopeError {

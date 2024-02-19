@@ -20,7 +20,7 @@ the Descope Console.
 import DescopeKit
 
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    Descope.projectId = "<Your-Project-Id>"
+    Descope.setup(projectId: "<Your-Project-Id>")
     return true
 }
 ```
@@ -117,7 +117,7 @@ an authenticated user.
 
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    Descope.projectId = "..."
+    Descope.setup(projectId: "...")
     if let session = Descope.sessionManager.session {
         print("User is logged in: \(session)")
     }

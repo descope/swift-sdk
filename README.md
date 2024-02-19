@@ -117,7 +117,7 @@ an authenticated user.
 
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    Descope.setup(project: "...")
+    Descope.setup(projectId: "...")
     if let session = Descope.sessionManager.session {
         print("User is logged in: \(session)")
     }

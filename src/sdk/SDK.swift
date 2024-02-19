@@ -77,9 +77,9 @@ public class DescopeSDK {
     ///     showAuthScreen(with: viewModel)
     ///
     /// You can also pass a closure to this initializer to perform additional configuration.
-    /// For example, if we want to test failure conditions in code that uses the Descope,
-    /// we can override the ``DescopeSDK`` object's default networking client with one
-    /// that always fails using code such as this (see ``DescopeNetworkClient``):
+    /// For example, if we want to test failure conditions in code that uses Descope, we might
+    /// override the ``DescopeSDK`` object's default networking client with one that always
+    /// fails, using code such as this (see ``DescopeNetworkClient``):
     ///
     ///     let descope = DescopeSDK(projectId: "") { config in
     ///         config.networkClient = FailingNetworkClient()

@@ -38,7 +38,7 @@ public class DescopeFlowRunner {
         /// The refresh JWT from and active descope session
         public var refreshJwt: String
         
-        /// Creates a new ``DescopeFlowRunner.Authentication`` object that encapsulates the
+        /// Creates a new ``DescopeFlowRunner/Authentication`` object that encapsulates the
         /// information required to run a flow for an authenticated user.
         ///
         /// - Parameter flowId: The flow ID about to be run.

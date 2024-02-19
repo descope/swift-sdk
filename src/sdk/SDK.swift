@@ -68,24 +68,42 @@ public class DescopeSDK {
     
     /// Creates a new ``DescopeSDK`` object.
     ///
-    /// - Parameter projectId: The id of the Descope project can be found
-    ///     in the project page in the Descope console.
+    /// You can create a ``DescopeSDK`` object and pass a reference to it wherever it's needed,
+    /// in particular if you prefer to do dependency injection style programming instead of relying
+    /// on the ``Descope`` singleton.
     ///
-    /// - Note: This is a shortcut for calling the ``init(config:)`` initializer.
-    public convenience init(projectId: String) {
-        self.init(config: DescopeConfig(projectId: projectId))
+    ///     let descope = DescopeSDK(projectId: "<Your-Project-Id>")
+    ///     let viewModel = AuthViewModel(descope: descope)
+    ///     showAuthScreen(with: viewModel)
+    ///
+    /// You can also pass a closure to this initializer to perform additional configuration.
+    /// For example, if we want to test failure conditions in code that uses the Descope,
+    /// we can override the ``DescopeSDK`` object's default networking client with one
+    /// that always fails using code such as this (see ``DescopeNetworkClient``):
+    ///
+    ///     let descope = DescopeSDK(projectId: "") { config in
+    ///         config.networkClient = FailingNetworkClient()
+    ///     }
+    ///     testOTPNetworkError(descope)
+    ///
+    /// - Parameters:
+    ///   - projectId: The id of the Descope project can be found in
+    ///     the project page in the Descope console.
+    ///   - closure: An optional closure that performs additional configuration
+    ///     by setting values on the provided ``DescopeConfig`` instance.
+    public convenience init(projectId: String, with closure: (_ config: inout DescopeConfig) -> Void = { _ in }) {
+        var config = DescopeConfig()
+        config.projectId = projectId
+        closure(&config)
+        self.init(config: config, client: DescopeClient(config: config))
     }
-    
+
     /// Creates a new ``DescopeSDK`` object.
     ///
-    /// - Parameter config: The configuration of the ``DescopeSDK`` instance.
-    public convenience init(config: DescopeConfig) {
-        let client = DescopeClient(config: config)
-        self.init(config: config, client: client)
-    }
-    
+    /// - Parameters:
+    ///   - config: The configuration of the ``DescopeSDK`` instance.
+    ///   - client: The ``DescopeClient`` object used by route implementations.
     private init(config: DescopeConfig, client: DescopeClient) {
-        assert(config.projectId != "", "The projectId value must not be an empty string")
         self.config = config
         self.auth = Auth(client: client)
         self.otp = OTP(client: client)

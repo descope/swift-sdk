@@ -57,3 +57,34 @@ public extension DescopeSSO {
         return try await start(emailOrTenantName: emailOrTenantName, redirectURL: redirectURL, options: [])
     }
 }
+
+public extension DescopeSDK {
+    @available(*, deprecated, message: "Use the DescopeSDK.init(projectId:with:) initializer instead")
+    convenience init(config: DescopeConfig) {
+        self.init(projectId: config.projectId, with: { $0 = config })
+    }
+}
+
+public extension Descope {
+    static var projectId: String {
+        @available(*, deprecated, message: "Use Descope.config.projectId instead")
+        get { Descope.sdk.config.projectId }
+        @available(*, deprecated, message: "Use the setup() function to initialize the Descope singleton")
+        set { Descope.sdk = DescopeSDK(projectId: newValue) }
+    }
+
+    static var config: DescopeConfig {
+        get { Descope.sdk.config }
+        @available(*, deprecated, message: "Use the setup() function to initialize the Descope singleton")
+        set { Descope.sdk = DescopeSDK(projectId: newValue.projectId, with: { $0 = newValue }) }
+    }
+}
+
+public extension DescopeConfig {
+    @available(*, deprecated, message: "Use the Descope.setup() function or DescopeSDK.init(projectId:with:) initializer instead")
+    init(projectId: String, baseURL: String? = nil, logger: DescopeLogger? = nil) {
+        self.projectId = projectId
+        self.baseURL = baseURL
+        self.logger = logger
+    }
+}

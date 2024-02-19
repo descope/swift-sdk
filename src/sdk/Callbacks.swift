@@ -668,8 +668,8 @@ public extension DescopePasskey {
     ///     typically an email, phone, or any other unique identifier.
     ///   - details: Optional details about the user signing up.
     /// 
-    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
-    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the async task is cancelled or
+    ///     the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
@@ -690,8 +690,8 @@ public extension DescopePasskey {
     ///     typically an email, phone, or any other unique identifier.
     ///   - options: Additional behaviors to perform during authentication.
     /// 
-    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
-    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the async task is cancelled or
+    ///     the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
@@ -715,8 +715,8 @@ public extension DescopePasskey {
     ///     typically an email, phone, or any other unique identifier.
     ///   - options: Additional behaviors to perform during authentication.
     /// 
-    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
-    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the async task is cancelled or
+    ///     the authentication view is cancelled by the user.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     @available(iOS 15.0, *)
@@ -737,8 +737,8 @@ public extension DescopePasskey {
     ///     typically an email, phone, or any other unique identifier.
     ///   - refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
     /// 
-    /// - Throws: ``DescopeError/passkeyCancelled`` if the ``DescopePasskeyRunner/cancel()``
-    ///     method is called on the runner or the authentication view is cancelled by the user.
+    /// - Throws: ``DescopeError/passkeyCancelled`` if the async task is cancelled or
+    ///     the authentication view is cancelled by the user.
     @available(iOS 15.0, *)
     func add(loginId: String, refreshJwt: String, completion: @escaping (Result<Void, Error>) -> Void) {
         Task {

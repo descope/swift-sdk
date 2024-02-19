@@ -6,31 +6,40 @@
 /// approach you can also create an instance of the ``DescopeSDK`` class instead and pass it
 /// to wherever it's needed.
 public enum Descope {
-    /// The projectId of your Descope project.
+    /// Initialize the Descope SDK to prepare it for use.
     ///
-    /// You will most likely want to set this value in your application's initialization code,
-    /// and in most cases you only need to set this to work with the ``Descope`` singleton.
+    /// You will most likely want to call this function in your application's initialization code,
+    /// and in most cases you'll only need to specify the `projectId`:
     ///
-    /// - Note: This is a shortcut for setting the `Descope.config` property.
-    public static var projectId: String {
-        get { config.projectId }
-        set { config = DescopeConfig(projectId: newValue) }
+    ///     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    ///         Descope.setup(projectId: "<Your-Project-Id>")
+    ///     }
+    ///
+    /// You can also pass a closure to this function to perform additional configuration.
+    /// For example, if you want to enable debugging logs in the Descope SDK during development
+    /// and you have a separate Descope project you use as a staging environment when building
+    /// and testing beta versions, you can do something like this:
+    ///
+    ///     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    ///         Descope.setup(projectId: "<Production-Project-Id>") { config in
+    ///             #if DEBUG
+    ///             config.logger = DescopeLogger(level: .debug)
+    ///             #endif
+    ///             if AppConfig.isBetaBuild {
+    ///                 config.projectId = "<Staging-Project-Id>"
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - projectId: The id of the Descope project can be found in
+    ///     the project page in the Descope console.
+    ///   - closure: An optional closure that performs additional configuration
+    ///     by setting values on the provided ``DescopeConfig`` instance.
+    public static func setup(projectId: String, with closure: (_ config: inout DescopeConfig) -> Void = { _ in }) {
+        sdk = DescopeSDK(projectId: projectId, with: closure)
     }
-    
-    /// The configuration of the ``Descope`` singleton.
-    ///
-    /// Set this property instead of `projectId` in your application's initialization code
-    /// if you require additional configuration.
-    ///
-    /// - Important: To prevent accidental misuse only one of `config` and `projectId` can
-    ///     be set, and they can only be set once. If this isn't appropriate for your use
-    ///     case you can also use the ``DescopeSDK`` class directly instead.
-    public static var config: DescopeConfig = .initial {
-        willSet {
-            assert(config.projectId == "", "The config property must not be set more than once")
-        }
-    }
-    
+
     /// Manages the storage and lifetime of a ``DescopeSession``.
     ///
     /// You can use this ``DescopeSessionManager`` object as a shared instance to manage
@@ -45,6 +54,11 @@ public enum Descope {
         get { sdk.sessionManager }
         set { sdk.sessionManager = newValue }
     }
+
+    /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.
+    ///
+    /// FIXME: can be private but left internal for now until deprecations are removed
+    static var sdk: DescopeSDK = .initial
 }
 
 /// Authentication functions that call the Descope API.
@@ -81,7 +95,4 @@ public extension Descope {
     
     /// Provides functions for exchanging access keys for session tokens.
     static var accessKey: DescopeAccessKey { sdk.accessKey }
-    
-    /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.
-    private static let sdk = DescopeSDK(config: config)
 }

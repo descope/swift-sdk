@@ -103,7 +103,7 @@ public struct UpdateOptions: OptionSet {
     
     /// Whether to keep or delete the current user when merging two users after an update.
     ///
-    /// When updating a user's email address or phone number with the ``addToUserLoginIds``
+    /// When updating a user's email address or phone number with the ``addToLoginIds``
     /// option set, if another user in the the system already has the same email address
     /// or phone number as the one being added in their list of `loginIds` the two users
     /// are merged and one of them is deleted.

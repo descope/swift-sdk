@@ -48,8 +48,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     // Internal
     
     private func shouldRefresh(_ session: DescopeSession) -> Bool {
-        guard let expiresAt = session.sessionToken.expiresAt else { return false }
-        return expiresAt.timeIntervalSinceNow <= stalenessAllowedInterval
+        return session.sessionToken.expiresAt.timeIntervalSinceNow <= stalenessAllowedInterval
     }
     
     // Timer

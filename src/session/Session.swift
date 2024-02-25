@@ -124,11 +124,7 @@ extension DescopeSession: CustomStringConvertible {
     /// It returns a string with the unique id of the session user as well as
     /// the refresh token's expiry time.
     public var description: String {
-        var expires = "expires: Never"
-        if let refreshExpiresAt = refreshToken.expiresAt {
-            let label = refreshToken.isExpired ? "expired" : "expires"
-            expires = "\(label): \(refreshExpiresAt)"
-        }
-        return "DescopeSession(userId: \"\(user.userId)\", \(expires))"
+        let expires = refreshToken.isExpired ? "expired" : "expires"
+        return "DescopeSession(userId: \"\(user.userId)\", \(expires): \(refreshToken.expiresAt))"
     }
 }

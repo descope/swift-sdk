@@ -25,7 +25,7 @@ class TestToken: XCTestCase {
         XCTAssertNotNil(token.expiresAt)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
-        XCTAssertEqual("20.10.2020", dateFormatter.string(from: token.expiresAt!))
+        XCTAssertEqual("20.10.2020", dateFormatter.string(from: token.expiresAt))
         XCTAssertTrue(token.isExpired)
 
         // Custom Claims

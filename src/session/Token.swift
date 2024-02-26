@@ -12,8 +12,8 @@ public protocol DescopeToken {
     
     /// The value of the "sub" (subject) claim, which is the unique id
     /// of the user or access key the JWT was generated for.
-    var id: String { get }
-    
+    var entityId: String { get }
+
     /// The value of the "iss" (issuer) claim which is the unique id
     /// of the Descope project the JWT was generated for.
     var projectId: String { get }
@@ -26,7 +26,7 @@ public protocol DescopeToken {
     /// after which the JWT expires.
     var expiresAt: Date { get }
     
-    /// Whether the JWT expiry time (if any) has already passed.
+    /// Whether the JWT expiry time  has already passed.
     var isExpired: Bool { get }
     
     /// A map with all the custom claims in the JWT value. It includes
@@ -49,7 +49,7 @@ public protocol DescopeToken {
 
 class Token: DescopeToken {
     let jwt: String
-    let id: String
+    let entityId: String
     let projectId: String
     let issuedAt: Date
     let expiresAt: Date
@@ -60,7 +60,7 @@ class Token: DescopeToken {
         do {
             let dict = try decodeJWT(jwt)
             self.jwt = jwt
-            self.id = try getClaim(.subject, in: dict)
+            self.entityId = try getClaim(.subject, in: dict)
             self.projectId = try decodeIssuer(getClaim(.issuer, in: dict))
             self.issuedAt = try Date(timeIntervalSince1970: getClaim(.issuedAt, in: dict))
             self.expiresAt = try Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
@@ -113,7 +113,7 @@ class Token: DescopeToken {
 extension Token: CustomStringConvertible {
     var description: String {
         let expires = isExpired ? "expired" : "expires"
-        return "DescopeToken(id: \"\(id)\", \(expires): \(expiresAt))"
+        return "DescopeToken(entityId: \"\(entityId)\", \(expires): \(expiresAt))"
     }
 }
 

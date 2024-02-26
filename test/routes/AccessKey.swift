@@ -16,7 +16,7 @@ class TestAccessKey: XCTestCase {
         
         let token = try await descope.accessKey.exchange(accessKey: "key")
         XCTAssertEqual(jwt, token.jwt)
-        XCTAssertEqual("bar", token.id)
+        XCTAssertEqual("bar", token.entityId)
         XCTAssertEqual("foo", token.projectId)
         XCTAssertTrue(token.isExpired)
     }

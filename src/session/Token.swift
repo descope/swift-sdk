@@ -12,17 +12,21 @@ public protocol DescopeToken {
     
     /// The value of the "sub" (subject) claim, which is the unique id
     /// of the user or access key the JWT was generated for.
-    var id: String { get }
-    
+    var entityId: String { get }
+
     /// The value of the "iss" (issuer) claim which is the unique id
     /// of the Descope project the JWT was generated for.
     var projectId: String { get }
     
+    /// The value of the "iat" (issue time) claim which is the time at
+    /// which the JWT was created.
+    var issuedAt: Date { get }
+
     /// The value of the "exp" (expiration time) claim which is the time
     /// after which the JWT expires.
-    var expiresAt: Date? { get }
+    var expiresAt: Date { get }
     
-    /// Whether the JWT expiry time (if any) has already passed.
+    /// Whether the JWT expiry time  has already passed.
     var isExpired: Bool { get }
     
     /// A map with all the custom claims in the JWT value. It includes
@@ -45,9 +49,10 @@ public protocol DescopeToken {
 
 class Token: DescopeToken {
     let jwt: String
-    let id: String
+    let entityId: String
     let projectId: String
-    let expiresAt: Date?
+    let issuedAt: Date
+    let expiresAt: Date
     let claims: [String: Any]
     let allClaims: [String: Any]
     
@@ -55,9 +60,10 @@ class Token: DescopeToken {
         do {
             let dict = try decodeJWT(jwt)
             self.jwt = jwt
-            self.id = try getClaim(.subject, in: dict)
+            self.entityId = try getClaim(.subject, in: dict)
             self.projectId = try decodeIssuer(getClaim(.issuer, in: dict))
-            self.expiresAt = try? Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
+            self.issuedAt = try Date(timeIntervalSince1970: getClaim(.issuedAt, in: dict))
+            self.expiresAt = try Date(timeIntervalSince1970: getClaim(.expiration, in: dict))
             self.claims = dict.filter { Claim.isCustom($0.key) }
             self.allClaims = dict
         } catch {
@@ -66,7 +72,6 @@ class Token: DescopeToken {
     }
     
     var isExpired: Bool {
-        guard let expiresAt else { return false }
         return expiresAt.timeIntervalSinceNow <= 0
     }
     
@@ -107,12 +112,8 @@ class Token: DescopeToken {
 
 extension Token: CustomStringConvertible {
     var description: String {
-        var expires = "expires: Never"
-        if let expiresAt {
-            let label = isExpired ? "expired" : "expires"
-            expires = "\(label): \(expiresAt)"
-        }
-        return "DescopeToken(id: \"\(id)\", \(expires))"
+        let expires = isExpired ? "expired" : "expires"
+        return "DescopeToken(entityId: \"\(entityId)\", \(expires): \(expiresAt))"
     }
 }
 
@@ -153,7 +154,6 @@ extension TokenError: CustomStringConvertible, LocalizedError {
 // Claims
 
 private enum Claim: String {
-    case audience = "aud"
     case subject = "sub"
     case issuer = "iss"
     case issuedAt = "iat"

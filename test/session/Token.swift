@@ -18,14 +18,13 @@ class TestToken: XCTestCase {
         
         // Basic Fields
         XCTAssertEqual(jwt, token.jwt)
-        XCTAssertEqual("1234567890", token.id)
+        XCTAssertEqual("1234567890", token.entityId)
         XCTAssertEqual("P123", token.projectId)
         
         // Expiration
-        XCTAssertNotNil(token.expiresAt)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
-        XCTAssertEqual("20.10.2020", dateFormatter.string(from: token.expiresAt!))
+        XCTAssertEqual("20.10.2020", dateFormatter.string(from: token.expiresAt))
         XCTAssertTrue(token.isExpired)
 
         // Custom Claims

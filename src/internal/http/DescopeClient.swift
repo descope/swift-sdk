@@ -385,6 +385,17 @@ class DescopeClient: HTTPClient {
         ])
     }
     
+    func flowNext(executionId: String, stepId: String, componentsVersion: String, version: Int, input: [String:Any]) async throws {
+        try await post("flow/next", body: [
+            "stepId": stepId,
+            "executionId": executionId,
+            "version": version,
+            "componentsVersion": componentsVersion,
+            "interactionId": "submit",
+            "input": input,
+        ])
+    }
+    
     // MARK: - Others
     
     func me(refreshJwt: String) async throws -> UserResponse {

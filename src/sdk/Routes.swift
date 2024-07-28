@@ -705,4 +705,37 @@ public protocol DescopeFlow {
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse
+    
+    /// Initializes a PKCE key pair
+    ///
+    /// The PKCE key pair is intended to be used as an extra layer of protection,
+    /// when verifying authentication methods running in a Flow. Calling this
+    /// function will return a `challenge` that should be propagated into a flow.
+    ///
+    /// - Note: It is required the authentication method be configured with a deep
+    /// link back to the app, in order to verify it with the additional PKCE verifier,
+    /// by calling ``verifyFlowDirectly(incomingURLString:)``
+    ///
+    /// - Throws ``DescopeError/flowFailed`` in the unlikely event of key generation failure
+    ///
+    /// - Returns: A `challenge` string that should be propagated into an authentication flow
+    func initPKCE() throws -> String
+    
+    /// Verify a flow directly - no UI (web or otherwise)
+    ///
+    /// In some scenarios, it is required to add another layer of protection of flows
+    /// that orginiate from mobile devices. In these cases it is possible to call ``initPKCE()``,
+    /// propagate the resulting `challenge` to a flow, and via deep link, handle the flow token
+    /// verification with the additional PKCE exchange.
+    ///
+    /// - Note: It is required the authentication method be configured with a deep
+    /// link back to the app, in order to verify it with the additional PKCE verifier,
+    /// by calling ``verifyFlowDirectly(incomingURLString:)``
+    ///
+    /// - Parameter incomingURLString: The URL string outcome of a Flow,
+    /// recieved via deep link to be verified directly.
+    ///
+    /// - Throws a ``DescopeError`` correlating to any issues encountered while trying
+    /// to veriy the incoming URL
+    func verifyFlowDirectly(incomingURLString: String) async throws
 }

@@ -114,7 +114,7 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
-        self.flow = Flow(client: client)
+        self.flow = Flow(client: client, contentClient: DescopeContentClient(config: config, baseURL: client.baseURL))
         self.accessKey = AccessKey(client: client)
     }
 }

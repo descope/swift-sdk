@@ -7,9 +7,13 @@ private let redirectURL = "\(redirectScheme)://flow"
 
 class Flow: Route, DescopeFlow {
     let client: DescopeClient
+    let contentClient: DescopeContentClient
+    var pkceChallenge: String?
+    var pkceVerifier: String?
     
-    init(client: DescopeClient) {
+    init(client: DescopeClient, contentClient: DescopeContentClient) {
         self.client = client
+        self.contentClient = contentClient
     }
     
     var current: DescopeFlowRunner?
@@ -179,6 +183,47 @@ class Flow: Route, DescopeFlow {
         guard current === runner else { return }
         log(.debug, "Resetting current flow runner property")
         current = nil
+    }
+    
+    // PKCE & Flow Validation
+    
+    func initPKCE() throws -> String {
+        // init a PKCE challenge and verifier, save them and return the challenge to the caller
+        guard let randomBytes = Data(randomBytesCount: 32) else { throw DescopeError.flowFailed.with(message: "Error generating random bytes") }
+        let hashedBytes = Data(SHA256.hash(data: randomBytes))
+        
+        pkceVerifier = randomBytes.base64EncodedString()
+        let challenge = hashedBytes.base64EncodedString()
+        pkceChallenge = challenge
+        return challenge
+    }
+    
+    func verifyFlowDirectly(incomingURLString: String) async throws {
+        // parse incoming URL to its components
+        guard let incomingURL = URL(string: incomingURLString) else { throw DescopeError.decodeError.with(desc: "Incoming URL is malformed")}
+        guard let urlComponents = URLComponents(url: incomingURL, resolvingAgainstBaseURL: false) else { throw DescopeError.decodeError.with(desc: "Incoming URL has malformed query parameters") }
+        
+        // 't' param should contain the token
+        guard let token = urlComponents.queryItems?.first(where: {$0.name == "t"})?.value else { throw DescopeError.decodeError.with(desc: "Incoming URL is missing required query param 't'") }
+       
+        // 'descope-login-flow' has a URL encoded format of: <FLOW-ID>|#|<EXECUTION-ID>_<STEP-ID>
+        guard let flowParam = urlComponents.queryItems?.first(where: {$0.name == "descope-login-flow"})?.value?.removingPercentEncoding else { throw DescopeError.decodeError.with(desc: "Incoming URL is missing required query param 'descope-login-flow'") }
+        var components = flowParam.components(separatedBy: "_")
+        guard components.count == 2 else { throw DescopeError.decodeError.with(desc: "Incoming URL param 'descope-login-flow' is malformed") }
+        let executionId = components[0]
+        let stepId = components[1]
+        
+        // executionId has the format of: <FLOW-ID>|#|<EXECUTION-IDENTIFIER>
+        components = executionId.components(separatedBy: "|#|")
+        guard components.count == 2 else { throw DescopeError.decodeError.with(desc: "Incoming URL param 'descope-login-flow' is malformed") }
+        let flowId = components[0]
+        
+        // get versions from flow config according to flow
+        let flowConfig = try await contentClient.flowConfig()
+        guard let flowVersion = flowConfig.flows[flowId]?.version else { throw DescopeError.badRequest.with(desc: "Incoming URL referes to an unknown flow") }
+        
+        // finally call next with all of the required arguments
+        try await client.flowNext(executionId: executionId, stepId: stepId, componentsVersion: flowConfig.componentsVersion, version: flowVersion, input: ["token": token, "pkceVerifier": pkceVerifier ?? ""])
     }
 }
 

@@ -33,7 +33,6 @@ class DescopeContentClient: HTTPClient {
     
 }
 
-
 func contentURL(from baseURL: String) -> String {
     if (baseURL.contains(".descope.org") || baseURL.contains(".descope.team")) {
         return "https://static.descope.org"

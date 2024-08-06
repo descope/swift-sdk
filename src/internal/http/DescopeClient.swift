@@ -421,6 +421,7 @@ class DescopeClient: HTTPClient {
                     refreshJwt = cookie.value
                 }
             }
+            try user?.setValues(from: data, response: response)
         }
     }
     
@@ -450,7 +451,14 @@ class DescopeClient: HTTPClient {
 
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-            customAttributes = json["customAttributes"] as? [String: Any] ?? [:]
+            let user = json["user"] as? [String: Any] ?? [:]
+            if let customAttributes = json["customAttributes"] as? [String: Any] {
+                self.customAttributes = customAttributes
+            } else if let userCustomAttributes = user["customAttributes"] as? [String: Any] {
+                self.customAttributes = userCustomAttributes
+            } else {
+                self.customAttributes = [:]
+            }
         }
     }
     

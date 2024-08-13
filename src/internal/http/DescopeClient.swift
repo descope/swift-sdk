@@ -411,6 +411,7 @@ class DescopeClient: HTTPClient {
         var firstSeen: Bool
         
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
+            // extract JWTs from the cookies if configured to not return them in the response body
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
             for cookie in cookies where !cookie.value.isEmpty {
@@ -421,7 +422,12 @@ class DescopeClient: HTTPClient {
                     refreshJwt = cookie.value
                 }
             }
-            try user?.setValues(from: data, response: response)
+
+            // the UserResponse decoding takes care of all fields except customAttributes
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+            if let dict = json["user"] as? [String: Any] {
+                user?.setCustomAttributes(from: dict)
+            }
         }
     }
     
@@ -451,14 +457,12 @@ class DescopeClient: HTTPClient {
 
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-            let user = json["user"] as? [String: Any] ?? [:]
-            if let customAttributes = json["customAttributes"] as? [String: Any] {
-                self.customAttributes = customAttributes
-            } else if let userCustomAttributes = user["customAttributes"] as? [String: Any] {
-                self.customAttributes = userCustomAttributes
-            } else {
-                self.customAttributes = [:]
-            }
+            setCustomAttributes(from: json)
+        }
+
+        mutating func setCustomAttributes(from dict: [String: Any]) {
+            guard let attrs = dict["customAttributes"] as? [String: Any] else { return }
+            customAttributes = attrs
         }
     }
     

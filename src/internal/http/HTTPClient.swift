@@ -1,7 +1,7 @@
 
 import Foundation
 
-class HTTPClient {
+class HTTPClient: LoggerProvider {
     let baseURL: String
     let logger: DescopeLogger?
     let networkClient: DescopeNetworkClient
@@ -58,10 +58,10 @@ class HTTPClient {
     
     private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> (Data, HTTPURLResponse) {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
-        logger?.log(.info, "Starting network call", request.url)
+        log(.info, "Starting network call", request.url)
         #if DEBUG
         if let body = request.httpBody, let requestBody = String(bytes: body, encoding: .utf8) {
-            logger?.log(.debug, "Sending request body", requestBody)
+            log(.debug, "Sending request body", requestBody)
         }
         #endif
         
@@ -70,20 +70,20 @@ class HTTPClient {
         guard let response = response as? HTTPURLResponse else { throw DescopeError(httpError: .invalidResponse) }
         #if DEBUG
         if let responseBody = String(bytes: data, encoding: .utf8) {
-            logger?.log(.debug, "Received response body", responseBody)
+            log(.debug, "Received response body", responseBody)
         }
         #endif
         
         if let error = DescopeError(httpStatusCode: response.statusCode) {
             if let responseError = errorForResponseData(data) {
-                logger?.log(.info, "Network call failed with server error", request.url, responseError)
+                log(.info, "Network call failed with server error", request.url, responseError)
                 throw responseError
             }
-            logger?.log(.info, "Network call failed with http error", request.url, error)
+            log(.info, "Network call failed with http error", request.url, error)
             throw error
         }
         
-        logger?.log(.info, "Network call finished", request.url)
+        log(.info, "Network call finished", request.url)
         return (data, response)
     }
     
@@ -114,7 +114,7 @@ class HTTPClient {
         do {
             return try await networkClient.call(request: request)
         } catch {
-            logger?.log(.error, "Network call failed with network error", request.url, error)
+            log(.error, "Network call failed with network error", request.url, error)
             throw DescopeError.networkError.with(cause: error)
         }
     }

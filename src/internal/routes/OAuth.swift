@@ -1,7 +1,7 @@
 
 import AuthenticationServices
 
-class OAuth: Route, DescopeOAuth {
+class OAuth: DescopeOAuth, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {

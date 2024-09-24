@@ -3,7 +3,7 @@ import Foundation
 
 private let defaultPollDuration: TimeInterval = 2 /* mins */ * 60 /* secs */
 
-class EnchantedLink: Route, DescopeEnchantedLink {
+class EnchantedLink: DescopeEnchantedLink, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {

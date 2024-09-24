@@ -411,14 +411,18 @@ class DescopeClient: HTTPClient {
         var firstSeen: Bool
         
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
-            // extract JWTs from the cookies if configured to not return them in the response body
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+            try setValues(from: data, cookies: cookies)
+        }
+
+        mutating func setValues(from data: Data, cookies: [HTTPCookie]) throws {
+            // extract JWTs from the cookies if configured to not return them in the response body
             for cookie in cookies where !cookie.value.isEmpty {
-                if cookie.name == sessionCookieName {
+                if cookie.name.caseInsensitiveCompare(sessionCookieName) == .orderedSame {
                     sessionJwt = cookie.value
                 }
-                if cookie.name == refreshCookieName {
+                if cookie.name.caseInsensitiveCompare(refreshCookieName) == .orderedSame {
                     refreshJwt = cookie.value
                 }
             }

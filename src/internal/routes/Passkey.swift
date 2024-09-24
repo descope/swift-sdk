@@ -2,7 +2,7 @@
 import AuthenticationServices
 import CryptoKit
 
-class Passkey: Route, DescopePasskey {
+class Passkey: DescopePasskey, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {

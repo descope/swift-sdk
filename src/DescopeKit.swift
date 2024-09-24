@@ -56,8 +56,6 @@ public enum Descope {
     }
 
     /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.
-    ///
-    /// FIXME: can be private but left internal for now until deprecations are removed
     static var sdk: DescopeSDK = .initial
 }
 

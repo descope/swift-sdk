@@ -5,7 +5,7 @@ import CryptoKit
 private let redirectScheme = "descopeauth"
 private let redirectURL = "\(redirectScheme)://flow"
 
-class Flow: Route, DescopeFlow {
+class Flow: DescopeFlow, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {
@@ -13,7 +13,7 @@ class Flow: Route, DescopeFlow {
     }
     
     var current: DescopeFlowRunner?
-    
+
     @MainActor
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse {
         // adds some required query parameters to the flow URL to facilitate PKCE and
@@ -199,8 +199,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
     let codeVerifier = randomBytes.base64URLEncodedString()
     let codeChallenge = hashedBytes.base64URLEncodedString()
 
-    guard let url = URL(string: runner.flowURL) else { throw DescopeError.flowFailed.with(message: "Invalid flow URL") }
-    guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Malformed flow URL") }
+    guard var components = URLComponents(url: runner.flowURL, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Malformed flow URL") }
     components.queryItems = components.queryItems ?? []
     components.queryItems?.append(URLQueryItem(name: "ra-callback", value: redirectURL))
     components.queryItems?.append(URLQueryItem(name: "ra-challenge", value: codeChallenge))
@@ -217,7 +216,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
 
 private func prepareRedirectRequest(for runner: DescopeFlowRunner, redirectURL: URL) -> URL? {
     guard let pendingComponents = URLComponents(url: redirectURL, resolvingAgainstBaseURL: false) else { return nil }
-    guard let url = URL(string: runner.flowURL), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+    guard var components = URLComponents(url: runner.flowURL, resolvingAgainstBaseURL: false) else { return nil }
     components.queryItems = components.queryItems ?? []
     for item in pendingComponents.queryItems ?? [] {
         components.queryItems?.append(item)

@@ -1,13 +1,13 @@
 
 import Foundation
 
-protocol Route {
+protocol Route: LoggerProvider {
     var client: DescopeClient { get }
 }
 
 extension Route {
-    func log(_ level: DescopeLogger.Level, _ message: StaticString, _ values: Any?...) {
-        client.config.logger?.log(level, message, values)
+    var logger: DescopeLogger? {
+        return client.config.logger
     }
 }
 

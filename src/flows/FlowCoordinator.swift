@@ -10,12 +10,13 @@ public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     func coordinatorFlowDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
 }
 
-@MainActor
 public class DescopeFlowCoordinator {
     let descope: DescopeSDK
     let bridge: FlowBridge
 
-    weak var delegate: DescopeFlowCoordinatorDelegate?
+    public weak var delegate: DescopeFlowCoordinatorDelegate?
+
+    public var state: DescopeFlowState = .initial
 
     public var webView: WKWebView? {
         didSet {
@@ -50,19 +51,28 @@ public class DescopeFlowCoordinator {
 
     // Actions
 
-    private func handleAuthentication(_ data: Data) async {
+    private func handleAuthentication(_ data: Data) {
+        Task {
+            log(.info, "Finishing flow authentication")
+            guard let authResponse = await parseAuthentication(data) else { return }
+            delegate?.coordinatorFlowDidFinishAuthentication(self, response: authResponse)
+        }
+    }
+
+    private func parseAuthentication(_ data: Data) async -> AuthenticationResponse? {
         do {
             let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
             try jwtResponse.setValues(from: data, cookies: cookies)
-            let authResponse: AuthenticationResponse = try jwtResponse.convert()
-            delegate?.coordinatorFlowDidFinishAuthentication(self, response: authResponse)
+            return try jwtResponse.convert()
         } catch let error as DescopeError {
-            log(.error, "Failed to parse authentication response", error)
+            log(.error, "Error converting authentication response", error)
             delegate?.coordinatorFlowDidFailAuthentication(self, error: error)
+            return nil
         } catch {
             log(.error, "Error parsing authentication response", error)
             delegate?.coordinatorFlowDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
+            return nil
         }
     }
 }
@@ -89,9 +99,7 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     }
 
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data) {
-        Task {
-            await handleAuthentication(data)
-        }
+        handleAuthentication(data)
     }
 }
 

@@ -75,18 +75,9 @@ open class DescopeFlowView: UIView {
         return webView
     }
 
-    /// Overrides
-
-    open class var webViewClass: WKWebView.Type {
-        return WKWebView.self
-    }
-
     private func _prepareConfiguration(_ configuration: WKWebViewConfiguration) {
         prepareConfiguration(configuration)
         coordinator.prepare(configuration: configuration)
-    }
-
-    open func prepareConfiguration(_ configuration: WKWebViewConfiguration) {
     }
 
     private func _prepareWebView(_ webView: WKWebView) {
@@ -96,6 +87,15 @@ open class DescopeFlowView: UIView {
         webView.scrollView.showsVerticalScrollIndicator = false
         webView.scrollView.showsHorizontalScrollIndicator = false
         prepareWebView(webView)
+    }
+
+    /// Override points
+
+    open class var webViewClass: WKWebView.Type {
+        return WKWebView.self
+    }
+
+    open func prepareConfiguration(_ configuration: WKWebViewConfiguration) {
     }
 
     open func prepareWebView(_ webView: WKWebView) {
@@ -125,23 +125,5 @@ extension DescopeFlowView: DescopeFlowCoordinatorDelegate {
     
     public func coordinatorFlowDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
         delegate?.flowViewDidFinishAuthentication(self, response: response)
-    }
-}
-
-func foo() {
-    let view = DescopeFlowView()
-}
-
-class RichEditorWebView: WKWebView {
-    var accessoryView: UIView?
-
-    override var inputAccessoryView: UIView? {
-        return accessoryView
-    }
-}
-
-open class DescopeFlowView2: DescopeFlowView {
-    override open class var webViewClass: WKWebView.Type {
-        return RichEditorWebView.self
     }
 }

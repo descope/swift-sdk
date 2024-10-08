@@ -19,6 +19,12 @@ extension DescopeError {
     }
 }
 
+extension DescopeLogger? {
+    func callAsFunction(_ level: DescopeLogger.Level, _ message: StaticString, _ values: Any?...) {
+        self?.log(level, message, values)
+    }
+}
+
 extension Data {
     init?(base64URLEncoded base64URLString: String, options: Base64DecodingOptions = []) {
         var str = base64URLString

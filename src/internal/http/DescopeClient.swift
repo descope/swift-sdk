@@ -7,7 +7,7 @@ class DescopeClient: HTTPClient {
     init(config: DescopeConfig) {
         self.config = config
         let baseURL = config.baseURL ?? baseURLForProjectId(config.projectId)
-        super.init(baseURL: baseURL, logger: config.logger, networkClient: config.networkClient)
+        super.init(baseURL: baseURL, log: config.logger, networkClient: config.networkClient)
     }
     
     // MARK: - OTP

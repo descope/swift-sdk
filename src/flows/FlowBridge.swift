@@ -10,8 +10,8 @@ protocol FlowBridgeDelegate: AnyObject {
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data)
 }
 
-class FlowBridge: NSObject, LoggerProvider {
-    var logger: DescopeLogger?
+class FlowBridge: NSObject {
+    var log: DescopeLogger?
 
     weak var delegate: FlowBridgeDelegate?
 
@@ -26,9 +26,15 @@ class FlowBridge: NSObject, LoggerProvider {
         }
     }
 
-    public func prepare(configuration: WKWebViewConfiguration) {
+    func prepare(configuration: WKWebViewConfiguration) {
         let setup = WKUserScript(source: setupScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(setup)
+        if #available(iOS 14.5, *) {
+            configuration.preferences.isTextInteractionEnabled = false
+        }
+        if #available(iOS 17.0, *) {
+            configuration.preferences.inactiveSchedulingPolicy = .none
+        }
 
         for name in FlowMessage.allCases {
             configuration.userContentController.add(self, name: name.rawValue)
@@ -48,54 +54,66 @@ extension FlowBridge: WKScriptMessageHandler {
         case .ready:
             log(.info, "Bridge received ready event")
             delegate?.bridgeDidBecomeReady(self)
+        case .native:
+            log(.info, "Bridge received native event")
+            guard let json = message.body as? String, case let data = Data(json.utf8) else {
+                delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Invalid JSON data in flow native event"))
+                return
+            }
+            
         case .failure:
             log(.error, "Bridge received failure event", message.body)
             delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Unexpected authentication failure [\(message.body)]"))
         case .success:
             log(.info, "Bridge received success event")
             guard let json = message.body as? String, case let data = Data(json.utf8) else {
-                delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Invalid JSON data in flow authentication"))
+                delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Invalid JSON data in flow success event"))
                 return
             }
             delegate?.bridgeDidFinishAuthentication(self, data: data)
         case nil:
-            log(.error, "Unexpected message in bridge", message.name)
+            log(.error, "Bridge received unexpected message", message.name)
         }
     }
 }
 
 extension FlowBridge: WKNavigationDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
-        log(.info, "Webview decide policy for url", navigationAction.navigationType.rawValue, navigationAction.request.url?.absoluteString)
-        if let url = navigationAction.request.url, url.scheme == "descopeauth" {
-            // TODO
-            return .cancel
-        }
+        log(.info, "Webview will load url", navigationAction.navigationType == .other ? nil : "type=\(navigationAction.navigationType.rawValue)", navigationAction.request.url?.absoluteString)
         return .allow
     }
 
-    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-        log(.info, "Webview started loading url", webView.url)
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation) {
+        log(.info, "Webview started loading webpage")
         delegate?.bridgeDidStartLoading(self)
     }
 
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        log(.error, "Webview failed provisional navigation", error)
+    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation) {
+        log(.info, "Webview received server redirect", webView.url)
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        log(.info, "Webview will receive response")
+        return .allow
+    }
+
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation, withError error: Error) {
+        log(.error, "Webview failed loading url", error)
         delegate?.bridgeDidFailLoading(self, error: DescopeError.networkError.with(cause: error))
     }
 
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        log(.info, "Webview commited navigation", webView.url)
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation) {
+        log(.info, "Webview received response")
     }
 
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        log(.info, "Webview finished navigation", webView.url)
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation) {
+        log(.info, "Webview finished loading webpage")
         delegate?.bridgeDidFinishLoading(self)
         webView.evaluateJavaScript("waitWebComponent()")
     }
 
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        log(.error, "Webview failed navigation", error)
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation, withError error: Error) {
+        log(.error, "Webview failed loading webpage", error)
         delegate?.bridgeDidFailLoading(self, error: DescopeError.networkError.with(cause: error))
     }
 }
@@ -109,12 +127,12 @@ extension FlowBridge: WKUIDelegate {
 }
 
 private enum FlowMessage: String, CaseIterable {
-    case log, warn, error, ready, failure, success
+    case log, warn, error, ready, native, failure, success
 }
 
 private let setupScript = """
  
-/* Javascript code that's executed once the script finishes running */
+/* Javascript code that's executed once the page finished loading */
 
 // Redirect console logs to bridge
 window.console.log = (s) => { window.webkit.messageHandlers.log.postMessage(s) }
@@ -125,33 +143,47 @@ window.console.error = (s) => { window.webkit.messageHandlers.error.postMessage(
 function waitWebComponent() {
     document.body.style.background = 'transparent'
 
-    let id
-    id = setInterval(() => {
-        let wc = document.getElementsByTagName('descope-wc')[0]
-        if (wc) {
-            clearInterval(id)
-            prepareWebComponent(wc)
+    const styles = `
+        :root {
+          color-scheme: light dark;
+        }
+    `
+
+    const stylesheet = document.createElement("style")
+    stylesheet.textContent = styles
+    document.head.appendChild(stylesheet)
+
+    let interval
+    interval = setInterval(() => {
+        let component = document.getElementsByTagName('descope-wc')[0]
+        if (component) {
+            clearInterval(interval)
+            prepareWebComponent(component)
         }
     }, 20)
 }
 
 // Attaches event listeners once the Descope web-component is ready
-function prepareWebComponent(wc) {
-    const parent = wc?.parentElement?.parentElement
+function prepareWebComponent(component) {
+    const parent = component.parentElement?.parentElement
     if (parent) {
         parent.style.boxShadow = 'unset'
     }
 
-    wc.addEventListener('success', (e) => {
-        window.webkit.messageHandlers.success.postMessage(JSON.stringify(e.detail))
-    })
-
-    wc.addEventListener('error', (e) => {
-        window.webkit.messageHandlers.failure.postMessage(e.detail)
-    })
-
-    wc.addEventListener('ready', () => {
+    component.addEventListener('ready', () => {
         window.webkit.messageHandlers.ready.postMessage('')
+    })
+
+    component.addEventListener('native', (event) => {
+        window.webkit.messageHandlers.native.postMessage(JSON.stringify(event.detail))
+    })
+
+    component.addEventListener('error', (event) => {
+        window.webkit.messageHandlers.failure.postMessage(event.detail)
+    })
+
+    component.addEventListener('success', (event) => {
+        window.webkit.messageHandlers.success.postMessage(JSON.stringify(event.detail))
     })
 }
 

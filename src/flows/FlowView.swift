@@ -2,6 +2,7 @@
 import WebKit
 
 public protocol DescopeFlowViewDelegate: AnyObject {
+    func flowViewDidUpdateState(_ flowView: DescopeFlowView, to state: DescopeFlowState, from previous: DescopeFlowState)
     func flowViewDidStartLoading(_ flowView: DescopeFlowView)
     func flowViewDidFailLoading(_ flowView: DescopeFlowView, error: DescopeError)
     func flowViewDidFinishLoading(_ flowView: DescopeFlowView)
@@ -17,6 +18,10 @@ open class DescopeFlowView: UIView {
     private lazy var webView = createWebView()
 
     public weak var delegate: DescopeFlowViewDelegate?
+
+    public var state: DescopeFlowState {
+        return coordinator.state
+    }
 
     /// Setup
 
@@ -83,9 +88,10 @@ open class DescopeFlowView: UIView {
     private func _prepareWebView(_ webView: WKWebView) {
         webView.isOpaque = false
         webView.backgroundColor = .clear
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.showsVerticalScrollIndicator = false
-        webView.scrollView.showsHorizontalScrollIndicator = false
+//        webView.scrollView.isScrollEnabled = false
+//        webView.scrollView.showsVerticalScrollIndicator = false
+//        webView.scrollView.showsHorizontalScrollIndicator = false
+        webView.scrollView.keyboardDismissMode = .interactiveWithAccessory
         prepareWebView(webView)
     }
 
@@ -103,27 +109,31 @@ open class DescopeFlowView: UIView {
 }
 
 extension DescopeFlowView: DescopeFlowCoordinatorDelegate {
-    public func coordinatorFlowDidStartLoading(_ coordinator: DescopeFlowCoordinator) {
+    public func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState) {
+        delegate?.flowViewDidUpdateState(self, to: state, from: previous)
+    }
+    
+    public func coordinatorDidStartLoading(_ coordinator: DescopeFlowCoordinator) {
         delegate?.flowViewDidStartLoading(self)
     }
     
-    public func coordinatorFlowDidFailLoading(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
+    public func coordinatorDidFailLoading(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
         delegate?.flowViewDidFailLoading(self, error: error)
     }
     
-    public func coordinatorFlowDidFinishLoading(_ coordinator: DescopeFlowCoordinator) {
+    public func coordinatorDidFinishLoading(_ coordinator: DescopeFlowCoordinator) {
         delegate?.flowViewDidFinishLoading(self)
     }
     
-    public func coordinatorFlowDidBecomeReady(_ coordinator: DescopeFlowCoordinator) {
+    public func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator) {
         delegate?.flowViewDidBecomeReady(self)
     }
     
-    public func coordinatorFlowDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
+    public func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
         delegate?.flowViewDidFailAuthentication(self, error: error)
     }
     
-    public func coordinatorFlowDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
+    public func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
         delegate?.flowViewDidFinishAuthentication(self, response: response)
     }
 }

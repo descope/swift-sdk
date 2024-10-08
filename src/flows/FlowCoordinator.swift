@@ -2,21 +2,28 @@
 import WebKit
 
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
-    func coordinatorFlowDidStartLoading(_ coordinator: DescopeFlowCoordinator)
-    func coordinatorFlowDidFailLoading(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
-    func coordinatorFlowDidFinishLoading(_ coordinator: DescopeFlowCoordinator)
-    func coordinatorFlowDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
-    func coordinatorFlowDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
-    func coordinatorFlowDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
+    func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState)
+    func coordinatorDidStartLoading(_ coordinator: DescopeFlowCoordinator)
+    func coordinatorDidFailLoading(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
+    func coordinatorDidFinishLoading(_ coordinator: DescopeFlowCoordinator)
+    func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
+    func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
+    func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
 }
 
+@MainActor
 public class DescopeFlowCoordinator {
-    let descope: DescopeSDK
-    let bridge: FlowBridge
+    private let descope: DescopeSDK
+    private let log: DescopeLogger?
+    private let bridge: FlowBridge
 
     public weak var delegate: DescopeFlowCoordinatorDelegate?
 
-    public var state: DescopeFlowState = .initial
+    public private(set) var state: DescopeFlowState = .initial {
+        didSet {
+            delegate?.coordinatorDidUpdateState(self, to: state, from: oldValue)
+        }
+    }
 
     public var webView: WKWebView? {
         didSet {
@@ -34,8 +41,9 @@ public class DescopeFlowCoordinator {
 
     private init(sdk: DescopeSDK) {
         descope = sdk
+        log = sdk.config.logger
         bridge = FlowBridge()
-        bridge.logger = sdk.config.logger
+        bridge.log = log
         bridge.delegate = self
     }
 
@@ -45,6 +53,7 @@ public class DescopeFlowCoordinator {
 
     public func start(runner: DescopeFlowRunner) {
         log(.info, "Starting flow authentication", runner.flowURL)
+        state = .started
         let request = URLRequest(url: runner.flowURL)
         webView?.load(request)
     }
@@ -55,7 +64,8 @@ public class DescopeFlowCoordinator {
         Task {
             log(.info, "Finishing flow authentication")
             guard let authResponse = await parseAuthentication(data) else { return }
-            delegate?.coordinatorFlowDidFinishAuthentication(self, response: authResponse)
+            state = .finished
+            delegate?.coordinatorDidFinishAuthentication(self, response: authResponse)
         }
     }
 
@@ -66,12 +76,14 @@ public class DescopeFlowCoordinator {
             try jwtResponse.setValues(from: data, cookies: cookies)
             return try jwtResponse.convert()
         } catch let error as DescopeError {
-            log(.error, "Error converting authentication response", error)
-            delegate?.coordinatorFlowDidFailAuthentication(self, error: error)
+            log(.error, "Unexpected error converting authentication response", error)
+            state = .failed
+            delegate?.coordinatorDidFailAuthentication(self, error: error)
             return nil
         } catch {
-            log(.error, "Error parsing authentication response", error)
-            delegate?.coordinatorFlowDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
+            log(.error, "Unexpected error parsing authentication response", error)
+            state = .failed
+            delegate?.coordinatorDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
             return nil
         }
     }
@@ -79,32 +91,29 @@ public class DescopeFlowCoordinator {
 
 extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidStartLoading(_ bridge: FlowBridge) {
-        delegate?.coordinatorFlowDidStartLoading(self)
+        delegate?.coordinatorDidStartLoading(self)
     }
 
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError) {
-        delegate?.coordinatorFlowDidFailLoading(self, error: error)
+        state = .failed
+        delegate?.coordinatorDidFailLoading(self, error: error)
     }
 
     func bridgeDidFinishLoading(_ bridge: FlowBridge) {
-        delegate?.coordinatorFlowDidFinishLoading(self)
+        delegate?.coordinatorDidFinishLoading(self)
     }
 
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
-        delegate?.coordinatorFlowDidBecomeReady(self)
+        state = .ready
+        delegate?.coordinatorDidBecomeReady(self)
     }
 
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError) {
-        delegate?.coordinatorFlowDidFailAuthentication(self, error: error)
+        state = .failed
+        delegate?.coordinatorDidFailAuthentication(self, error: error)
     }
 
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data) {
         handleAuthentication(data)
-    }
-}
-
-extension DescopeFlowCoordinator: LoggerProvider {
-    var logger: DescopeLogger? {
-        return descope.config.logger
     }
 }

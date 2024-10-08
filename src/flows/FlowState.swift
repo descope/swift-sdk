@@ -2,7 +2,7 @@
 public enum DescopeFlowState: String {
     case initial
 
-    case loading
+    case started
 
     case ready
 

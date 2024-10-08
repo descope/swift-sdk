@@ -1,14 +1,14 @@
 
 import Foundation
 
-class HTTPClient: LoggerProvider {
+class HTTPClient {
     let baseURL: String
-    let logger: DescopeLogger?
+    let log: DescopeLogger?
     let networkClient: DescopeNetworkClient
     
-    init(baseURL: String, logger: DescopeLogger?, networkClient: DescopeNetworkClient?) {
+    init(baseURL: String, log: DescopeLogger?, networkClient: DescopeNetworkClient?) {
         self.baseURL = baseURL
-        self.logger = logger
+        self.log = log
         self.networkClient = networkClient ?? DefaultNetworkClient()
     }
     

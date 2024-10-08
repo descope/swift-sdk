@@ -1,12 +1,12 @@
 
 import Foundation
 
-protocol Route: LoggerProvider {
+protocol Route {
     var client: DescopeClient { get }
 }
 
 extension Route {
-    var logger: DescopeLogger? {
+    var log: DescopeLogger? {
         return client.config.logger
     }
 }

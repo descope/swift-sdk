@@ -6,8 +6,18 @@ protocol FlowBridgeDelegate: AnyObject {
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishLoading(_ bridge: FlowBridge)
     func bridgeDidBecomeReady(_ bridge: FlowBridge)
+    func bridgeDidReceiveCommand(_ bridge: FlowBridge, command: FlowBridgeCommand)
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data)
+}
+
+enum FlowBridgeCommand {
+    case oauthNative(clientId: String, stateId: String, nonce: String, implicit: Bool)
+    case oauthWeb(url: String, defaultProvider: String?)
+}
+
+enum FlowBridgeResponse {
+    case oauthNative(stateId: String, authorizationCode: String?, identityToken: String?, user: String?)
 }
 
 class FlowBridge: NSObject {
@@ -36,15 +46,24 @@ class FlowBridge: NSObject {
             configuration.preferences.inactiveSchedulingPolicy = .none
         }
 
-        for name in FlowMessage.allCases {
+        for name in FlowBridgeMessage.allCases {
             configuration.userContentController.add(self, name: name.rawValue)
         }
+    }
+
+    func send(response: FlowBridgeResponse) {
+        webView?.evaluateJavaScript("""
+            let component = findWebComponent()
+            if (component) {
+                component.nativeComplete(`\(response.stringValue)`)
+            }
+        """)
     }
 }
 
 extension FlowBridge: WKScriptMessageHandler {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        switch FlowMessage(rawValue: message.name) {
+        switch FlowBridgeMessage(rawValue: message.name) {
         case .log:
             log(.debug, "Console Log", message.body)
         case .warn:
@@ -56,17 +75,19 @@ extension FlowBridge: WKScriptMessageHandler {
             delegate?.bridgeDidBecomeReady(self)
         case .native:
             log(.info, "Bridge received native event")
-            guard let json = message.body as? String, case let data = Data(json.utf8) else {
+            guard let json = message.body as? [String: Any], let command = FlowBridgeCommand(json: json) else {
+                log(.error, "Invalid JSON data in flow native event", message.body)
                 delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Invalid JSON data in flow native event"))
                 return
             }
-            
+            delegate?.bridgeDidReceiveCommand(self, command: command)
         case .failure:
             log(.error, "Bridge received failure event", message.body)
             delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Unexpected authentication failure [\(message.body)]"))
         case .success:
             log(.info, "Bridge received success event")
             guard let json = message.body as? String, case let data = Data(json.utf8) else {
+                log(.error, "Invalid JSON data in flow success event", message.body)
                 delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Invalid JSON data in flow success event"))
                 return
             }
@@ -126,8 +147,56 @@ extension FlowBridge: WKUIDelegate {
     }
 }
 
-private enum FlowMessage: String, CaseIterable {
+private enum FlowBridgeMessage: String, CaseIterable {
     case log, warn, error, ready, native, failure, success
+}
+
+private extension FlowBridgeCommand {
+    init?(json: [String: Any]) {
+        switch json["type"] as? String {
+        case "oauthNative":
+            guard let start = json["response"] as? [String: Any] else { return nil }
+            guard let clientId = start["clientId"] as? String, let stateId = start["stateId"] as? String, let nonce = start["nonce"] as? String, let implicit = start["implicit"] as? Bool else { return nil }
+            self = .oauthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
+        case "oauthWeb":
+            guard let url = json["url"] as? String else { return nil }
+            var defaultProvider: String?
+            if let value = json["defaultProvider"] as? String, !value.isEmpty {
+                defaultProvider = value
+            }
+            self = .oauthWeb(url: url, defaultProvider: defaultProvider)
+        default:
+            return nil
+        }
+    }
+}
+
+private extension FlowBridgeResponse {
+    var dictionaryValue: [String: Any]? {
+        let dict: [String: Any]
+        switch self {
+        case let .oauthNative(stateId, authorizationCode, identityToken, user):
+            dict = [
+                "stateId": stateId,
+                "code": authorizationCode,
+                "idToken": identityToken,
+                "user": user,
+            ]
+        default:
+            return nil
+        }
+        return dict.filter { $0.value != nil }
+    }
+
+    var stringValue: String? {
+        guard let dict = dictionaryValue, JSONSerialization.isValidJSONObject(dict) else { return nil }
+        guard let json = try? JSONSerialization.data(withJSONObject: dict) else { return nil }
+        guard let str = String(bytes: json, encoding: .utf8) else { return nil }
+        return str
+            .replacingOccurrences(of: #"\"#, with: #"\\"#)
+            .replacingOccurrences(of: #"$"#, with: #"\$"#)
+            .replacingOccurrences(of: #"`"#, with: #"\`"#)
+    }
 }
 
 private let setupScript = """
@@ -138,6 +207,11 @@ private let setupScript = """
 window.console.log = (s) => { window.webkit.messageHandlers.log.postMessage(s) }
 window.console.warn = (s) => { window.webkit.messageHandlers.warn.postMessage(s) }
 window.console.error = (s) => { window.webkit.messageHandlers.error.postMessage(s) }
+
+// Finds the Descope web-component in the webpage
+function findWebComponent() {
+    return document.getElementsByTagName('descope-wc')[0]
+}
 
 // Called by bridge when the WebView finished loading
 function waitWebComponent() {
@@ -155,7 +229,7 @@ function waitWebComponent() {
 
     let interval
     interval = setInterval(() => {
-        let component = document.getElementsByTagName('descope-wc')[0]
+        let component = findWebComponent()
         if (component) {
             clearInterval(interval)
             prepareWebComponent(component)
@@ -175,7 +249,7 @@ function prepareWebComponent(component) {
     })
 
     component.addEventListener('native', (event) => {
-        window.webkit.messageHandlers.native.postMessage(JSON.stringify(event.detail))
+        window.webkit.messageHandlers.native.postMessage(event.detail)
     })
 
     component.addEventListener('error', (event) => {

@@ -58,7 +58,7 @@ public class DescopeFlowCoordinator {
         webView?.load(request)
     }
 
-    // Actions
+    // Authentication
 
     private func handleAuthentication(_ data: Data) {
         Task {
@@ -87,6 +87,29 @@ public class DescopeFlowCoordinator {
             return nil
         }
     }
+
+    // OAuth
+
+    private func handleOAuthNative(clientId: String, stateId: String, nonce: String, implicit: Bool) {
+        log(.info, "Requesting authorization for Sign in with Apple", clientId)
+        Task {
+            await performOAuthNative(stateId: stateId, nonce: nonce, implicit: implicit)
+        }
+    }
+
+    private func performOAuthNative(stateId: String, nonce: String, implicit: Bool) async {
+        do {
+            let (authorizationCode, identityToken, user) = try await OAuth.performNativeAuthorization(nonce: nonce, implicit: implicit, log: log)
+            let response = FlowBridgeResponse.oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user)
+            bridge.send(response: response)
+        } catch .flowCancelled {
+            // TODO
+        } catch {
+            log(.error, "Failed authenticating using Sign in with Apple", error)
+            state = .failed
+            delegate?.coordinatorDidFailAuthentication(self, error: error)
+        }
+    }
 }
 
 extension DescopeFlowCoordinator: FlowBridgeDelegate {
@@ -106,6 +129,15 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
         state = .ready
         delegate?.coordinatorDidBecomeReady(self)
+    }
+
+    func bridgeDidReceiveCommand(_ bridge: FlowBridge, command: FlowBridgeCommand) {
+        switch command {
+        case let .oauthNative(clientId, stateId, nonce, implicit):
+            handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
+        case let .oauthWeb(url, defaultProvider):
+            break // TODO
+        }
     }
 
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError) {

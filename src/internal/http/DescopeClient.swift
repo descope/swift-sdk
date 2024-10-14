@@ -1,7 +1,7 @@
 
 import Foundation
 
-class DescopeClient: HTTPClient {
+final class DescopeClient: HTTPClient, @unchecked Sendable {
     let config: DescopeConfig
     
     init(config: DescopeConfig) {
@@ -404,21 +404,25 @@ class DescopeClient: HTTPClient {
     static let sessionCookieName = "DS"
     static let refreshCookieName = "DSR"
     
-    struct JWTResponse: JSONResponse {
+    struct JWTResponse: JSONResponse, @unchecked Sendable {
         var sessionJwt: String?
         var refreshJwt: String?
         var user: UserResponse?
         var firstSeen: Bool
         
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
-            // extract JWTs from the cookies if configured to not return them in the response body
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
+            try setValues(from: data, cookies: cookies)
+        }
+
+        mutating func setValues(from data: Data, cookies: [HTTPCookie]) throws {
+            // extract JWTs from the cookies if configured to not return them in the response body
             for cookie in cookies where !cookie.value.isEmpty {
-                if cookie.name == sessionCookieName {
+                if cookie.name.caseInsensitiveCompare(sessionCookieName) == .orderedSame {
                     sessionJwt = cookie.value
                 }
-                if cookie.name == refreshCookieName {
+                if cookie.name.caseInsensitiveCompare(refreshCookieName) == .orderedSame {
                     refreshJwt = cookie.value
                 }
             }
@@ -433,7 +437,7 @@ class DescopeClient: HTTPClient {
     
     struct UserResponse: JSONResponse {
         // use a nested struct so we can let the compiler generate decoding for most members
-        struct UserFields: Decodable {
+        struct Fields: Decodable {
             var userId: String
             var loginIds: [String]
             var createdTime: Int
@@ -448,11 +452,11 @@ class DescopeClient: HTTPClient {
             var picture: String?
         }
 
-        var userFields: UserFields
+        var fields: Fields
         var customAttributes: [String: Any] = [:]
 
         init(from decoder: Decoder) throws {
-            userFields = try UserFields(from: decoder)
+            fields = try Fields(from: decoder)
         }
 
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {

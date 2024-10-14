@@ -64,6 +64,7 @@ public class DescopeSDK {
     ///     creating a ``DescopeSDK`` object. Since the initial value of ``sessionManager``
     ///     is created lazily this will ensure that the default instance doesn't get a
     ///     chance to perform any keychain queries before being replaced.
+    @MainActor
     public lazy var sessionManager: DescopeSessionManager = DescopeSessionManager(sdk: self)
     
     /// Creates a new ``DescopeSDK`` object.

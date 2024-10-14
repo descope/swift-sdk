@@ -2,7 +2,7 @@
 import AuthenticationServices
 
 extension DescopeSDK {
-    static let initial: DescopeSDK = DescopeSDK(projectId: "")
+    static nonisolated(unsafe) let initial: DescopeSDK = DescopeSDK(projectId: "")
 }
 
 extension DescopeError {
@@ -16,6 +16,12 @@ extension DescopeError {
     
     func with(cause: Error) -> DescopeError {
         return DescopeError(code: code, desc: desc, message: message, cause: cause)
+    }
+}
+
+extension DescopeLogger? {
+    func callAsFunction(_ level: DescopeLogger.Level, _ message: StaticString, _ values: Any?...) {
+        self?.log(level, message, values)
     }
 }
 

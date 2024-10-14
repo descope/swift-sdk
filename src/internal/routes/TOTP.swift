@@ -4,7 +4,7 @@ import Foundation
 import UIKit
 #endif
 
-class TOTP: DescopeTOTP {
+final class TOTP: DescopeTOTP {
     let client: DescopeClient
     
     init(client: DescopeClient) {

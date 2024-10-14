@@ -50,8 +50,8 @@ public class DescopeFlowRunner {
     }
     
     /// The URL where the flow is hosted.
-    public let flowURL: String
-    
+    public let flowURL: URL
+
     /// Optional authentication info to allow running flows for authenticated users
     public var flowAuthentication: Authentication?
     
@@ -85,10 +85,10 @@ public class DescopeFlowRunner {
     /// Creates a new ``DescopeFlowRunner`` object that encapsulates a single flow run.
     ///
     /// - Parameter flowURL: The URL where the flow is hosted.
-    public init(flowURL: String) {
+    public init(flowURL: URL) {
         self.flowURL = flowURL
     }
-    
+
     /// Resumes a running flow that's waiting for Magic Link authentication.
     ///
     /// When a flow performs authentication with Magic Link at some point it will wait

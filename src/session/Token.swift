@@ -6,7 +6,7 @@ import Foundation
 /// The session and refresh JWTs in a ``DescopeSession`` are stored as
 /// instances of ``DescopeToken``. It's also returned directly when
 /// exchanging an access key for a session JWT.
-public protocol DescopeToken {
+public protocol DescopeToken: Sendable {
     /// The underlying JWT value
     var jwt: String { get }
     
@@ -47,7 +47,7 @@ public protocol DescopeToken {
 
 // Internal
 
-class Token: DescopeToken {
+final class Token: DescopeToken, @unchecked Sendable {
     let jwt: String
     let entityId: String
     let projectId: String

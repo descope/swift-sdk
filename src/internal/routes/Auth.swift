@@ -1,5 +1,5 @@
 
-class Auth: DescopeAuth {
+final class Auth: DescopeAuth {
     let client: DescopeClient
     
     init(client: DescopeClient) {

@@ -3,6 +3,7 @@ import Foundation
 
 /// This protocol can be used to customize how a ``DescopeSessionManager`` object
 /// stores the active ``DescopeSession`` between application launches.
+@MainActor
 public protocol DescopeSessionStorage: AnyObject {
     /// Called by the session manager when a new session is set or an
     /// existing session is updated.
@@ -35,7 +36,7 @@ public class SessionStorage: DescopeSessionStorage {
     public let store: Store
     
     private var lastValue: Value?
-    
+
     public init(projectId: String, store: Store = .keychain) {
         self.projectId = projectId
         self.store = store
@@ -65,6 +66,7 @@ public class SessionStorage: DescopeSessionStorage {
     /// A helper class that takes care of the actual storage of session data.
     ///
     /// The default function implementations in this class do nothing or return `nil`.
+    @MainActor
     open class Store {
         open func loadItem(key: String) throws -> Data? {
             return nil

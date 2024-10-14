@@ -93,7 +93,7 @@ class TestHttpMethods: XCTestCase {
     }
 }
 
-private let mockBodyJSON: [String: Any?] = ["foo": 4]
+private let mockBodyJSON: [String: Sendable] = ["foo": 4]
 private let mockBodyString = #"{"foo":4}"#
 
 private struct MockResponse: JSONResponse, Equatable {
@@ -102,7 +102,7 @@ private struct MockResponse: JSONResponse, Equatable {
     var hd: String?
 
     static let instance = MockResponse(id: 7, st: "foo", hd: "bar")
-    static let json: [String: Any] = ["id": instance.id, "st": instance.st]
+    static let json: [String: Sendable] = ["id": instance.id, "st": instance.st]
     static let headers: [String: String] = ["hd": instance.hd!]
     
     mutating func setValues(from data: Data, response: HTTPURLResponse) throws {

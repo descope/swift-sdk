@@ -58,10 +58,10 @@ class HTTPClient {
     
     private func call(_ route: String, method: String, headers: [String: String], params: [String: String?], body: Data?) async throws -> (Data, HTTPURLResponse) {
         let request = try makeRequest(route: route, method: method, headers: headers, params: params, body: body)
-        logger?.log(.info, "Starting network call", request.url)
+        logger(.info, "Starting network call", request.url)
         #if DEBUG
         if let body = request.httpBody, let requestBody = String(bytes: body, encoding: .utf8) {
-            logger?.log(.debug, "Sending request body", requestBody)
+            logger(.debug, "Sending request body", requestBody)
         }
         #endif
         
@@ -70,20 +70,20 @@ class HTTPClient {
         guard let response = response as? HTTPURLResponse else { throw DescopeError(httpError: .invalidResponse) }
         #if DEBUG
         if let responseBody = String(bytes: data, encoding: .utf8) {
-            logger?.log(.debug, "Received response body", responseBody)
+            logger(.debug, "Received response body", responseBody)
         }
         #endif
         
         if let error = DescopeError(httpStatusCode: response.statusCode) {
             if let responseError = errorForResponseData(data) {
-                logger?.log(.info, "Network call failed with server error", request.url, responseError)
+                logger(.info, "Network call failed with server error", request.url, responseError)
                 throw responseError
             }
-            logger?.log(.info, "Network call failed with http error", request.url, error)
+            logger(.info, "Network call failed with http error", request.url, error)
             throw error
         }
         
-        logger?.log(.info, "Network call finished", request.url)
+        logger(.info, "Network call finished", request.url)
         return (data, response)
     }
     
@@ -114,7 +114,7 @@ class HTTPClient {
         do {
             return try await networkClient.call(request: request)
         } catch {
-            logger?.log(.error, "Network call failed with network error", request.url, error)
+            logger(.error, "Network call failed with network error", request.url, error)
             throw DescopeError.networkError.with(cause: error)
         }
     }
@@ -182,7 +182,7 @@ private func mergeHeaders(_ headers: [String: String], with defaults: [String: S
 
 // Network
 
-private class DefaultNetworkClient: DescopeNetworkClient {
+private final class DefaultNetworkClient: DescopeNetworkClient {
     private let session = makeURLSession()
     
     deinit {
@@ -203,7 +203,7 @@ private func makeURLSession() -> URLSession {
 }
 
 #if DEBUG
-private class CerificateErrorIgnorer: NSObject, URLSessionDelegate {
+private final class CerificateErrorIgnorer: NSObject, URLSessionDelegate {
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         guard let trust = challenge.protectionSpace.serverTrust else { return (.performDefaultHandling, nil) }
         return (.useCredential, URLCredential(trust: trust))

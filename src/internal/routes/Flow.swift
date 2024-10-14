@@ -5,16 +5,15 @@ import CryptoKit
 private let redirectScheme = "descopeauth"
 private let redirectURL = "\(redirectScheme)://flow"
 
-class Flow: Route, DescopeFlow {
+final class Flow: DescopeFlow, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {
         self.client = client
     }
-    
+
     var current: DescopeFlowRunner?
-    
-    @MainActor
+
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse {
         // adds some required query parameters to the flow URL to facilitate PKCE and
         // redirection at the end of the flow
@@ -23,7 +22,7 @@ class Flow: Route, DescopeFlow {
         if let flowAuthentication = runner.flowAuthentication {
             try await client.flowPrime(codeChallenge: codeChallenge, flowId: flowAuthentication.flowId, refreshJwt: flowAuthentication.refreshJwt)
         }
-        log(.info, "Starting flow authentication", initialURL)
+        logger(.info, "Starting flow authentication", initialURL)
         
         // sets the flow we're about to present as the current flow
         current = runner
@@ -72,14 +71,14 @@ class Flow: Route, DescopeFlow {
                 // protects against the completion handler being called multiple times, e.g.,
                 // in case the session is cancelled or another call to `run` in recursion
                 // will be responsible to call it
-                guard !completed else { return log(.debug, "Skipping previous web session completion") }
+                guard !completed else { return logger(.debug, "Skipping previous web session completion") }
                 completed = true
                 
                 // parse the URL we got from the flow to get the authorization code
                 let result: Result<String, Error>
                 do {
                     let code = try parseAuthorizationCode(callbackURL, error)
-                    log(.info, "Received flow authorization code")
+                    logger(.info, "Received flow authorization code")
                     result = .success(code)
                 } catch {
                     result = .failure(error)
@@ -88,7 +87,7 @@ class Flow: Route, DescopeFlow {
                 // if this is a recursive call to `run` we close any previous sessions,
                 // otherwise we might have lingering browser windows
                 for session in sessions {
-                    log(.debug, "Cancelling previous web session", session)
+                    logger(.debug, "Cancelling previous web session", session)
                     session.cancel()
                 }
                 
@@ -110,21 +109,21 @@ class Flow: Route, DescopeFlow {
         }
         
         // opens the flow in a sandboxed browser view
-        log(.info, "Presenting web session", session)
+        logger(.info, "Presenting web session", session)
         session.presentationContextProvider = contextProvider
         session.start()
         
         Task {
             do {
-                log(.debug, "Polling for runner cancellation or redirect")
+                logger(.debug, "Polling for runner cancellation or redirect")
                 while !completed {
                     guard !runner.isCancelled else { throw DescopeError.flowCancelled }
                     
                     if let pendingURL = runner.pendingURL {
-                        log(.debug, "Handling redirect url for flow authentication", pendingURL)
+                        logger(.debug, "Handling redirect url for flow authentication", pendingURL)
                         runner.pendingURL = nil
                         guard let nextURL = prepareRedirectRequest(for: runner, redirectURL: pendingURL) else { continue }
-                        log(.info, "Redirecting flow authentication", nextURL)
+                        logger(.info, "Redirecting flow authentication", nextURL)
                         completed = true
                         return run(runner, url: nextURL, codeVerifier: codeVerifier, sessions: sessions+[session], completion: completion)
                     }
@@ -132,7 +131,7 @@ class Flow: Route, DescopeFlow {
                     try await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
                 }
             } catch {
-                log(.info, "Flow authentication cancelled")
+                logger(.info, "Flow authentication cancelled")
                 completed = true
                 for session in sessions {
                     session.cancel()
@@ -155,14 +154,14 @@ class Flow: Route, DescopeFlow {
         if let error {
             switch error {
             case ASWebAuthenticationSessionError.canceledLogin:
-                log(.info, "Flow authentication cancelled by user")
+                logger(.info, "Flow authentication cancelled by user")
                 throw DescopeError.flowCancelled
             case ASWebAuthenticationSessionError.presentationContextInvalid:
-                log(.error, "Invalid presentation context for flow authentication web session", error)
+                logger(.error, "Invalid presentation context for flow authentication web session", error)
             case ASWebAuthenticationSessionError.presentationContextNotProvided:
-                log(.error, "No presentation context for flow authentication web session", error)
+                logger(.error, "No presentation context for flow authentication web session", error)
             default:
-                log(.error, "Unexpected error from flow authentication web session", error)
+                logger(.error, "Unexpected error from flow authentication web session", error)
             }
             throw DescopeError.flowFailed.with(cause: error)
         }
@@ -174,10 +173,10 @@ class Flow: Route, DescopeFlow {
         return code
     }
     
-    
+    @MainActor
     private func resetRunner(_ runner: DescopeFlowRunner) {
         guard current === runner else { return }
-        log(.debug, "Resetting current flow runner property")
+        logger(.debug, "Resetting current flow runner property")
         current = nil
     }
 }
@@ -199,8 +198,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
     let codeVerifier = randomBytes.base64URLEncodedString()
     let codeChallenge = hashedBytes.base64URLEncodedString()
 
-    guard let url = URL(string: runner.flowURL) else { throw DescopeError.flowFailed.with(message: "Invalid flow URL") }
-    guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Malformed flow URL") }
+    guard var components = URLComponents(url: runner.flowURL, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Malformed flow URL") }
     components.queryItems = components.queryItems ?? []
     components.queryItems?.append(URLQueryItem(name: "ra-callback", value: redirectURL))
     components.queryItems?.append(URLQueryItem(name: "ra-challenge", value: codeChallenge))
@@ -217,7 +215,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
 
 private func prepareRedirectRequest(for runner: DescopeFlowRunner, redirectURL: URL) -> URL? {
     guard let pendingComponents = URLComponents(url: redirectURL, resolvingAgainstBaseURL: false) else { return nil }
-    guard let url = URL(string: runner.flowURL), var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+    guard var components = URLComponents(url: runner.flowURL, resolvingAgainstBaseURL: false) else { return nil }
     components.queryItems = components.queryItems ?? []
     for item in pendingComponents.queryItems ?? [] {
         components.queryItems?.append(item)

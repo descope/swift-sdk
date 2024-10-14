@@ -5,14 +5,14 @@ import UIKit
 #endif
 
 /// The delivery method for an OTP or Magic Link message.
-public enum DeliveryMethod: String {
+public enum DeliveryMethod: String, Sendable {
     case whatsapp
     case sms
     case email
 }
 
 /// The provider to use in an OAuth flow.
-public struct OAuthProvider: ExpressibleByStringLiteral {
+public struct OAuthProvider: Sendable, ExpressibleByStringLiteral {
     public static let facebook: OAuthProvider = "facebook"
     public static let github: OAuthProvider = "github"
     public static let google: OAuthProvider = "google"
@@ -30,7 +30,7 @@ public struct OAuthProvider: ExpressibleByStringLiteral {
 }
 
 /// Used to provide additional details about a user in sign up calls.
-public struct SignUpDetails {
+public struct SignUpDetails: Sendable {
     public var name: String?
     public var email: String?
     public var phone: String?
@@ -49,7 +49,7 @@ public struct SignUpDetails {
 }
 
 /// Used to require additional behaviors when authenticating a user.
-public enum SignInOptions {
+public enum SignInOptions: @unchecked Sendable {
     /// Adds additional custom claims to the user's JWT during authentication.
     ///
     /// For example, the following code starts an OTP sign in and requests a custom claim
@@ -93,7 +93,7 @@ public enum SignInOptions {
 }
 
 /// Used to configure how users are updated.
-public struct UpdateOptions: OptionSet {
+public struct UpdateOptions: OptionSet, Sendable {
     /// Whether to allow sign in from a new `loginId` after an update.
     ///
     /// When a user's email address or phone number are updated and this option is set

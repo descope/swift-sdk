@@ -1,7 +1,7 @@
 
 import Foundation
 
-class SSO: DescopeSSO {
+final class SSO: DescopeSSO {
     let client: DescopeClient
     
     init(client: DescopeClient) {

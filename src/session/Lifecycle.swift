@@ -31,7 +31,6 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     
     public var session: DescopeSession? {
         didSet {
-            guard session !== oldValue else { return }
             if session == nil {
                 stopTimer()
             } else {
@@ -41,9 +40,9 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     }
     
     public func refreshSessionIfNeeded() async throws {
-        guard let session, shouldRefresh(session) else { return }
-        let response = try await auth.refreshSession(refreshJwt: session.refreshJwt) // TODO check for refresh failure to not try again and again after expiry
-        session.updateTokens(with: response)
+        guard let current = session, shouldRefresh(current) else { return }
+        let response = try await auth.refreshSession(refreshJwt: current.refreshJwt)
+        session?.updateTokens(with: response)
     }
     
     // Internal
@@ -59,8 +58,8 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.periodicRefresh()
+            Task { @MainActor in
+                await self?.periodicRefresh()
             }
         }
     }
@@ -69,14 +68,12 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         timer?.invalidate()
         timer = nil
     }
-    
-    private func periodicRefresh() {
-        guard let session, shouldRefresh(session) else { return }
-        auth.refreshSession(refreshJwt: session.refreshJwt) { result in
-            guard case .success(let response) = result else { return }
-            DispatchQueue.main.async {
-                session.updateTokens(with: response)
-            }
+
+    private func periodicRefresh() async {
+        do {
+            try await refreshSessionIfNeeded()
+        } catch {
+            // TODO check for refresh failure to not try again and again after expiry
         }
     }
 }

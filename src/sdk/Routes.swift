@@ -9,7 +9,9 @@ public protocol DescopeAuth: Sendable {
     ///
     /// - Returns: A ``DescopeUser`` object with the user details.
     func me(refreshJwt: String) async throws -> DescopeUser
-    
+
+    func tenants(by request: TenantsRequest, refreshJwt: String) async throws -> [DescopeTenant]
+
     /// Refreshes a ``DescopeSession``.
     ///
     /// This can be called at any time as long as the `refreshJwt` is still valid.

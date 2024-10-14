@@ -50,6 +50,14 @@ extension DescopeClient.UserResponse {
     }
 }
 
+extension DescopeClient.TenantsResponse {
+    func convert() -> [DescopeTenant] {
+        return tenants.map { tenant in
+            return DescopeTenant(tenantId: tenant.id, name: tenant.name, customAttributes: tenant.customAttributes)
+        }
+    }
+}
+
 extension DescopeClient.JWTResponse {
     func convert() throws -> AuthenticationResponse {
         guard let sessionJwt, !sessionJwt.isEmpty else { throw DescopeError.decodeError.with(message: "Missing session JWT") }

@@ -43,6 +43,16 @@ public extension DescopeAuth {
         }
     }
 
+    func tenants(by request: TenantsRequest, refreshJwt: String, completion: @escaping @Sendable (Result<[DescopeTenant], Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await tenants(by: request, refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     /// Refreshes a ``DescopeSession``.
     /// 
     /// This can be called at any time as long as the `refreshJwt` is still valid.

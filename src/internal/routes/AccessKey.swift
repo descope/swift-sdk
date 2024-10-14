@@ -1,5 +1,5 @@
 
-class AccessKey: DescopeAccessKey {
+final class AccessKey: DescopeAccessKey {
     let client: DescopeClient
     
     init(client: DescopeClient) {

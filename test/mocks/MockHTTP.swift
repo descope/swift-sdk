@@ -32,14 +32,14 @@ class MockHTTP: URLProtocol {
 }
 
 extension MockHTTP {
-    static var session: URLSession = {
+    static let session: URLSession = {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [MockHTTP.self]
         return URLSession(configuration: sessionConfig)
     }()
     
-    static var networkClient: DescopeNetworkClient = {
-        class Client: DescopeNetworkClient {
+    static let networkClient: DescopeNetworkClient = {
+        final class Client: DescopeNetworkClient {
             func call(request: URLRequest) async throws -> (Data, URLResponse) {
                 return try await session.data(for: request)
             }
@@ -50,9 +50,9 @@ extension MockHTTP {
     
 extension MockHTTP {
     typealias RequestValidator = (URLRequest) -> ()
-    
-    static var responses: [(statusCode: Int, data: Data?, headers: [String: String]?, error: Error?, validate: RequestValidator?)] = []
-    
+
+    static nonisolated(unsafe) var responses: [(statusCode: Int, data: Data?, headers: [String: String]?, error: Error?, validate: RequestValidator?)] = []
+
     static func push(statusCode: Int = 400, error: Error, validator: RequestValidator? = nil) {
         responses.append((statusCode, nil, nil, error, validator))
     }

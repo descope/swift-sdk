@@ -26,7 +26,7 @@ import Foundation
 /// it's recommended to let a ``DescopeSessionManager`` object manage it instead,
 /// and the code examples above are only slightly different. See the documentation
 /// for ``DescopeSessionManager`` for more details.
-public class DescopeSession {
+public class DescopeSession: @unchecked Sendable {
     /// The wrapper for the short lived JWT that can be sent with every server
     /// request that requires authentication.
     public private(set) var sessionToken: DescopeToken

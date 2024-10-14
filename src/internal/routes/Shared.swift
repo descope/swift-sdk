@@ -6,12 +6,12 @@ protocol Route {
 }
 
 extension Route {
-    func log(_ level: DescopeLogger.Level, _ message: StaticString, _ values: Any?...) {
-        client.config.logger?.log(level, message, values)
+    var logger: DescopeLogger? {
+        return client.config.logger
     }
 }
 
-extension DescopeClient.UserResponse.UserFields {
+extension DescopeClient.UserResponse.Fields {
     func convert() -> DescopeUser {
         let createdAt = Date(timeIntervalSince1970: TimeInterval(createdTime))
         var user = DescopeUser(userId: userId, loginIds: loginIds, createdAt: createdAt, isVerifiedEmail: false, isVerifiedPhone: false)
@@ -44,7 +44,7 @@ extension DescopeClient.UserResponse.UserFields {
 
 extension DescopeClient.UserResponse {
     func convert() -> DescopeUser {
-        var user = userFields.convert()
+        var user = fields.convert()
         user.customAttributes = customAttributes
         return user
     }

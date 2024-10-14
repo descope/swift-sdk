@@ -2,7 +2,7 @@
 import Foundation
 
 /// General authentication functions
-public protocol DescopeAuth {
+public protocol DescopeAuth: Sendable {
     /// Returns details about the user. The user must have an active ``DescopeSession``.
     ///
     /// - Parameter refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
@@ -37,7 +37,7 @@ public protocol DescopeAuth {
 /// a delivery method of choice. The code then needs to be verified using
 /// the `verify(with:loginId:code:)` function. It is also possible to add
 /// an email or phone to an existing user after validating it via OTP.
-public protocol DescopeOTP {
+public protocol DescopeOTP: Sendable {
     /// Authenticates a new user using an OTP, sent via a delivery
     /// method of choice.
     ///
@@ -125,7 +125,7 @@ public protocol DescopeOTP {
 ///
 /// This authentication method is geared towards using an authenticator app which
 /// can produce TOTP codes.
-public protocol DescopeTOTP {
+public protocol DescopeTOTP: Sendable {
     /// Authenticates a new user using a TOTP. This function returns the
     /// key (seed) that allows authenticator apps to generate TOTP codes.
     ///
@@ -171,7 +171,7 @@ public protocol DescopeTOTP {
 /// to the app. Read more on [universal links](https://developer.apple.com/ios/universal-links/)
 /// to learn more. Once redirected back to the app, call the `verify(token:)` function
 /// on the appended token URL parameter.
-public protocol DescopeMagicLink {
+public protocol DescopeMagicLink: Sendable {
     /// Authenticates a new user using a magic link, sent via a delivery
     /// method of choice.
     ///
@@ -285,7 +285,7 @@ public protocol DescopeMagicLink {
 /// in the meantime, and will authenticate the user as soon as they are
 /// verified via said webpage. To learn more consult the
 /// official Descope docs.
-public protocol DescopeEnchantedLink {
+public protocol DescopeEnchantedLink: Sendable {
     /// Authenticates a new user using an enchanted link, sent via email.
     ///
     /// The caller should use the returned ``EnchantedLinkResponse`` object to show the
@@ -418,7 +418,7 @@ public protocol DescopeEnchantedLink {
 /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication
 ///
 /// - SeeAlso: For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
-public protocol DescopeOAuth {
+public protocol DescopeOAuth: Sendable {
     /// Starts an OAuth redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
@@ -492,7 +492,7 @@ public protocol DescopeOAuth {
 /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication
 ///
 /// For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
-public protocol DescopeSSO {
+public protocol DescopeSSO: Sendable {
     /// Starts an SSO redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
@@ -521,7 +521,7 @@ public protocol DescopeSSO {
 }
 
 /// Authenticate users using a password.
-public protocol DescopePassword {
+public protocol DescopePassword: Sendable {
     /// Creates a new user that can later sign in with a password.
     ///
     /// - Parameters:
@@ -597,7 +597,7 @@ public protocol DescopePassword {
 
 
 /// Access key authentication methods
-public protocol DescopeAccessKey {
+public protocol DescopeAccessKey: Sendable {
     /// Exchanges an access key for a ``DescopeToken`` that can be used to perform
     /// authenticated requests.
     ///
@@ -614,7 +614,7 @@ public protocol DescopeAccessKey {
 /// view. It is thus recommended to show an activity indicator or switch the user interface
 /// to a loading state before calling these functions, otherwise the user might accidentally
 /// interact with the app when the authentication view is not being displayed.
-public protocol DescopePasskey {
+public protocol DescopePasskey: Sendable {
     /// Authenticates a new user by creating a new passkey.
     ///
     /// - Parameters:
@@ -680,9 +680,10 @@ public protocol DescopePasskey {
 /// are run using a sandboxed browser view.
 ///
 /// See the documentation for ``DescopeFlowRunner`` for more details.
-public protocol DescopeFlow {
+public protocol DescopeFlow: Sendable {
     /// Returns the ``DescopeFlowRunner`` for the current running flow or `nil` if
     /// no flow is currently running.
+    @MainActor
     var current: DescopeFlowRunner? { get }
     
     /// Starts a user authentication flow.
@@ -704,5 +705,6 @@ public protocol DescopeFlow {
     ///     is called on the runner or the authentication view is cancelled by the user.
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    @MainActor
     func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse
 }

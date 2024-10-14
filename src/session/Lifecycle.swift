@@ -3,6 +3,7 @@ import Foundation
 
 /// This protocol can be used to customize how a ``DescopeSessionManager`` object
 /// manages its ``DescopeSession`` while the application is running.
+@MainActor
 public protocol DescopeSessionLifecycle: AnyObject {
     /// Set by the session manager whenever the current active session changes.
     var session: DescopeSession? { get set }

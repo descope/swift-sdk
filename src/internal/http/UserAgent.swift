@@ -69,6 +69,6 @@ private func systemInfo() -> String? {
     var chars = [CChar](repeating: 0, count: size)
     guard sysctlbyname(osSysctl, &chars, &size, nil, 0) == 0 else { return nil }
     
-    return String(cString: chars)
+    return String(utf8String: chars)
     #endif
 }

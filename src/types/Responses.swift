@@ -5,7 +5,7 @@ import UIKit
 #endif
 
 /// Returned from user authentication calls.
-public struct AuthenticationResponse {
+public struct AuthenticationResponse: Sendable {
     public var sessionToken: DescopeToken
     public var refreshToken: DescopeToken
     public var isFirstAuthentication: Bool
@@ -13,7 +13,7 @@ public struct AuthenticationResponse {
 }
 
 /// Returned from the refreshSession call.
-public struct RefreshResponse {
+public struct RefreshResponse: Sendable {
     public var sessionToken: DescopeToken
     public var refreshToken: DescopeToken?
 }
@@ -25,7 +25,7 @@ public struct RefreshResponse {
 /// field can also be shown to inform the user to which address the email
 /// was sent. The ``pendingRef`` field is used to poll the server for the
 /// enchanted link flow result.
-public struct EnchantedLinkResponse {
+public struct EnchantedLinkResponse: Sendable {
     public var linkId: String
     public var pendingRef: String
     public var maskedEmail: String
@@ -36,7 +36,7 @@ public struct EnchantedLinkResponse {
 /// The ``provisioningURL`` field wraps the key (seed) in a `URL` that can be
 /// opened by authenticator apps. The ``image`` field encodes the key (seed)
 /// in a QR code image.
-public struct TOTPResponse {
+public struct TOTPResponse: Sendable {
     public var provisioningURL: URL
     #if os(iOS)
     public var image: UIImage
@@ -53,7 +53,7 @@ public struct TOTPResponse {
 /// for a better user experience.
 ///
 /// In any case, all password rules are enforced by Descope on the server side as well.
-public struct PasswordPolicyResponse {
+public struct PasswordPolicyResponse: Sendable {
     public var minLength: Int
     public var lowercase: Bool
     public var uppercase: Bool

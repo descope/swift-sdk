@@ -55,6 +55,7 @@ import Foundation
 /// You can customize how the ``DescopeSessionManager`` behaves by using your own
 /// `storage` and `lifecycle` objects. See the documentation for the ``init(storage:lifecycle:)``
 /// initializer below for more details.
+@MainActor
 public class DescopeSessionManager {
     /// The object that handles session storage for this manager.
     private let storage: DescopeSessionStorage

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
@@ -15,7 +15,8 @@ let package = Package(
     targets: [
         .target(
             name: "DescopeKit",
-            path: "src"),
+            path: "src",
+            exclude: ["sdk/Callbacks.stencil"]),
         .testTarget(
             name: "DescopeKitTests",
             dependencies: ["DescopeKit"],

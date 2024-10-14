@@ -7,7 +7,7 @@ public extension URLRequest {
     /// header field in the `URLRequest`.
     mutating func setAuthorizationHTTPHeaderField(from sessionManager: DescopeSessionManager) async throws {
         try await sessionManager.refreshSessionIfNeeded()
-        if let session = sessionManager.session {
+        if let session = await sessionManager.session {
             setAuthorizationHTTPHeaderField(from: session)
         }
     }

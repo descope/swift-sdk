@@ -36,6 +36,7 @@ public enum Descope {
     ///     the project page in the Descope console.
     ///   - closure: An optional closure that performs additional configuration
     ///     by setting values on the provided ``DescopeConfig`` instance.
+    @MainActor
     public static func setup(projectId: String, with closure: (_ config: inout DescopeConfig) -> Void = { _ in }) {
         sdk = DescopeSDK(projectId: projectId, with: closure)
     }
@@ -50,15 +51,14 @@ public enum Descope {
     ///     Descope.sessionManager.manageSession(session)
     ///
     /// See the documentation for ``DescopeSessionManager`` for more details.
+    @MainActor
     public static var sessionManager: DescopeSessionManager {
         get { sdk.sessionManager }
         set { sdk.sessionManager = newValue }
     }
 
     /// The underlying ``DescopeSDK`` object used by the ``Descope`` singleton.
-    ///
-    /// FIXME: can be private but left internal for now until deprecations are removed
-    static var sdk: DescopeSDK = .initial
+    static nonisolated(unsafe) var sdk: DescopeSDK = .initial
 }
 
 /// Authentication functions that call the Descope API.

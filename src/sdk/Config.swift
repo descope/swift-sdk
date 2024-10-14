@@ -133,7 +133,7 @@ open class DescopeLogger {
 ///             return try await session.data(for: request)
 ///         }
 ///     }
-public protocol DescopeNetworkClient {
+public protocol DescopeNetworkClient: Sendable {
     /// Loads data using a `URLRequest` and returns the `data` and `response`.
     ///
     /// - Note: The code that calls this function expects the response object to be an

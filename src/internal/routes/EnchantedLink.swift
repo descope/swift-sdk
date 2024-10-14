@@ -3,7 +3,7 @@ import Foundation
 
 private let defaultPollDuration: TimeInterval = 2 /* mins */ * 60 /* secs */
 
-class EnchantedLink: Route, DescopeEnchantedLink {
+final class EnchantedLink: DescopeEnchantedLink, Route {
     let client: DescopeClient
     
     init(client: DescopeClient) {
@@ -34,7 +34,7 @@ class EnchantedLink: Route, DescopeEnchantedLink {
     
     func pollForSession(pendingRef: String, timeout: TimeInterval?) async throws -> AuthenticationResponse {
         let pollingEndsAt = Date() + (timeout ?? defaultPollDuration)
-        log(.info, "Polling for enchanted link", timeout ?? defaultPollDuration)
+        logger(.info, "Polling for enchanted link", timeout ?? defaultPollDuration)
         while true {
             do {
                 // ensure that the async task hasn't been cancelled
@@ -42,16 +42,16 @@ class EnchantedLink: Route, DescopeEnchantedLink {
                 // check for the session once, any errors not specifically handled
                 // below are intentionally let through to the calling code
                 let response = try await checkForSession(pendingRef: pendingRef)
-                log(.info, "Enchanted link authentication succeeded")
+                logger(.info, "Enchanted link authentication succeeded")
                 return response
             } catch DescopeError.enchantedLinkPending {
-                log(.debug, "Waiting for enchanted link")
+                logger(.debug, "Waiting for enchanted link")
                 // sleep for a second before checking again
                 try await Task.sleep(nanoseconds: NSEC_PER_SEC)
                 // if the timer's expired then we throw a specific error that
                 // can be handled appropriately by the calling code
                 guard Date() < pollingEndsAt else {
-                    log(.error, "Timed out while polling for enchanted link")
+                    logger(.error, "Timed out while polling for enchanted link")
                     throw DescopeError.enchantedLinkExpired
                 }
             } catch let error as DescopeError where error == .networkError {
@@ -62,10 +62,10 @@ class EnchantedLink: Route, DescopeEnchantedLink {
                 // error as that was probably the cause, rather than the
                 // user not verifying the enchanted link email
                 guard Date() < pollingEndsAt else {
-                    log(.error, "Timed out with network error while polling for enchanted link", error)
+                    logger(.error, "Timed out with network error while polling for enchanted link", error)
                     throw error
                 }
-                log(.debug, "Ignoring network error while polling for enchanted link", error)
+                logger(.debug, "Ignoring network error while polling for enchanted link", error)
             }
         }
     }

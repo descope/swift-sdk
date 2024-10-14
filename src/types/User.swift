@@ -28,7 +28,7 @@ import Foundation
 /// In the code above we check that there's an active ``DescopeSession`` in the shared
 /// session manager. If so we ask the Descope server for the latest user details and
 /// then update the ``DescopeSession`` with them.
-public struct DescopeUser {
+public struct DescopeUser: @unchecked Sendable {
 
     /// The unique identifier for the user in Descope.
     ///
@@ -83,7 +83,7 @@ public struct DescopeUser {
     /// A mapping of any custom attributes associated with this user. The custom attributes
     /// are managed via the Descope console.
     public var customAttributes: [String: Any]
-    
+
     public init(userId: String, loginIds: [String], createdAt: Date, email: String? = nil, isVerifiedEmail: Bool = false, phone: String? = nil, isVerifiedPhone: Bool = false, name: String? = nil, givenName: String? = nil, middleName: String? = nil, familyName: String? = nil, picture: URL? = nil, customAttributes: [String: Any] = [:]) {
         self.userId = userId
         self.loginIds = loginIds
@@ -130,8 +130,8 @@ extension DescopeUser: Equatable {
     }
 }
 
-// Unfortunately we can't rely on the compiler for automatic conformance to Codable because
-// the customAttributes dictionary isn't serializable
+// Unfortunately we can't rely on the compiler for automatic conformance
+// to Codable because the customAttributes dictionary isn't serializable
 extension DescopeUser: Codable {
     enum CodingKeys: CodingKey {
         case userId, loginIds, createdAt, email, isVerifiedEmail, phone, isVerifiedPhone, name, givenName, middleName, familyName, picture, customAttributes

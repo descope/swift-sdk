@@ -1,7 +1,7 @@
 
 import Foundation
 
-class MagicLink: DescopeMagicLink {
+final class MagicLink: DescopeMagicLink {
     let client: DescopeClient
     
     init(client: DescopeClient) {

@@ -1,5 +1,5 @@
 
-class Password: DescopePassword {
+final class Password: DescopePassword {
     let client: DescopeClient
     
     init(client: DescopeClient) {

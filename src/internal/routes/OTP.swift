@@ -1,5 +1,5 @@
 
-class OTP: DescopeOTP {
+final class OTP: DescopeOTP {
     let client: DescopeClient
     
     init(client: DescopeClient) {

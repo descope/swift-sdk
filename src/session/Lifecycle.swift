@@ -45,21 +45,22 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         session?.updateTokens(with: response)
     }
     
-    // Internal
+    // Conditional refresh
     
     private func shouldRefresh(_ session: DescopeSession) -> Bool {
         return session.sessionToken.expiresAt.timeIntervalSinceNow <= stalenessAllowedInterval
     }
     
-    // Timer
-    
+    // Periodic refresh
+
     private var timer: Timer?
     
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] _ in
+        timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] timer in
+            guard let lifecycle = self else { return timer.invalidate() }
             Task { @MainActor in
-                await self?.periodicRefresh()
+                await lifecycle.periodicRefresh()
             }
         }
     }

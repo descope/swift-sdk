@@ -33,8 +33,8 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         didSet {
             if session == nil {
                 stopTimer()
-            } else {
-                startTimer()
+            } else if session?.refreshJwt != oldValue?.refreshJwt {
+                restartTimer()
             }
         }
     }
@@ -55,7 +55,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
 
     private var timer: Timer?
     
-    private func startTimer() {
+    private func restartTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] timer in
             guard let lifecycle = self else { return timer.invalidate() }

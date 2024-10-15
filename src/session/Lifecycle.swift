@@ -24,17 +24,21 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     public init(auth: DescopeAuth) {
         self.auth = auth
     }
-    
+
     public var stalenessAllowedInterval: TimeInterval = 60 /* seconds */
     
-    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */
-    
+    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */ {
+        didSet {
+            if stalenessCheckFrequency != oldValue {
+                resetTimer()
+            }
+        }
+    }
+
     public var session: DescopeSession? {
         didSet {
-            if session == nil {
-                stopTimer()
-            } else if session?.refreshJwt != oldValue?.refreshJwt {
-                restartTimer()
+            if session?.refreshJwt != oldValue?.refreshJwt {
+                resetTimer()
             }
         }
     }
@@ -54,8 +58,16 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     // Periodic refresh
 
     private var timer: Timer?
-    
-    private func restartTimer() {
+
+    private func resetTimer() {
+        if session != nil && stalenessCheckFrequency > 0 {
+            startTimer()
+        } else {
+            stopTimer()
+        }
+    }
+
+    private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] timer in
             guard let lifecycle = self else { return timer.invalidate() }

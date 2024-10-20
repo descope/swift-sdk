@@ -15,7 +15,7 @@ public protocol DescopeFlowViewControllerViewDelegate: AnyObject {
 
 public class DescopeFlowViewController: UIViewController {
 
-    public private(set) lazy var flowView = createFlowView()
+    public private(set) lazy var flowView: DescopeFlowView = createFlowView()
 
     public weak var delegate: DescopeFlowViewControllerViewDelegate?
 
@@ -26,10 +26,10 @@ public class DescopeFlowViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        loadingView.color = .placeholderText
+        activityView.color = .placeholderText
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: loadingView)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: activityView)
 
         view.backgroundColor = .secondarySystemBackground
 
@@ -38,12 +38,7 @@ public class DescopeFlowViewController: UIViewController {
         view.addSubview(flowView)
     }
 
-    private var loadingView = UIActivityIndicatorView()
-
-    @objc
-    private func handleCancel() {
-        delegate?.flowViewControllerDidCancel(self)
-    }
+    private lazy var activityView = UIActivityIndicatorView()
 
     public func start(runner: DescopeFlowRunner) {
         flowView.delegate = self
@@ -52,8 +47,13 @@ public class DescopeFlowViewController: UIViewController {
 
     /// Internal
 
+    @objc
+    private func handleCancel() {
+        delegate?.flowViewControllerDidCancel(self)
+    }
+
     private func createFlowView() -> DescopeFlowView {
-        return _DescopeFlowView(frame: isViewLoaded ? view.bounds : UIScreen.main.bounds)
+        return DescopeCustomFlowView(frame: isViewLoaded ? view.bounds : UIScreen.main.bounds)
     }
 }
 
@@ -61,9 +61,9 @@ extension DescopeFlowViewController: DescopeFlowViewDelegate {
     public func flowViewDidUpdateState(_ flowView: DescopeFlowView, to state: DescopeFlowState, from previous: DescopeFlowState) {
         switch state {
         case .started:
-            loadingView.startAnimating()
+            activityView.startAnimating()
         default:
-            loadingView.stopAnimating()
+            activityView.stopAnimating()
         }
         delegate?.flowViewControllerDidUpdateState(self, to: state, from: previous)
     }
@@ -93,13 +93,13 @@ extension DescopeFlowViewController: DescopeFlowViewDelegate {
     }
 }
 
-private class _DescopeFlowView: DescopeFlowView {
+private class DescopeCustomFlowView: DescopeFlowView {
     override class var webViewClass: WKWebView.Type {
-        return _DescopeFlowWebView.self
+        return DescopeCustomWebView.self
     }
 }
 
-class _DescopeFlowWebView: WKWebView {
+private class DescopeCustomWebView: WKWebView {
     override var inputAccessoryView: UIView? {
         return nil
     }

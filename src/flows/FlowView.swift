@@ -88,9 +88,6 @@ open class DescopeFlowView: UIView {
     private func _prepareWebView(_ webView: WKWebView) {
         webView.isOpaque = false
         webView.backgroundColor = .clear
-//        webView.scrollView.isScrollEnabled = false
-//        webView.scrollView.showsVerticalScrollIndicator = false
-//        webView.scrollView.showsHorizontalScrollIndicator = false
         webView.scrollView.keyboardDismissMode = .interactiveWithAccessory
         prepareWebView(webView)
     }

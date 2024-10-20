@@ -119,7 +119,6 @@ final class Passkey: DescopePasskey, Route {
         
         let authController = ASAuthorizationController(authorizationRequests: [ request ] )
         authController.delegate = authDelegate
-        authController.performRequests()
 
         // now that we have a reference to the ASAuthorizationController object we setup
         // a cancellation handler to be invoked if the async task is cancelled
@@ -128,7 +127,7 @@ final class Passkey: DescopePasskey, Route {
             authController?.cancel()
         }
 
-        // we pass a completion handler to the delegate object we can use an async/await code
+        // we pass a completion handler to the delegate object so we can use an async/await code
         // style even though we're waiting for a regular callback. The onCancel closure ensures
         // that we handle task cancellation properly by dismissing the authentication view.
         let result = await withTaskCancellationHandler {
@@ -136,6 +135,7 @@ final class Passkey: DescopePasskey, Route {
                 authDelegate.completion = { result in
                     continuation.resume(returning: result)
                 }
+                authController.performRequests()
             }
         } onCancel: {
             Task { @MainActor in
@@ -154,7 +154,7 @@ final class Passkey: DescopePasskey, Route {
             logger(.error, "Passkey authorization failed", error)
             throw DescopeError.passkeyFailed.with(cause: error)
         case .success(let authorization):
-            logger(.debug, "Passkey authorization succeeded", authorization)
+            logger(.debug, "Processing passkey authorization", authorization)
             return authorization
         }
     }

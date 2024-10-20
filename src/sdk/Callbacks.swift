@@ -440,15 +440,27 @@ public extension DescopeMagicLink {
 }
 
 public extension DescopeOAuth {
+    /// TODO
+    @MainActor
+    func web(provider: OAuthProvider, accessSharedUserData: Bool, options: [SignInOptions], completion: @escaping @Sendable (Result<AuthenticationResponse, Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await web(provider: provider, accessSharedUserData: accessSharedUserData, options: options)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     /// Starts an OAuth redirect chain to authenticate a user.
     /// 
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     /// 
     ///     // use one of the built in constants for the OAuth provider
-    ///     let authURL = try await Descope.oauth.start(provider: .apple, redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: .apple, redirectURL: nil)
     /// 
     ///     // or pass a string with the name of a custom provider
-    ///     let authURL = try await Descope.oauth.start(provider: "myprovider", redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: "myprovider", redirectURL: nil)
     /// 
     /// - Important: Make sure a default OAuth redirect URL is configured
     ///     in the Descope console, or provided by this call.
@@ -461,10 +473,10 @@ public extension DescopeOAuth {
     /// 
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping @Sendable (Result<URL, Error>) -> Void) {
+    func webStart(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions], completion: @escaping @Sendable (Result<URL, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await start(provider: provider, redirectURL: redirectURL, options: options)))
+                completion(.success(try await webStart(provider: provider, redirectURL: redirectURL, options: options)))
             } catch {
                 completion(.failure(error))
             }
@@ -478,10 +490,10 @@ public extension DescopeOAuth {
     ///     `code` URL parameter.
     /// 
     /// - Returns: An ``AuthenticationResponse`` value upon successful exchange.
-    func exchange(code: String, completion: @escaping @Sendable (Result<AuthenticationResponse, Error>) -> Void) {
+    func webExchange(code: String, completion: @escaping @Sendable (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {
-                completion(.success(try await exchange(code: code)))
+                completion(.success(try await webExchange(code: code)))
             } catch {
                 completion(.failure(error))
             }
@@ -519,6 +531,7 @@ public extension DescopeOAuth {
     /// 
     /// - SeeAlso: For more details about configuring your app and generating client secrets
     ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
+    @MainActor
     func native(provider: OAuthProvider, options: [SignInOptions], completion: @escaping @Sendable (Result<AuthenticationResponse, Error>) -> Void) {
         Task {
             do {

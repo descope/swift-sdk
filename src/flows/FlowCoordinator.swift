@@ -3,6 +3,7 @@
 
 import UIKit
 import WebKit
+import AuthenticationServices // TODO
 
 @MainActor
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
@@ -18,7 +19,7 @@ public protocol DescopeFlowCoordinatorDelegate: AnyObject {
 @MainActor
 public class DescopeFlowCoordinator {
     private let descope: DescopeSDK
-    private let log: DescopeLogger?
+    private let logger: DescopeLogger?
     private let bridge: FlowBridge
 
     public weak var delegate: DescopeFlowCoordinatorDelegate?
@@ -45,9 +46,9 @@ public class DescopeFlowCoordinator {
 
     private init(sdk: DescopeSDK) {
         descope = sdk
-        log = sdk.config.logger
+        logger = sdk.config.logger
         bridge = FlowBridge()
-        bridge.log = log
+        bridge.logger = logger
         bridge.delegate = self
     }
 
@@ -56,7 +57,7 @@ public class DescopeFlowCoordinator {
     }
 
     public func start(runner: DescopeFlowRunner) {
-        log(.info, "Starting flow authentication", runner.flowURL)
+        logger(.info, "Starting flow authentication", runner.flowURL)
         state = .started
         let request = URLRequest(url: runner.flowURL)
         webView?.load(request)
@@ -66,7 +67,7 @@ public class DescopeFlowCoordinator {
 
     private func handleAuthentication(_ data: Data) {
         Task {
-            log(.info, "Finishing flow authentication")
+            logger(.info, "Finishing flow authentication")
             guard let authResponse = await parseAuthentication(data) else { return }
             state = .finished
             delegate?.coordinatorDidFinishAuthentication(self, response: authResponse)
@@ -75,27 +76,29 @@ public class DescopeFlowCoordinator {
 
     private func parseAuthentication(_ data: Data) async -> AuthenticationResponse? {
         do {
-            let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-            try jwtResponse.setValues(from: data, cookies: cookies)
+            try jwtResponse.setValues(from: data)
+            let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
+            jwtResponse.sessionJwt = try jwtResponse.sessionJwt ?? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: descope.config.projectId)
+            jwtResponse.refreshJwt = try jwtResponse.refreshJwt ?? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: descope.config.projectId)
             return try jwtResponse.convert()
         } catch let error as DescopeError {
-            log(.error, "Unexpected error converting authentication response", error)
+            logger(.error, "Unexpected error converting authentication response", error)
             state = .failed
             delegate?.coordinatorDidFailAuthentication(self, error: error)
             return nil
         } catch {
-            log(.error, "Unexpected error parsing authentication response", error)
+            logger(.error, "Unexpected error parsing authentication response", error)
             state = .failed
             delegate?.coordinatorDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
             return nil
         }
     }
 
-    // OAuth
+    // OAuth Native
 
     private func handleOAuthNative(clientId: String, stateId: String, nonce: String, implicit: Bool) {
-        log(.info, "Requesting authorization for Sign in with Apple", clientId)
+        logger(.info, "Requesting authorization for Sign in with Apple", clientId)
         Task {
             await performOAuthNative(stateId: stateId, nonce: nonce, implicit: implicit)
         }
@@ -103,13 +106,36 @@ public class DescopeFlowCoordinator {
 
     private func performOAuthNative(stateId: String, nonce: String, implicit: Bool) async {
         do {
-            let (authorizationCode, identityToken, user) = try await OAuth.performNativeAuthorization(nonce: nonce, implicit: implicit, log: log)
+            let (authorizationCode, identityToken, user) = try await OAuth.performNativeAuthentication(nonce: nonce, implicit: implicit, logger: logger)
             let response = FlowBridgeResponse.oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user)
             bridge.send(response: response)
-        } catch .flowCancelled {
+        } catch .oauthNativeCancelled {
             // TODO
         } catch {
-            log(.error, "Failed authenticating using Sign in with Apple", error)
+            logger(.error, "Failed authenticating using Sign in with Apple", error)
+            state = .failed
+            delegate?.coordinatorDidFailAuthentication(self, error: error)
+        }
+    }
+
+    // OAuth Web
+
+    private func handleOAuthWeb(startURL: URL, finishURL: URL?) {
+        logger(.info, "Requesting authorization for OAuth web", startURL)
+        Task {
+            await performOAuthWeb(startURL: startURL, finishURL: finishURL)
+        }
+    }
+
+    private func performOAuthWeb(startURL: URL, finishURL: URL?) async {
+        do {
+            let exchangeCode = try await OAuth.performWebAuthentication(url: startURL, accessSharedUserData: true, logger: logger)
+            let response = FlowBridgeResponse.oauthWeb(exchangeCode: exchangeCode)
+            bridge.send(response: response)
+        } catch .oauthWebCancelled {
+            // TODO
+        } catch {
+            logger(.error, "Failed authenticating using OAuth web", error)
             state = .failed
             delegate?.coordinatorDidFailAuthentication(self, error: error)
         }
@@ -135,12 +161,17 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
         delegate?.coordinatorDidBecomeReady(self)
     }
 
+    func bridgeDidInterceptNavigation(_ bridge: FlowBridge, to url: URL, external: Bool) {
+        // TODO
+        UIApplication.shared.open(url)
+    }
+
     func bridgeDidReceiveRequest(_ bridge: FlowBridge, request: FlowBridgeRequest) {
         switch request {
         case let .oauthNative(clientId, stateId, nonce, implicit):
             handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
-        case .oauthWeb:
-            break // TODO
+        case let .oauthWeb(startURL, finishURL):
+            handleOAuthWeb(startURL: startURL, finishURL: finishURL)
         }
     }
 
@@ -155,3 +186,25 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
 }
 
 #endif
+
+private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String) throws -> String {
+    // keep only cookies matching the required name
+    let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
+    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value in flow response \(name) cookie") }
+
+    // try to make a deterministic choice between cookies by looking for the best matching token
+    var tokens = cookies.compactMap { try? Token(jwt: $0.value) }
+    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value in flow response \(name) cookie") }
+
+    // try to find the best match by prioritizing the newest non-expired token
+    tokens = tokens.sorted { a, b in
+        guard a.isExpired == b.isExpired else { return !a.isExpired }
+        return a.issuedAt > b.issuedAt
+    }
+
+    // we expect the token to match the projectId
+    tokens = tokens.filter { $0.projectId == projectId }
+    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected token issuer in flow response \(name) cookie") }
+
+    return token.jwt
+}

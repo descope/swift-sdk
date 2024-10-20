@@ -419,15 +419,19 @@ public protocol DescopeEnchantedLink: Sendable {
 ///
 /// - SeeAlso: For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeOAuth: Sendable {
+    /// TODO
+    @MainActor
+    func web(provider: OAuthProvider, accessSharedUserData: Bool, options: [SignInOptions]) async throws -> AuthenticationResponse
+
     /// Starts an OAuth redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     ///
     ///     // use one of the built in constants for the OAuth provider
-    ///     let authURL = try await Descope.oauth.start(provider: .apple, redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: .apple, redirectURL: nil)
     ///
     ///     // or pass a string with the name of a custom provider
-    ///     let authURL = try await Descope.oauth.start(provider: "myprovider", redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: "myprovider", redirectURL: nil)
     ///
     /// - Important: Make sure a default OAuth redirect URL is configured
     ///     in the Descope console, or provided by this call.
@@ -440,8 +444,8 @@ public protocol DescopeOAuth: Sendable {
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL
-    
+    func webStart(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL
+
     /// Completes an OAuth redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.
     ///
@@ -449,7 +453,7 @@ public protocol DescopeOAuth: Sendable {
     ///     `code` URL parameter.
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful exchange.
-    func exchange(code: String) async throws -> AuthenticationResponse
+    func webExchange(code: String) async throws -> AuthenticationResponse
 
     /// Authenticates the user using the native `Sign in with Apple` dialog.
     ///
@@ -482,6 +486,7 @@ public protocol DescopeOAuth: Sendable {
     ///
     /// - SeeAlso: For more details about configuring your app and generating client secrets
     ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
+    @MainActor
     func native(provider: OAuthProvider, options: [SignInOptions]) async throws -> AuthenticationResponse
 }
 

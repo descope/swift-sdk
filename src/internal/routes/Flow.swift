@@ -2,8 +2,8 @@
 import AuthenticationServices
 import CryptoKit
 
-private let redirectScheme = "descopeauth"
-private let redirectURL = "\(redirectScheme)://flow"
+private let flowRedirectScheme = "descopeflow"
+private let flowRedirectURL = "\(flowRedirectScheme)://redirect"
 
 final class Flow: DescopeFlow, Route {
     let client: DescopeClient
@@ -66,7 +66,7 @@ final class Flow: DescopeFlow, Route {
         // to redirect to a URL that starts with `descopeauth://flow` and that contains
         // the authorization code we need. At that point the session will catch this
         // and call our completion handler.
-        let session = ASWebAuthenticationSession(url: url, callbackURLScheme: redirectScheme) { [self] callbackURL, error in
+        let session = ASWebAuthenticationSession(url: url, callbackURLScheme: flowRedirectScheme) { [self] callbackURL, error in
             Task {
                 // protects against the completion handler being called multiple times, e.g.,
                 // in case the session is cancelled or another call to `run` in recursion
@@ -200,7 +200,7 @@ private func prepareInitialRequest(for runner: DescopeFlowRunner) throws -> (url
 
     guard var components = URLComponents(url: runner.flowURL, resolvingAgainstBaseURL: false) else { throw DescopeError.flowFailed.with(message: "Malformed flow URL") }
     components.queryItems = components.queryItems ?? []
-    components.queryItems?.append(URLQueryItem(name: "ra-callback", value: redirectURL))
+    components.queryItems?.append(URLQueryItem(name: "ra-callback", value: flowRedirectURL))
     components.queryItems?.append(URLQueryItem(name: "ra-challenge", value: codeChallenge))
     #if os(macOS)
     components.queryItems?.append(URLQueryItem(name: "ra-initiator", value: "macos"))

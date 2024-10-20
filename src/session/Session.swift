@@ -26,7 +26,7 @@ import Foundation
 /// it's recommended to let a ``DescopeSessionManager`` object manage it instead,
 /// and the code examples above are only slightly different. See the documentation
 /// for ``DescopeSessionManager`` for more details.
-public class DescopeSession: @unchecked Sendable {
+public struct DescopeSession: Sendable {
     /// The wrapper for the short lived JWT that can be sent with every server
     /// request that requires authentication.
     public private(set) var sessionToken: DescopeToken
@@ -42,7 +42,7 @@ public class DescopeSession: @unchecked Sendable {
     ///
     /// Use this initializer to create a ``DescopeSession`` after the user completes
     /// a sign in or sign up flow in the application.
-    public convenience init(from response: AuthenticationResponse) {
+    public init(from response: AuthenticationResponse) {
         self.init(sessionToken: response.sessionToken, refreshToken: response.refreshToken, user: response.user)
     }
     
@@ -50,7 +50,7 @@ public class DescopeSession: @unchecked Sendable {
     ///
     /// This initializer can be used to manually recreate a user's ``DescopeSession`` after
     /// the application is relaunched if not using a ``DescopeSessionManager`` for this.
-    public convenience init(sessionJwt: String, refreshJwt: String, user: DescopeUser) throws {
+    public init(sessionJwt: String, refreshJwt: String, user: DescopeUser) throws {
         let sessionToken = try Token(jwt: sessionJwt)
         let refreshToken = try Token(jwt: refreshJwt)
         self.init(sessionToken: sessionToken, refreshToken: refreshToken, user: user)
@@ -100,7 +100,7 @@ public extension DescopeSession {
     /// - Important: It's recommended to use a ``DescopeSessionManager`` to manage sessions,
     ///     in which case you should call `updateTokens` on the manager itself, or
     ///     just call `refreshSessionIfNeeded` on the manager to do everything for you.
-    func updateTokens(with refreshResponse: RefreshResponse) {
+    mutating func updateTokens(with refreshResponse: RefreshResponse) {
         sessionToken = refreshResponse.sessionToken
         refreshToken = refreshResponse.refreshToken ?? refreshToken
     }
@@ -113,7 +113,7 @@ public extension DescopeSession {
     /// - Important: It's recommended to use a ``DescopeSessionManager`` to manage sessions,
     ///     in which case you should call `updateUser` on the manager itself instead
     ///     to ensure that the updated user details are saved.
-    func updateUser(with user: DescopeUser) {
+    mutating func updateUser(with user: DescopeUser) {
         self.user = user
     }
 }

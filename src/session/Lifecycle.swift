@@ -24,43 +24,55 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     public init(auth: DescopeAuth) {
         self.auth = auth
     }
-    
+
     public var stalenessAllowedInterval: TimeInterval = 60 /* seconds */
     
-    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */
-    
+    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */ {
+        didSet {
+            if stalenessCheckFrequency != oldValue {
+                resetTimer()
+            }
+        }
+    }
+
     public var session: DescopeSession? {
         didSet {
-            guard session !== oldValue else { return }
-            if session == nil {
-                stopTimer()
-            } else {
-                startTimer()
+            if session?.refreshJwt != oldValue?.refreshJwt {
+                resetTimer()
             }
         }
     }
     
     public func refreshSessionIfNeeded() async throws {
-        guard let session, shouldRefresh(session) else { return }
-        let response = try await auth.refreshSession(refreshJwt: session.refreshJwt) // TODO check for refresh failure to not try again and again after expiry
-        session.updateTokens(with: response)
+        guard let current = session, shouldRefresh(current) else { return }
+        let response = try await auth.refreshSession(refreshJwt: current.refreshJwt)
+        session?.updateTokens(with: response)
     }
     
-    // Internal
+    // Conditional refresh
     
     private func shouldRefresh(_ session: DescopeSession) -> Bool {
         return session.sessionToken.expiresAt.timeIntervalSinceNow <= stalenessAllowedInterval
     }
     
-    // Timer
-    
+    // Periodic refresh
+
     private var timer: Timer?
-    
+
+    private func resetTimer() {
+        if session != nil && stalenessCheckFrequency > 0 {
+            startTimer()
+        } else {
+            stopTimer()
+        }
+    }
+
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.periodicRefresh()
+        timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] timer in
+            guard let lifecycle = self else { return timer.invalidate() }
+            Task { @MainActor in
+                await lifecycle.periodicRefresh()
             }
         }
     }
@@ -69,14 +81,12 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         timer?.invalidate()
         timer = nil
     }
-    
-    private func periodicRefresh() {
-        guard let session, shouldRefresh(session) else { return }
-        auth.refreshSession(refreshJwt: session.refreshJwt) { result in
-            guard case .success(let response) = result else { return }
-            DispatchQueue.main.async {
-                session.updateTokens(with: response)
-            }
+
+    private func periodicRefresh() async {
+        do {
+            try await refreshSessionIfNeeded()
+        } catch {
+            // TODO check for refresh failure to not try again and again after expiry
         }
     }
 }

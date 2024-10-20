@@ -64,7 +64,9 @@ public class DescopeSessionManager {
     private let lifecycle: DescopeSessionLifecycle
 
     /// The active ``DescopeSession`` managed by this object.
-    public private(set) var session: DescopeSession?
+    public var session: DescopeSession? {
+        return lifecycle.session
+    }
 
     /// Creates a new ``DescopeSessionManager`` object.
     ///
@@ -81,8 +83,7 @@ public class DescopeSessionManager {
     public init(storage: DescopeSessionStorage, lifecycle: DescopeSessionLifecycle) {
         self.storage = storage
         self.lifecycle = lifecycle
-        self.session = storage.loadSession()
-        self.lifecycle.session = session
+        self.lifecycle.session = storage.loadSession()
     }
     
     /// Set an active ``DescopeSession`` in this manager.
@@ -100,7 +101,6 @@ public class DescopeSessionManager {
     ///     unless they use custom `storage` objects they might overwrite
     ///     each other's saved sessions.
     public func manageSession(_ session: DescopeSession) {
-        self.session = session
         lifecycle.session = session
         storage.saveSession(session)
     }
@@ -118,7 +118,6 @@ public class DescopeSessionManager {
     ///     unless they use custom `storage` objects they might clear each
     ///     other's saved sessions.
     public func clearSession() {
-        session = nil
         lifecycle.session = nil
         storage.removeSession()
     }
@@ -132,9 +131,10 @@ public class DescopeSessionManager {
     /// - Note: When using a custom ``DescopeSessionManager`` object the exact behavior
     ///     here depends on the `storage` and `lifecycle` objects.
     public func refreshSessionIfNeeded() async throws {
-        guard let session else { return }
         try await lifecycle.refreshSessionIfNeeded()
-        storage.saveSession(session)
+        if let session {
+            storage.saveSession(session)
+        }
     }
     
     /// Updates the active session's underlying JWTs.
@@ -151,9 +151,10 @@ public class DescopeSessionManager {
     ///     object then the exact behavior depends on the specific implementation of the
     ///     ``DescopeSessionStorage`` protocol.
     public func updateTokens(with refreshResponse: RefreshResponse) {
-        guard let session else { return }
-        session.updateTokens(with: refreshResponse)
-        storage.saveSession(session)
+        lifecycle.session?.updateTokens(with: refreshResponse)
+        if let session {
+            storage.saveSession(session)
+        }
     }
     
     /// Updates the active session's user details.
@@ -168,8 +169,9 @@ public class DescopeSessionManager {
     /// By default, the manager saves the updated session to the keychain before returning,
     /// but this can be overridden with a custom ``DescopeSessionStorage`` object.
     public func updateUser(with user: DescopeUser) {
-        guard let session else { return }
-        session.updateUser(with: user)
-        storage.saveSession(session)
+        lifecycle.session?.updateUser(with: user)
+        if let session {
+            storage.saveSession(session)
+        }
     }
 }

@@ -184,26 +184,28 @@ private extension FlowBridgeRequest {
 
 private extension FlowBridgeResponse {
     var dictionaryValue: [String: Any] {
-        var dict: [String: Any] = [:]
         switch self {
         case let .oauthNative(stateId, authorizationCode, identityToken, user):
-            dict["stateId"] = stateId
+            var nativeOAuth: [String: Any] = [:]
+            nativeOAuth["stateId"] = stateId
             if let authorizationCode {
-                dict["authorizationCode"] = authorizationCode
+                nativeOAuth["code"] = authorizationCode
             }
             if let identityToken {
-                dict["idToken"] = identityToken
+                nativeOAuth["idToken"] = identityToken
             }
             if let user {
-                dict["userData"] = user
+                nativeOAuth["user"] = user
             }
+            return [
+                "nativeOAuth": nativeOAuth,
+            ]
         case let .oauthWeb(exchangeCode):
             return [
                 "exchangeCode": exchangeCode,
                 "idpInitiated": true,
             ]
         }
-        return dict
     }
 
     var stringValue: String {
@@ -268,12 +270,13 @@ function \(namespace)_prepare(component) {
         parent.style.boxShadow = 'unset'
     }
 
+    component.nativeOptions = {
+        platform: 'ios',
+        oauthProvider: 'apple',
+        oauthRedirect: 'oauth://redirect',
+    }
+
     component.addEventListener('ready', () => {
-        component.initNativeState({
-            platform: 'ios',
-            oauthProvider: 'apple',
-            oauthRedirect: 'oauth://redirect',
-        })
         window.webkit.messageHandlers.\(FlowBridgeMessage.ready.rawValue).postMessage('')
     })
 

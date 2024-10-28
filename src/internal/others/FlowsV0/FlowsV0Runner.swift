@@ -50,7 +50,7 @@ public class DescopeFlowRunner {
     }
     
     /// The URL where the flow is hosted.
-    public let flowURL: URL
+    public let flowURL: String
 
     /// Optional authentication info to allow running flows for authenticated users
     public var flowAuthentication: Authentication?
@@ -85,7 +85,7 @@ public class DescopeFlowRunner {
     /// Creates a new ``DescopeFlowRunner`` object that encapsulates a single flow run.
     ///
     /// - Parameter flowURL: The URL where the flow is hosted.
-    public init(flowURL: URL) {
+    public init(flowURL: String) {
         self.flowURL = flowURL
     }
 

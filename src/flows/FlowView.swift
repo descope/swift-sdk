@@ -63,8 +63,8 @@ open class DescopeFlowView: UIView {
 
     /// Flow
 
-    public func start(runner: DescopeFlowRunner) {
-        coordinator.start(runner: runner)
+    public func start(flow: DescopeFlow) {
+        coordinator.start(flow: flow)
     }
 
     /// WebView

@@ -98,11 +98,3 @@ public extension DescopeConfig {
         self.logger = logger
     }
 }
-
-public extension DescopeFlowRunner {
-    @available(*, deprecated, message: "Use the init(flowURL: URL) initializer instead")
-    convenience init(flowURL: String) {
-        let url = URL(string: flowURL)!
-        self.init(flowURL: url)
-    }
-}

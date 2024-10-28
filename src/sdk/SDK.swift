@@ -34,9 +34,6 @@ public class DescopeSDK {
     /// Provides functions for authentication with SSO.
     public let sso: DescopeSSO
     
-    /// Provides functions for authentication using flows.
-    public let flow: DescopeFlow
-
     /// Provides functions for exchanging access keys for session tokens.
     public let accessKey: DescopeAccessKey
 
@@ -99,13 +96,19 @@ public class DescopeSDK {
         self.init(config: config, client: DescopeClient(config: config))
     }
 
+    // Internal
+
+    /// The internal client used to perform API calls.
+    let client: DescopeClient
+
     /// Creates a new ``DescopeSDK`` object.
     ///
     /// - Parameters:
     ///   - config: The configuration of the ``DescopeSDK`` instance.
     ///   - client: The ``DescopeClient`` object used by route implementations.
-    private init(config: DescopeConfig, client: DescopeClient) {
+    init(config: DescopeConfig, client: DescopeClient) {
         self.config = config
+        self.client = client
         self.auth = Auth(client: client)
         self.otp = OTP(client: client)
         self.totp = TOTP(client: client)
@@ -115,7 +118,6 @@ public class DescopeSDK {
         self.enchantedLink = EnchantedLink(client: client)
         self.oauth = OAuth(client: client)
         self.sso = SSO(client: client)
-        self.flow = Flow(client: client)
         self.accessKey = AccessKey(client: client)
     }
 }

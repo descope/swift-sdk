@@ -23,15 +23,19 @@ public class DescopeFlowViewController: UIViewController {
         return flowView.state
     }
 
+    public convenience init(preloading flow: DescopeFlow) {
+        self.init()
+        loadViewIfNeeded()
+        start(flow: flow)
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        activityView.color = .placeholderText
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
-        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: activityView)
-
         view.backgroundColor = .secondarySystemBackground
+
+        activityView.color = .label
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: activityView)
 
         flowView.frame = view.bounds
         flowView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -40,9 +44,13 @@ public class DescopeFlowViewController: UIViewController {
 
     private lazy var activityView = UIActivityIndicatorView()
 
-    public func start(runner: DescopeFlowRunner) {
+    public func start(flow: DescopeFlow) {
+        if navigationController?.topViewController == self {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
+        }
+        
         flowView.delegate = self
-        flowView.start(runner: runner)
+        flowView.start(flow: flow)
     }
 
     /// Internal

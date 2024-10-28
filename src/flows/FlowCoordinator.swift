@@ -3,7 +3,6 @@
 
 import UIKit
 import WebKit
-import AuthenticationServices // TODO
 
 @MainActor
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
@@ -56,11 +55,30 @@ public class DescopeFlowCoordinator {
         bridge.prepare(configuration: configuration)
     }
 
-    public func start(runner: DescopeFlowRunner) {
-        logger(.info, "Starting flow authentication", runner.flowURL)
+    public func start(flow: DescopeFlow) {
+        logger(.info, "Starting flow authentication", flow)
         state = .started
-        let request = URLRequest(url: runner.flowURL)
-        webView?.load(request)
+
+        // dispatch this error asynchronously to prevent zalgo and let the calling function return
+        guard let url = URL(string: flow.url) else {
+            DispatchQueue.main.async { [self] in
+                state = .failed
+                delegate?.coordinatorDidFailLoading(self, error: DescopeError.flowFailed.with(message: "Invalid flow URL"))
+            }
+            return
+        }
+
+        let loadURL = { @MainActor [weak self, weak flow] url in
+            var request = URLRequest(url: url)
+            if let timeout = flow?.requestTimeoutInterval {
+                request.timeoutInterval = timeout
+            }
+            self?.webView?.load(request)
+        }
+
+        flow.resume = loadURL
+
+        loadURL(url)
     }
 
     // Authentication
@@ -90,7 +108,7 @@ public class DescopeFlowCoordinator {
         } catch {
             logger(.error, "Unexpected error parsing authentication response", error)
             state = .failed
-            delegate?.coordinatorDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
+            delegate?.coordinatorDidFailAuthentication(self, error: .flowFailed.with(cause: error))
             return nil
         }
     }
@@ -187,7 +205,7 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
 
 #endif
 
-private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String) throws -> String {
+private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String) throws(DescopeError) -> String {
     // keep only cookies matching the required name
     let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
     guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value in flow response \(name) cookie") }

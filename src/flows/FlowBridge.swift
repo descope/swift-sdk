@@ -32,6 +32,9 @@ class FlowBridge: NSObject {
 
     weak var delegate: FlowBridgeDelegate?
 
+    /// This property is weak since the bridge is not considered the "owner" of the webview, and in
+    /// addition, it helps prevent retain cycles as the webview itself retains the bridge when the
+    /// latter is added as a scriptMessageHandler to the webview configuration.
     weak var webView: WKWebView? {
         willSet {
             webView?.navigationDelegate = nil
@@ -56,7 +59,11 @@ class FlowBridge: NSObject {
     }
 
     func send(response: FlowBridgeResponse) {
-        webView?.evaluateJavaScript("\(namespace)_send(`\(response.stringValue)`)")
+        webView?.callJavaScript(function: "send", params: response.stringValue)
+    }
+
+    func setOAuthProvider(_ name: String) {
+        webView?.callJavaScript(function: "oauth", params: name)
     }
 }
 
@@ -138,7 +145,7 @@ extension FlowBridge: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation) {
         logger(.info, "Webview finished loading webpage")
         delegate?.bridgeDidFinishLoading(self)
-        webView.evaluateJavaScript("\(namespace)_wait()")
+        webView.callJavaScript(function: "wait")
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation, withError error: Error) {
@@ -211,17 +218,26 @@ private extension FlowBridgeResponse {
     var stringValue: String {
         guard let json = try? JSONSerialization.data(withJSONObject: dictionaryValue), let str = String(bytes: json, encoding: .utf8) else { return "{}" }
         return str
-            .replacingOccurrences(of: #"\"#, with: #"\\"#)
+    }
+}
+
+private extension WKWebView {
+    func callJavaScript(function: String, params: String...) {
+        let escaped = params.map(escapeWithBackticks).joined(separator: ", ")
+        let javascript = "\(namespace)_\(function)(\(escaped))"
+        evaluateJavaScript(javascript)
+    }
+
+    private func escapeWithBackticks(_ str: String) -> String {
+        return "`" + str.replacingOccurrences(of: #"\"#, with: #"\\"#)
             .replacingOccurrences(of: #"$"#, with: #"\$"#)
-            .replacingOccurrences(of: #"`"#, with: #"\`"#)
+            .replacingOccurrences(of: #"`"#, with: #"\`"#) + "`"
     }
 }
 
 private let namespace = "_Descope_Bridge"
 
 private let setupScript = """
- 
-/* Javascript code that's executed once the page finished loading */
 
 // Redirect console to bridge
 window.console.log = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'log', message: s }) }
@@ -272,7 +288,6 @@ function \(namespace)_prepare(component) {
 
     component.nativeOptions = {
         platform: 'ios',
-        oauthProvider: 'apple',
         oauthRedirect: 'oauth://redirect',
     }
 
@@ -291,6 +306,14 @@ function \(namespace)_prepare(component) {
     component.addEventListener('success', (event) => {
         window.webkit.messageHandlers.\(FlowBridgeMessage.success.rawValue).postMessage(JSON.stringify(event.detail))
     })
+}
+
+// Updates the name of the native OAuth provider
+function \(namespace)_oauth(name) {
+    let component = \(namespace)_find()
+    if (component) {
+        component.nativeOptions.oauthProvider = name 
+    }
 }
 
 // Sends a response from the bridge to complete a native request

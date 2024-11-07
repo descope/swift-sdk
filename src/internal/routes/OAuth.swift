@@ -1,9 +1,6 @@
 
 import AuthenticationServices
 
-private let oauthRedirectScheme = "descopeoauth"
-private let oauthRedirectURL = "\(oauthRedirectScheme)://redirect"
-
 final class OAuth: DescopeOAuth, Route {
     let client: DescopeClient
 
@@ -13,10 +10,10 @@ final class OAuth: DescopeOAuth, Route {
 
     func web(provider: OAuthProvider, accessSharedUserData: Bool, options: [SignInOptions]) async throws -> AuthenticationResponse {
         logger(.info, "Starting OAuth web authentication")
-        let url = try await webStart(provider: provider, redirectURL: oauthRedirectURL, options: options)
+        let url = try await webStart(provider: provider, redirectURL: WebAuth.redirectURL, options: options)
 
         logger(.info, "Showing OAuth web authentication", url)
-        let code = try await OAuth.performWebAuthentication(url: url, accessSharedUserData: accessSharedUserData, logger: logger)
+        let code = try await WebAuth.performAuthentication(url: url, accessSharedUserData: accessSharedUserData, logger: logger)
 
         logger(.info, "Finishing OAuth web authentication")
         return try await webExchange(code: code)
@@ -46,70 +43,10 @@ final class OAuth: DescopeOAuth, Route {
     }
 
     @MainActor
-    static func performWebAuthentication(url: URL, accessSharedUserData: Bool, logger: DescopeLogger?) async throws(DescopeError) -> String {
-        let callbackURL = try await presentWebAuthentication(url: url, accessSharedUserData: accessSharedUserData, logger: logger)
-        return try parseExchangeCode(from: callbackURL)
-    }
-
-    @MainActor
     static func performNativeAuthentication(nonce: String, implicit: Bool, logger: DescopeLogger?) async throws(DescopeError) -> (authorizationCode: String?, identityToken: String?, user: String?) {
         let authorization = try await presentNativeAuthentication(nonce: nonce, logger: logger)
         return try parseCredential(authorization.credential, implicit: implicit, logger: logger)
     }
-}
-
-@MainActor
-private func presentWebAuthentication(url: URL, accessSharedUserData: Bool, logger: DescopeLogger?) async throws(DescopeError) -> URL? {
-    let contextProvider = DefaultPresentationContextProvider()
-    var cancellation: @MainActor () -> Void = {}
-
-    let result: Result<URL?, Error> = await withTaskCancellationHandler {
-        return await withCheckedContinuation { continuation in
-            let session = ASWebAuthenticationSession(url: url, callbackURLScheme: oauthRedirectScheme) { callbackURL, error in
-                if let error {
-                    continuation.resume(returning: .failure(error))
-                } else {
-                    continuation.resume(returning: .success(callbackURL))
-                }
-            }
-
-            cancellation = { @MainActor [weak session] in
-                logger(.info, "OAuth web authentication cancelled programmatically")
-                session?.cancel()
-            }
-
-            session.presentationContextProvider = contextProvider
-            session.start()
-        }
-    } onCancel: {
-        Task { @MainActor in
-            cancellation()
-        }
-    }
-
-    switch result {
-    case .failure(ASWebAuthenticationSessionError.canceledLogin):
-        logger(.info, "OAuth web authentication cancelled by user")
-        throw DescopeError.oauthWebCancelled
-    case .failure(ASWebAuthenticationSessionError.presentationContextInvalid):
-        logger(.error, "Invalid presentation context for OAuth web authentication")
-        throw DescopeError.oauthWebFailed.with(message: "Invalid presentation context")
-    case .failure(ASWebAuthenticationSessionError.presentationContextNotProvided):
-        logger(.error, "No presentation context for OAuth web authentication")
-        throw DescopeError.oauthWebFailed.with(message: "No presentation context")
-    case .failure(let error):
-        logger(.error, "Unexpected error from OAuth web authentication", error)
-        throw DescopeError.oauthWebFailed.with(cause: error)
-    case .success(let callbackURL):
-        logger(.debug, "Processing OAuth web authentication", callbackURL)
-        return callbackURL
-    }
-}
-
-private func parseExchangeCode(from callbackURL: URL?) throws(DescopeError) -> String {
-    guard let callbackURL, let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else { throw DescopeError.oauthWebFailed.with(message: "OAuth web authentication finished with invalid callback") }
-    guard let code = components.queryItems?.first(where: { $0.name == "code" })?.value else { throw DescopeError.oauthWebFailed.with(message: "OAuth web authentication finished without authorization code") }
-    return code
 }
 
 @MainActor

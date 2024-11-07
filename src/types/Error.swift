@@ -90,10 +90,11 @@ extension DescopeError {
     public static let passkeyCancelled = DescopeError.sdkError("S110002", "Passkey authentication cancelled")
     public static let passkeyNoneAdded = DescopeError.sdkError("E067010", "User has not added any passkeys")
 
-    public static let oauthWebFailed = DescopeError.sdkError("S120001", "OAuth authentication failed")
-    public static let oauthWebCancelled = DescopeError.sdkError("S120002", "OAuth authentication cancelled")
-    public static let oauthNativeFailed = DescopeError.sdkError("S120003", "Sign in with Apple failed")
-    public static let oauthNativeCancelled = DescopeError.sdkError("S120004", "Sign in with Apple cancelled")
+    public static let oauthNativeFailed = DescopeError.sdkError("S120001", "Sign in with Apple failed")
+    public static let oauthNativeCancelled = DescopeError.sdkError("S120002", "Sign in with Apple cancelled")
+    
+    public static let webAuthFailed = DescopeError.sdkError("S130001", "Web authentication failed")
+    public static let webAuthCancelled = DescopeError.sdkError("S130002", "Web authentication cancelled")
 }
 
 /// Extension functions for catching ``DescopeError`` values.

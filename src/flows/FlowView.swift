@@ -126,6 +126,10 @@ extension DescopeFlowView: DescopeFlowCoordinatorDelegate {
         delegate?.flowViewDidBecomeReady(self)
     }
     
+    public func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, to url: URL, external: Bool) {
+        UIApplication.shared.open(url)
+    }
+
     public func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
         delegate?.flowViewDidFailAuthentication(self, error: error)
     }

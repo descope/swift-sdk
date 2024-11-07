@@ -18,12 +18,13 @@ protocol FlowBridgeDelegate: AnyObject {
 
 enum FlowBridgeRequest {
     case oauthNative(clientId: String, stateId: String, nonce: String, implicit: Bool)
-    case oauthWeb(startURL: URL, finishURL: URL?)
+    case webAuth(startURL: URL, finishURL: URL?)
 }
 
 enum FlowBridgeResponse {
     case oauthNative(stateId: String, authorizationCode: String?, identityToken: String?, user: String?)
-    case oauthWeb(exchangeCode: String)
+    case webAuth(exchangeCode: String)
+    case failure(String)
 }
 
 @MainActor
@@ -62,8 +63,8 @@ class FlowBridge: NSObject {
         webView?.callJavaScript(function: "send", params: response.stringValue)
     }
 
-    func setOAuthProvider(_ name: String) {
-        webView?.callJavaScript(function: "oauth", params: name)
+    func set(oauthProvider: String?, magicLinkRedirect: String?) {
+        webView?.callJavaScript(function: "set", params: oauthProvider ?? "", magicLinkRedirect ?? "")
     }
 }
 
@@ -176,13 +177,13 @@ private extension FlowBridgeRequest {
             guard let start = payload["start"] as? [String: Any] else { return nil }
             guard let clientId = start["clientId"] as? String, let stateId = start["stateId"] as? String, let nonce = start["nonce"] as? String, let implicit = start["implicit"] as? Bool else { return nil }
             self = .oauthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
-        case "oauthWeb":
+        case "oauthWeb", "sso":
             guard let startString = payload["startUrl"] as? String, let startURL = URL(string: startString) else { return nil }
             var finishURL: URL?
             if let str = payload["finishUrl"] as? String, !str.isEmpty, let url = URL(string: str) {
                 finishURL = url
             }
-            self = .oauthWeb(startURL: startURL, finishURL: finishURL)
+            self = .webAuth(startURL: startURL, finishURL: finishURL)
         default:
             return nil
         }
@@ -207,10 +208,14 @@ private extension FlowBridgeResponse {
             return [
                 "nativeOAuth": nativeOAuth,
             ]
-        case let .oauthWeb(exchangeCode):
+        case let .webAuth(exchangeCode):
             return [
                 "exchangeCode": exchangeCode,
                 "idpInitiated": true,
+            ]
+        case let .failure(failure):
+            return [
+                "failure": failure,
             ]
         }
     }
@@ -253,15 +258,10 @@ function \(namespace)_find() {
 
 // Called by bridge when the WebView finished loading
 function \(namespace)_wait() {
-    document.body.style.background = 'transparent'
-
     const styles = `
         * {
           -webkit-touch-callout: none;
           -webkit-user-select: none;
-        }
-        :root {
-          color-scheme: light dark;
         }
     `
 
@@ -281,18 +281,19 @@ function \(namespace)_wait() {
 
 // Attaches event listeners once the Descope web-component is ready
 function \(namespace)_prepare(component) {
-    const parent = component.parentElement?.parentElement
-    if (parent) {
-        parent.style.boxShadow = 'unset'
-    }
-
     component.nativeOptions = {
         platform: 'ios',
-        oauthRedirect: 'oauth://redirect',
+        bridgeVersion: 1,
+        oauthRedirect: '\(WebAuth.redirectURL)',
+        ssoRedirect: '\(WebAuth.redirectURL)',
     }
 
     component.addEventListener('ready', () => {
-        window.webkit.messageHandlers.\(FlowBridgeMessage.ready.rawValue).postMessage('')
+        if (!component.bridgeVersion) {
+            window.webkit.messageHandlers.\(FlowBridgeMessage.failure.rawValue).postMessage('The flow is using an unsupported web component version')
+        } else {
+            window.webkit.messageHandlers.\(FlowBridgeMessage.ready.rawValue).postMessage('')
+        }
     })
 
     component.addEventListener('bridge', (event) => {
@@ -308,11 +309,12 @@ function \(namespace)_prepare(component) {
     })
 }
 
-// Updates the name of the native OAuth provider
-function \(namespace)_oauth(name) {
+// Updates the values of native options
+function \(namespace)_set(oauthProvider, magicLinkRedirect) {
     let component = \(namespace)_find()
     if (component) {
-        component.nativeOptions.oauthProvider = name 
+        component.nativeOptions.oauthProvider = oauthProvider
+        component.nativeOptions.magicLinkRedirect = magicLinkRedirect
     }
 }
 

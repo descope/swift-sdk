@@ -19,28 +19,25 @@ public enum DescopeFlowState: String {
 @MainActor
 public class DescopeFlow {
     /// TODO
-    public static var current: DescopeFlow?
+    public static weak var current: DescopeFlow?
 
     /// The URL where the flow is hosted.
-    public let url: String
+    public let url: URL
+
+    public var descope: DescopeSDK = Descope.sdk
 
     /// TODO
-    public var oauthNativeProvider: OAuthProvider?
+    public var oauthProvider: OAuthProvider?
+
+    public var magicLinkRedirect: URL?
 
     public var requestTimeoutInterval: TimeInterval?
 
     /// Creates a new ``DescopeFlow`` object that encapsulates a single flow run.
     ///
     /// - Parameter url: The URL where the flow is hosted.
-    public init(url: String) {
-        self.url = url
-    }
-
-    /// Creates a new ``DescopeFlow`` object that encapsulates a single flow run.
-    ///
-    /// - Parameter url: The URL where the flow is hosted.
     public init(url: URL) {
-        self.url = url.absoluteString
+        self.url = url
     }
 
     /// Resumes a running flow that's waiting for Magic Link authentication.
@@ -67,12 +64,12 @@ public class DescopeFlow {
     ///         }
     ///     }
     public func resume(with url: URL) {
-        resume?(url)
+        resume?(self, url)
     }
 
     // Internal
 
-    typealias ResumeClosure = @MainActor (URL) -> ()
+    typealias ResumeClosure = @MainActor (DescopeFlow, URL) -> ()
 
     /// The running flow periodically checks this property to for any redirect URL from calls
     /// to the ``handleURL(_:)`` function.

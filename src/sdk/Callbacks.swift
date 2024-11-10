@@ -408,7 +408,36 @@ public extension DescopeMagicLink {
 }
 
 public extension DescopeOAuth {
-    /// TODO
+    /// Authenticates the user with OAuth using a sandboxed authentication view.
+    /// 
+    /// This API is a convenience method that calls `webStart`, presents the OAuth webpage
+    /// using `ASWebAuthenticationSession`, and then finally calls `webExchange`.
+    /// 
+    /// - Parameters:
+    ///   - provider: The provider the user wishes to authenticate with.
+    ///   - accessSharedUserData: Whether the authentication view is allowed to access shared
+    ///     user data. See the note below for more details.
+    ///   - options: Require additional behaviors when authenticating a user.
+    /// 
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    /// 
+    /// - Throws: ``DescopeError/webAuthCancelled`` if the authentication view is aborted
+    ///     or cancelled by the user.
+    /// 
+    /// - Note: Setting `accessSharedUserData` to `true` allows the sandboxed browser in the
+    ///     authentication view to access cookies and other browsing data from the user's
+    ///     regular browser in the device. Users are often logged in to their OAuth provider
+    ///     in the device's regular browser, and enabling this setting should let them use
+    ///     their active session when authenticating rather than forcing them to login to
+    ///     the provider again. A side effect of enabling this is that the device will show
+    ///     a dialog before the authentication view is presented, asking the user to allow
+    ///     the app to share information with the browser.
+    /// 
+    /// - Important: This is an asynchronous operation that performs network requests before
+    ///     and after displaying the modal authentication view. It is thus recommended to show
+    ///     an activity indicator or switch the user interface to a loading state before calling
+    ///     this, otherwise the user might accidentally interact with the app when the
+    ///     authentication view is not being displayed.
     @MainActor
     func web(provider: OAuthProvider, accessSharedUserData: Bool, options: [SignInOptions], completion: @escaping @Sendable (Result<AuthenticationResponse, Error>) -> Void) {
         Task {

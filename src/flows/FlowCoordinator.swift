@@ -7,11 +7,8 @@ import WebKit
 @MainActor
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState)
-    func coordinatorDidStartLoading(_ coordinator: DescopeFlowCoordinator)
-    func coordinatorDidFailLoading(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
-    func coordinatorDidFinishLoading(_ coordinator: DescopeFlowCoordinator)
     func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
-    func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, to url: URL, external: Bool)
+    func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, url: URL, external: Bool)
     func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
     func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
 }
@@ -26,9 +23,6 @@ public class DescopeFlowCoordinator {
 
     public private(set) var state: DescopeFlowState = .initial {
         didSet {
-            if state == .failed || state == .finished, DescopeFlow.current === flow {
-                DescopeFlow.current = nil
-            }
             delegate?.coordinatorDidUpdateState(self, to: state, from: oldValue)
         }
     }
@@ -77,15 +71,59 @@ public class DescopeFlowCoordinator {
         webView?.load(request)
     }
 
+    // State
+
+    private func ensureState(_ states: DescopeFlowState...) -> Bool {
+        guard states.contains(state) else {
+            logger(.error, "Unexpected flow state", state, states)
+            return false
+        }
+        return true
+    }
+
+    private func sendResponse(_ response: FlowBridgeResponse) {
+        guard ensureState(.ready) else { return }
+        bridge.send(response: response)
+    }
+
     // Resume
 
     private func resume(_ url: URL) {
-        logger(.info, "Resuming flow", url)
-        bridge.send(response: .magicLink(url: url.absoluteString))
+        logger(.info, "Received URL for resuming flow", url)
+        sendResponse(.magicLink(url: url.absoluteString))
     }
 
     private lazy var resumeClosure: DescopeFlow.ResumeClosure = { [weak self] url in
         self?.resume(url)
+    }
+
+    // Events
+
+    private func handleFailure(_ error: Error) {
+        guard ensureState(.started, .ready) else { return }
+        if DescopeFlow.current === flow {
+            DescopeFlow.current = nil
+        }
+        state = .failed
+        let error = error as? DescopeError ?? DescopeError.flowFailed.with(cause: error)
+        delegate?.coordinatorDidFailAuthentication(self, error: error)
+    }
+
+    private func handleReady() {
+        guard ensureState(.started) else { return }
+        bridge.set(oauthProvider: flow?.oauthProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect?.absoluteString)
+        state = .ready
+        delegate?.coordinatorDidBecomeReady(self)
+    }
+
+    private func handleRequest(_ request: FlowBridgeRequest) {
+        guard ensureState(.ready) else { return }
+        switch request {
+        case let .oauthNative(clientId, stateId, nonce, implicit):
+            handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
+        case let .webAuth(variant, startURL, finishURL):
+            handleWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
+        }
     }
 
     // Authentication
@@ -94,6 +132,10 @@ public class DescopeFlowCoordinator {
         logger(.info, "Finishing flow authentication")
         Task {
             guard let authResponse = await parseAuthentication(data) else { return }
+            guard ensureState(.ready) else { return }
+            if DescopeFlow.current === flow {
+                DescopeFlow.current = nil
+            }
             state = .finished
             delegate?.coordinatorDidFinishAuthentication(self, response: authResponse)
         }
@@ -108,15 +150,9 @@ public class DescopeFlowCoordinator {
             jwtResponse.sessionJwt = try jwtResponse.sessionJwt ?? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: projectId)
             jwtResponse.refreshJwt = try jwtResponse.refreshJwt ?? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: projectId)
             return try jwtResponse.convert()
-        } catch let error as DescopeError {
-            logger(.error, "Unexpected error converting authentication response", error)
-            state = .failed
-            delegate?.coordinatorDidFailAuthentication(self, error: error)
-            return nil
         } catch {
-            logger(.error, "Unexpected error parsing authentication response", error)
-            state = .failed
-            delegate?.coordinatorDidFailAuthentication(self, error: DescopeError.flowFailed.with(cause: error))
+            logger(.error, "Unexpected error handling authentication response", error)
+            handleFailure(error)
             return nil
         }
     }
@@ -133,11 +169,11 @@ public class DescopeFlowCoordinator {
     private func performOAuthNative(stateId: String, nonce: String, implicit: Bool) async {
         do {
             let (authorizationCode, identityToken, user) = try await OAuth.performNativeAuthentication(nonce: nonce, implicit: implicit, logger: logger)
-            bridge.send(response: .oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user))
+            sendResponse(.oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user))
         } catch .oauthNativeCancelled {
-            bridge.send(response: .failure("OAuthNativeCancelled"))
+            sendResponse(.failure("OAuthNativeCancelled"))
         } catch {
-            bridge.send(response: .failure("OAuthNativeFailed"))
+            sendResponse(.failure("OAuthNativeFailed"))
         }
     }
 
@@ -153,51 +189,42 @@ public class DescopeFlowCoordinator {
     private func performWebAuth(variant: String, startURL: URL, finishURL: URL?) async {
         do {
             let exchangeCode = try await WebAuth.performAuthentication(url: startURL, accessSharedUserData: true, logger: logger)
-            bridge.send(response: .webAuth(variant: variant, exchangeCode: exchangeCode))
+            sendResponse(.webAuth(variant: variant, exchangeCode: exchangeCode))
         } catch .webAuthCancelled {
-            bridge.send(response: .failure("WebAuthCancelled"))
+            sendResponse(.failure("WebAuthCancelled"))
         } catch {
-            bridge.send(response: .failure("WebAuthFailed"))
+            sendResponse(.failure("WebAuthFailed"))
         }
     }
 }
 
 extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidStartLoading(_ bridge: FlowBridge) {
-        delegate?.coordinatorDidStartLoading(self)
+        // nothing
     }
 
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError) {
-        state = .failed
-        delegate?.coordinatorDidFailLoading(self, error: error)
+        handleFailure(error)
     }
 
     func bridgeDidFinishLoading(_ bridge: FlowBridge) {
-        delegate?.coordinatorDidFinishLoading(self)
+        // nothing
     }
 
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
-        bridge.set(oauthProvider: flow?.oauthProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect?.absoluteString)
-        state = .ready
-        delegate?.coordinatorDidBecomeReady(self)
+        handleReady()
     }
 
-    func bridgeDidInterceptNavigation(_ bridge: FlowBridge, to url: URL, external: Bool) {
-        delegate?.coordinatorDidInterceptNavigation(self, to: url, external: external)
+    func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool) {
+        delegate?.coordinatorDidInterceptNavigation(self, url: url, external: external)
     }
 
     func bridgeDidReceiveRequest(_ bridge: FlowBridge, request: FlowBridgeRequest) {
-        switch request {
-        case let .oauthNative(clientId, stateId, nonce, implicit):
-            handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
-        case let .webAuth(variant, startURL, finishURL):
-            handleWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
-        }
+        handleRequest(request)
     }
 
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError) {
-        state = .failed
-        delegate?.coordinatorDidFailAuthentication(self, error: error)
+        handleFailure(error)
     }
 
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data) {

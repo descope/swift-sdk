@@ -8,6 +8,7 @@ import WebKit
 public protocol DescopeFlowViewControllerViewDelegate: AnyObject {
     func flowViewControllerDidUpdateState(_ controller: DescopeFlowViewController, to state: DescopeFlowState, from previous: DescopeFlowState)
     func flowViewControllerDidBecomeReady(_ controller: DescopeFlowViewController)
+    func flowViewControllerShouldShowURL(_ controller: DescopeFlowViewController, url: URL, external: Bool) -> Bool
     func flowViewControllerDidCancel(_ controller: DescopeFlowViewController)
     func flowViewControllerDidFail(_ controller: DescopeFlowViewController, error: DescopeError)
     func flowViewControllerDidFinish(_ controller: DescopeFlowViewController, response: AuthenticationResponse)
@@ -15,7 +16,7 @@ public protocol DescopeFlowViewControllerViewDelegate: AnyObject {
 
 public class DescopeFlowViewController: UIViewController {
 
-    public private(set) lazy var flowView: DescopeFlowView = createFlowView()
+    private lazy var flowView: DescopeFlowView = createFlowView()
 
     public weak var delegate: DescopeFlowViewControllerViewDelegate?
 
@@ -25,7 +26,6 @@ public class DescopeFlowViewController: UIViewController {
 
     public convenience init(preloading flow: DescopeFlow) {
         self.init()
-        loadViewIfNeeded()
         start(flow: flow)
     }
 
@@ -45,18 +45,22 @@ public class DescopeFlowViewController: UIViewController {
     private lazy var activityView = UIActivityIndicatorView()
 
     public func start(flow: DescopeFlow) {
-        if navigationController?.topViewController == self {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
-        }
-        
         flowView.delegate = self
         flowView.start(flow: flow)
     }
 
-    /// Internal
+    public override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
+        if navigationController?.topViewController == self {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
+        } else {
+            navigationItem.leftBarButtonItem = nil
+        }
+    }
 
-    @objc
-    private func handleCancel() {
+    // Internal
+
+    @objc private func handleCancel() {
         delegate?.flowViewControllerDidCancel(self)
     }
 
@@ -67,31 +71,25 @@ public class DescopeFlowViewController: UIViewController {
 
 extension DescopeFlowViewController: DescopeFlowViewDelegate {
     public func flowViewDidUpdateState(_ flowView: DescopeFlowView, to state: DescopeFlowState, from previous: DescopeFlowState) {
-        switch state {
-        case .started:
+        if state == .started {
             activityView.startAnimating()
-        default:
+        } else {
             activityView.stopAnimating()
         }
         delegate?.flowViewControllerDidUpdateState(self, to: state, from: previous)
     }
     
-    public func flowViewDidStartLoading(_ flowView: DescopeFlowView) {
-        // nothing
-    }
-    
-    public func flowViewDidFailLoading(_ flowView: DescopeFlowView, error: DescopeError) {
-        delegate?.flowViewControllerDidFail(self, error: error)
-    }
-    
-    public func flowViewDidFinishLoading(_ flowView: DescopeFlowView) {
-        // nothing
-    }
-    
     public func flowViewDidBecomeReady(_ flowView: DescopeFlowView) {
         delegate?.flowViewControllerDidBecomeReady(self)
     }
-    
+
+    public func flowViewDidInterceptNavigation(_ flowView: DescopeFlowView, url: URL, external: Bool) {
+        let open = delegate?.flowViewControllerShouldShowURL(self, url: url, external: external) ?? true
+        if open {
+            UIApplication.shared.open(url)
+        }
+    }
+
     public func flowViewDidFailAuthentication(_ flowView: DescopeFlowView, error: DescopeError) {
         delegate?.flowViewControllerDidFail(self, error: error)
     }

@@ -10,7 +10,7 @@ protocol FlowBridgeDelegate: AnyObject {
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishLoading(_ bridge: FlowBridge)
     func bridgeDidBecomeReady(_ bridge: FlowBridge)
-    func bridgeDidInterceptNavigation(_ bridge: FlowBridge, to url: URL, external: Bool)
+    func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool)
     func bridgeDidReceiveRequest(_ bridge: FlowBridge, request: FlowBridgeRequest)
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data)
@@ -112,7 +112,7 @@ extension FlowBridge: WKNavigationDelegate {
         case .linkActivated:
             logger(.info, "Webview intercepted link", navigationAction.request.url?.absoluteString)
             if let url = navigationAction.request.url {
-                delegate?.bridgeDidInterceptNavigation(self, to: url, external: false)
+                delegate?.bridgeDidInterceptNavigation(self, url: url, external: false)
             }
             return .cancel
         default:
@@ -147,7 +147,6 @@ extension FlowBridge: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation) {
         logger(.info, "Webview finished loading webpage")
         delegate?.bridgeDidFinishLoading(self)
-        webView.callJavaScript(function: "wait")
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation, withError error: Error) {
@@ -160,7 +159,7 @@ extension FlowBridge: WKUIDelegate {
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         logger(.info, "Webview intercepted external link", navigationAction.request.url?.absoluteString)
         if let url = navigationAction.request.url {
-            delegate?.bridgeDidInterceptNavigation(self, to: url, external: true)
+            delegate?.bridgeDidInterceptNavigation(self, url: url, external: true)
         }
         return nil
     }
@@ -265,13 +264,8 @@ window.console.info = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage
 window.console.warn = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'warn', message: s }) }
 window.console.error = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'error', message: s }) }
 
-// Finds the Descope web-component in the webpage
-function \(namespace)_find() {
-    return document.getElementsByTagName('descope-wc')[0]
-}
-
-// Called by bridge when the WebView finished loading
-function \(namespace)_wait() {
+// Called directly below 
+function \(namespace)_initialize() {
     const styles = `
         * {
           -webkit-touch-callout: none;
@@ -291,6 +285,11 @@ function \(namespace)_wait() {
             \(namespace)_prepare(component)
         }
     }, 20)
+}
+
+// Finds the Descope web-component in the webpage
+function \(namespace)_find() {
+    return document.getElementsByTagName('descope-wc')[0]
 }
 
 // Attaches event listeners once the Descope web-component is ready
@@ -339,6 +338,9 @@ function \(namespace)_send(type, payload) {
         component.nativeResume(type, payload)
     }
 }
+
+// Performs required initializations on the page and waits for the web-component to be available
+\(namespace)_initialize()
 
 """
 

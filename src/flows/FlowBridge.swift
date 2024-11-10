@@ -18,12 +18,13 @@ protocol FlowBridgeDelegate: AnyObject {
 
 enum FlowBridgeRequest {
     case oauthNative(clientId: String, stateId: String, nonce: String, implicit: Bool)
-    case webAuth(startURL: URL, finishURL: URL?)
+    case webAuth(variant: String, startURL: URL, finishURL: URL?)
 }
 
 enum FlowBridgeResponse {
     case oauthNative(stateId: String, authorizationCode: String?, identityToken: String?, user: String?)
-    case webAuth(exchangeCode: String)
+    case webAuth(variant: String, exchangeCode: String)
+    case magicLink(url: String)
     case failure(String)
 }
 
@@ -59,12 +60,12 @@ class FlowBridge: NSObject {
         }
     }
 
-    func send(response: FlowBridgeResponse) {
-        webView?.callJavaScript(function: "send", params: response.stringValue)
-    }
-
     func set(oauthProvider: String?, magicLinkRedirect: String?) {
         webView?.callJavaScript(function: "set", params: oauthProvider ?? "", magicLinkRedirect ?? "")
+    }
+
+    func send(response: FlowBridgeResponse) {
+        webView?.callJavaScript(function: "send", params: response.type, response.payload)
     }
 }
 
@@ -172,7 +173,8 @@ private enum FlowBridgeMessage: String, CaseIterable {
 private extension FlowBridgeRequest {
     init?(json: [String: Any]) {
         guard let payload = json["payload"] as? [String: Any] else { return nil }
-        switch json["type"] as? String {
+        let type = json["type"] as? String ?? ""
+        switch type {
         case "oauthNative":
             guard let start = payload["start"] as? [String: Any] else { return nil }
             guard let clientId = start["clientId"] as? String, let stateId = start["stateId"] as? String, let nonce = start["nonce"] as? String, let implicit = start["implicit"] as? Bool else { return nil }
@@ -183,7 +185,7 @@ private extension FlowBridgeRequest {
             if let str = payload["finishUrl"] as? String, !str.isEmpty, let url = URL(string: str) {
                 finishURL = url
             }
-            self = .webAuth(startURL: startURL, finishURL: finishURL)
+            self = .webAuth(variant: type, startURL: startURL, finishURL: finishURL)
         default:
             return nil
         }
@@ -191,7 +193,21 @@ private extension FlowBridgeRequest {
 }
 
 private extension FlowBridgeResponse {
-    var dictionaryValue: [String: Any] {
+    var type: String {
+        switch self {
+        case .oauthNative: return "oauthNative"
+        case .webAuth(let variant, _): return variant
+        case .magicLink: return "magicLink"
+        case .failure: return "failure"
+        }
+    }
+
+    var payload: String {
+        guard let json = try? JSONSerialization.data(withJSONObject: payloadDictionary), let str = String(bytes: json, encoding: .utf8) else { return "{}" }
+        return str
+    }
+
+    private var payloadDictionary: [String: Any] {
         switch self {
         case let .oauthNative(stateId, authorizationCode, identityToken, user):
             var nativeOAuth: [String: Any] = [:]
@@ -208,21 +224,19 @@ private extension FlowBridgeResponse {
             return [
                 "nativeOAuth": nativeOAuth,
             ]
-        case let .webAuth(exchangeCode):
+        case let .webAuth(_, exchangeCode):
             return [
                 "exchangeCode": exchangeCode,
-                "idpInitiated": true,
+            ]
+        case let .magicLink(url):
+            return [
+                "url": url
             ]
         case let .failure(failure):
             return [
-                "failure": failure,
+                "failure": failure
             ]
         }
-    }
-
-    var stringValue: String {
-        guard let json = try? JSONSerialization.data(withJSONObject: dictionaryValue), let str = String(bytes: json, encoding: .utf8) else { return "{}" }
-        return str
     }
 }
 
@@ -318,11 +332,11 @@ function \(namespace)_set(oauthProvider, magicLinkRedirect) {
     }
 }
 
-// Sends a response from the bridge to complete a native request
-function \(namespace)_send(response) {
+// Sends a response from the bridge to resume the flow
+function \(namespace)_send(type, payload) {
     let component = \(namespace)_find()
     if (component) {
-        component.nativeComplete(response)
+        component.nativeResume(type, payload)
     }
 }
 

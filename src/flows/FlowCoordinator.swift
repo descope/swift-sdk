@@ -33,13 +33,6 @@ public class DescopeFlowCoordinator {
         }
     }
 
-    private var flow: DescopeFlow? {
-        didSet {
-            logger = flow?.descope.config.logger
-            bridge.logger = logger
-        }
-    }
-
     public var webView: WKWebView? {
         didSet {
             bridge.webView = webView
@@ -57,24 +50,42 @@ public class DescopeFlowCoordinator {
 
     // Flow
 
+    private var flow: DescopeFlow? {
+        didSet {
+            logger = flow?.descope.config.logger
+            bridge.logger = logger
+            flow?.resume = resumeClosure
+            oldValue?.resume = nil
+        }
+    }
+
     public func start(flow: DescopeFlow) {
+        logger(.info, "Starting flow authentication", flow)
+
         self.flow = flow
         DescopeFlow.current = flow
 
-        logger(.info, "Starting flow authentication", flow)
         state = .started
-
-        flow.resume = makeFlowResumeClosure(for: self)
-
-        load(url: flow.url, for: flow)
+        loadURL(flow.url)
     }
 
-    fileprivate func load(url: URL, for flow: DescopeFlow) {
+    private func loadURL(_ url: URL) {
         var request = URLRequest(url: url)
-        if let timeout = flow.requestTimeoutInterval {
+        if let timeout = flow?.requestTimeoutInterval {
             request.timeoutInterval = timeout
         }
         webView?.load(request)
+    }
+
+    // Resume
+
+    private func resume(_ url: URL) {
+        logger(.info, "Resuming flow", url)
+        bridge.send(response: .magicLink(url: url.absoluteString))
+    }
+
+    private lazy var resumeClosure: DescopeFlow.ResumeClosure = { [weak self] url in
+        self?.resume(url)
     }
 
     // Authentication
@@ -122,8 +133,7 @@ public class DescopeFlowCoordinator {
     private func performOAuthNative(stateId: String, nonce: String, implicit: Bool) async {
         do {
             let (authorizationCode, identityToken, user) = try await OAuth.performNativeAuthentication(nonce: nonce, implicit: implicit, logger: logger)
-            let response = FlowBridgeResponse.oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user)
-            bridge.send(response: response)
+            bridge.send(response: .oauthNative(stateId: stateId, authorizationCode: authorizationCode, identityToken: identityToken, user: user))
         } catch .oauthNativeCancelled {
             bridge.send(response: .failure("OAuthNativeCancelled"))
         } catch {
@@ -133,18 +143,17 @@ public class DescopeFlowCoordinator {
 
     // OAuth / SSO
 
-    private func handleWebAuth(startURL: URL, finishURL: URL?) {
+    private func handleWebAuth(variant: String, startURL: URL, finishURL: URL?) {
         logger(.info, "Requesting web authentication", startURL)
         Task {
-            await performWebAuth(startURL: startURL, finishURL: finishURL)
+            await performWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
         }
     }
 
-    private func performWebAuth(startURL: URL, finishURL: URL?) async {
+    private func performWebAuth(variant: String, startURL: URL, finishURL: URL?) async {
         do {
             let exchangeCode = try await WebAuth.performAuthentication(url: startURL, accessSharedUserData: true, logger: logger)
-            let response = FlowBridgeResponse.webAuth(exchangeCode: exchangeCode)
-            bridge.send(response: response)
+            bridge.send(response: .webAuth(variant: variant, exchangeCode: exchangeCode))
         } catch .webAuthCancelled {
             bridge.send(response: .failure("WebAuthCancelled"))
         } catch {
@@ -181,8 +190,8 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
         switch request {
         case let .oauthNative(clientId, stateId, nonce, implicit):
             handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
-        case let .webAuth(startURL, finishURL):
-            handleWebAuth(startURL: startURL, finishURL: finishURL)
+        case let .webAuth(variant, startURL, finishURL):
+            handleWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
         }
     }
 
@@ -218,10 +227,4 @@ private func findTokenCookie(named name: String, in cookies: [HTTPCookie], proje
     guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected token issuer in flow response \(name) cookie") }
 
     return token.jwt
-}
-
-private func makeFlowResumeClosure(for coordinator: DescopeFlowCoordinator) -> DescopeFlow.ResumeClosure {
-    return { @MainActor [weak coordinator] flow, url in
-        coordinator?.load(url: url, for: flow)
-    }
 }

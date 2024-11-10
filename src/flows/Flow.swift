@@ -64,12 +64,12 @@ public class DescopeFlow {
     ///         }
     ///     }
     public func resume(with url: URL) {
-        resume?(self, url)
+        resume?(url)
     }
 
     // Internal
 
-    typealias ResumeClosure = @MainActor (DescopeFlow, URL) -> ()
+    typealias ResumeClosure = @MainActor (URL) -> ()
 
     /// The running flow periodically checks this property to for any redirect URL from calls
     /// to the ``handleURL(_:)`` function.

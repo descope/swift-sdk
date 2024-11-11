@@ -49,11 +49,6 @@ public class DescopeFlowViewController: UIViewController {
         return flowView.state
     }
 
-    public convenience init(preloading flow: DescopeFlow) {
-        self.init()
-        start(flow: flow)
-    }
-
     public override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -76,7 +71,7 @@ public class DescopeFlowViewController: UIViewController {
 
     public override func didMove(toParent parent: UIViewController?) {
         super.didMove(toParent: parent)
-        if navigationController?.topViewController == self {
+        if let navigationController, navigationController.topViewController === self, navigationController.viewControllers.count == 1 {
             navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
         } else {
             navigationItem.leftBarButtonItem = nil

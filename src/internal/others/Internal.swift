@@ -70,11 +70,11 @@ class DefaultPresentationContextProvider: NSObject, ASWebAuthenticationPresentat
     }
 }
 
-typealias AuthorizationDelegateCompletion = (Result<ASAuthorization, Error>) -> Void
-
 class AuthorizationDelegate: NSObject, ASAuthorizationControllerDelegate {
-    var completion: AuthorizationDelegateCompletion?
-    
+    typealias Completion = (Result<ASAuthorization, Error>) -> Void
+
+    var completion: Completion?
+
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         completion?(.success(authorization))
         completion = nil

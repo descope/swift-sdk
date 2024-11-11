@@ -419,15 +419,48 @@ public protocol DescopeEnchantedLink: Sendable {
 ///
 /// - SeeAlso: For further reference see: [Authenticating a User Through a Web Service](https://developer.apple.com/documentation/authenticationservices/authenticating_a_user_through_a_web_service)
 public protocol DescopeOAuth: Sendable {
+    /// Authenticates the user with OAuth using a sandboxed authentication view.
+    ///
+    /// This API is a convenience method that calls `webStart`, presents the OAuth webpage
+    /// using `ASWebAuthenticationSession`, and then finally calls `webExchange`.
+    ///
+    /// - Parameters:
+    ///   - provider: The provider the user wishes to authenticate with.
+    ///   - accessSharedUserData: Whether the authentication view is allowed to access shared
+    ///     user data. See the note below for more details.
+    ///   - options: Require additional behaviors when authenticating a user.
+    ///
+    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
+    ///
+    /// - Throws: ``DescopeError/webAuthCancelled`` if the authentication view is aborted
+    ///     or cancelled by the user.
+    ///
+    /// - Note: Setting `accessSharedUserData` to `true` allows the sandboxed browser in the
+    ///     authentication view to access cookies and other browsing data from the user's
+    ///     regular browser in the device. Users are often logged in to their OAuth provider
+    ///     in the device's regular browser, and enabling this setting should let them use
+    ///     their active session when authenticating rather than forcing them to login to
+    ///     the provider again. A side effect of enabling this is that the device will show
+    ///     a dialog before the authentication view is presented, asking the user to allow
+    ///     the app to share information with the browser.
+    ///
+    /// - Important: This is an asynchronous operation that performs network requests before
+    ///     and after displaying the modal authentication view. It is thus recommended to show
+    ///     an activity indicator or switch the user interface to a loading state before calling
+    ///     this, otherwise the user might accidentally interact with the app when the
+    ///     authentication view is not being displayed.
+    @MainActor
+    func web(provider: OAuthProvider, accessSharedUserData: Bool, options: [SignInOptions]) async throws -> AuthenticationResponse
+
     /// Starts an OAuth redirect chain to authenticate a user.
     ///
     /// It's recommended to use `ASWebAuthenticationSession` to perform the authentication.
     ///
     ///     // use one of the built in constants for the OAuth provider
-    ///     let authURL = try await Descope.oauth.start(provider: .apple, redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: .apple, redirectURL: nil)
     ///
     ///     // or pass a string with the name of a custom provider
-    ///     let authURL = try await Descope.oauth.start(provider: "myprovider", redirectURL: nil)
+    ///     let authURL = try await Descope.oauth.webStart(provider: "myprovider", redirectURL: nil)
     ///
     /// - Important: Make sure a default OAuth redirect URL is configured
     ///     in the Descope console, or provided by this call.
@@ -440,8 +473,8 @@ public protocol DescopeOAuth: Sendable {
     ///
     /// - Returns: A URL to redirect to in order to authenticate the user against
     ///     the chosen provider.
-    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL
-    
+    func webStart(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL
+
     /// Completes an OAuth redirect chain by exchanging the code received in
     /// the `code` URL parameter for an ``AuthenticationResponse``.
     ///
@@ -449,7 +482,7 @@ public protocol DescopeOAuth: Sendable {
     ///     `code` URL parameter.
     ///
     /// - Returns: An ``AuthenticationResponse`` value upon successful exchange.
-    func exchange(code: String) async throws -> AuthenticationResponse
+    func webExchange(code: String) async throws -> AuthenticationResponse
 
     /// Authenticates the user using the native `Sign in with Apple` dialog.
     ///
@@ -482,6 +515,7 @@ public protocol DescopeOAuth: Sendable {
     ///
     /// - SeeAlso: For more details about configuring your app and generating client secrets
     ///     see the [Sign in with Apple documentation](https://developer.apple.com/sign-in-with-apple/get-started/).
+    @MainActor
     func native(provider: OAuthProvider, options: [SignInOptions]) async throws -> AuthenticationResponse
 }
 
@@ -671,40 +705,4 @@ public protocol DescopePasskey: Sendable {
     ///     the authentication view is cancelled by the user.
     @available(iOS 15.0, *)
     func add(loginId: String, refreshJwt: String) async throws
-}
-
-/// Authenticate a user using a flow.
-///
-/// Descope Flows is a visual no-code interface to build screens and authentication flows
-/// for common user interactions with your application. Flows are hosted on a webpage and
-/// are run using a sandboxed browser view.
-///
-/// See the documentation for ``DescopeFlowRunner`` for more details.
-public protocol DescopeFlow: Sendable {
-    /// Returns the ``DescopeFlowRunner`` for the current running flow or `nil` if
-    /// no flow is currently running.
-    @MainActor
-    var current: DescopeFlowRunner? { get }
-    
-    /// Starts a user authentication flow.
-    ///
-    /// The flow screens are presented in a sandboxed browser view that's displayed by this
-    /// method call. The method then waits until the authentication completed successfully,
-    /// at which point it will return an ``AuthenticationResponse`` value as in all other
-    /// authentication methods. See the documentation for ``DescopeFlowRunner`` for more
-    /// details.
-    ///
-    /// - Note: If the `Task` that calls this method is cancelled the flow will also be
-    ///     cancelled and the authentication view will be dismissed, behaving as if the
-    ///     ``DescopeFlowRunner/cancel()`` method was called on the runner. See the
-    ///     documentation for that method for more details.
-    ///
-    /// - Parameter runner: A ``DescopeFlowRunner`` that encapsulates this flow run.
-    ///
-    /// - Throws: ``DescopeError/flowCancelled`` if the ``DescopeFlowRunner/cancel()`` method
-    ///     is called on the runner or the authentication view is cancelled by the user.
-    ///
-    /// - Returns: An ``AuthenticationResponse`` value upon successful authentication.
-    @MainActor
-    func start(runner: DescopeFlowRunner) async throws -> AuthenticationResponse
 }

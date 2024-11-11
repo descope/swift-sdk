@@ -92,6 +92,9 @@ extension DescopeError {
 
     public static let oauthNativeFailed = DescopeError.sdkError("S120001", "Sign in with Apple failed")
     public static let oauthNativeCancelled = DescopeError.sdkError("S120002", "Sign in with Apple cancelled")
+    
+    public static let webAuthFailed = DescopeError.sdkError("S130001", "Web authentication failed")
+    public static let webAuthCancelled = DescopeError.sdkError("S130002", "Web authentication cancelled")
 }
 
 /// Extension functions for catching ``DescopeError`` values.

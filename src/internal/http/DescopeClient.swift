@@ -410,24 +410,23 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         var user: UserResponse?
         var firstSeen: Bool
         
+        // extract JWTs from the cookies if configured to not return them in the response body
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
-            try setValues(from: data, cookies: cookies)
-        }
-
-        mutating func setValues(from data: Data, cookies: [HTTPCookie]) throws {
-            // extract JWTs from the cookies if configured to not return them in the response body
             for cookie in cookies where !cookie.value.isEmpty {
-                if cookie.name.caseInsensitiveCompare(sessionCookieName) == .orderedSame {
+                if cookie.name.caseInsensitiveCompare(sessionCookieName) == .orderedSame, sessionJwt == nil || sessionJwt == "" {
                     sessionJwt = cookie.value
                 }
-                if cookie.name.caseInsensitiveCompare(refreshCookieName) == .orderedSame {
+                if cookie.name.caseInsensitiveCompare(refreshCookieName) == .orderedSame, refreshJwt == nil || refreshJwt == "" {
                     refreshJwt = cookie.value
                 }
             }
+            try setValues(from: data)
+        }
 
-            // the UserResponse decoding takes care of all fields except customAttributes
+        // the UserResponse decoding takes care of all fields except customAttributes
+        mutating func setValues(from data: Data) throws {
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
             if let dict = json["user"] as? [String: Any] {
                 user?.setCustomAttributes(from: dict)

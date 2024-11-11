@@ -12,7 +12,7 @@ public struct AuthenticationResponse: Sendable {
     public var user: DescopeUser
 }
 
-/// Returned from the refreshSession call.
+/// Returned from the ``DescopeAuth/refreshSession(refreshJwt:)`` call.
 public struct RefreshResponse: Sendable {
     public var sessionToken: DescopeToken
     public var refreshToken: DescopeToken?

@@ -47,7 +47,17 @@ public extension DescopeEnchantedLink {
 public extension DescopeOAuth {
     @available(*, unavailable, message: "Pass a value (or an empty array) for the options parameter")
     func start(provider: OAuthProvider, redirectURL: String?) async throws -> URL {
-        return try await start(provider: provider, redirectURL: redirectURL, options: [])
+        return try await webStart(provider: provider, redirectURL: redirectURL, options: [])
+    }
+
+    @available(*, deprecated, renamed: "webStart")
+    func start(provider: OAuthProvider, redirectURL: String?, options: [SignInOptions]) async throws -> URL {
+        return try await webStart(provider: provider, redirectURL: redirectURL, options: options)
+    }
+
+    @available(*, deprecated, renamed: "webExchange")
+    func exchange(code: String) async throws -> AuthenticationResponse {
+        return try await webExchange(code: code)
     }
 }
 
@@ -86,13 +96,5 @@ public extension DescopeConfig {
         self.projectId = projectId
         self.baseURL = baseURL
         self.logger = logger
-    }
-}
-
-public extension DescopeFlowRunner {
-    @available(*, deprecated, message: "Use the init(flowURL: URL) initializer instead")
-    convenience init(flowURL: String) {
-        let url = URL(string: flowURL)!
-        self.init(flowURL: url)
     }
 }

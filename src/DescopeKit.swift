@@ -90,9 +90,6 @@ public extension Descope {
     /// Provides functions for authentication with SSO.
     static var sso: DescopeSSO { sdk.sso }
     
-    /// Provides functions for authentication using flows.
-    static var flow: DescopeFlow { sdk.flow }
-    
     /// Provides functions for exchanging access keys for session tokens.
     static var accessKey: DescopeAccessKey { sdk.accessKey }
 }

@@ -1,10 +1,11 @@
 
 import AuthenticationServices
 
-/// A helper object that encapsulates a single flow run.
+/// A deprecated object that encapsulates a single flow run. Use a `DescopeFlowViewController`
+/// to show a `DescopeFlow` instead.
 ///
 /// Create a runner by providing the URL for a webpage where the flow is hosted. You
-/// can start the flow by calling ``DescopeFlow/start(runner:)``. When the authentication
+/// can start the flow by calling `start(runner:)`. When the authentication
 /// completes successfully it returns a ``AuthenticationResponse`` value as in all other
 /// authentication methods.
 ///
@@ -50,7 +51,7 @@ public class DescopeFlowRunner {
     }
     
     /// The URL where the flow is hosted.
-    public let flowURL: URL
+    public let flowURL: String
 
     /// Optional authentication info to allow running flows for authenticated users
     public var flowAuthentication: Authentication?
@@ -85,7 +86,7 @@ public class DescopeFlowRunner {
     /// Creates a new ``DescopeFlowRunner`` object that encapsulates a single flow run.
     ///
     /// - Parameter flowURL: The URL where the flow is hosted.
-    public init(flowURL: URL) {
+    public init(flowURL: String) {
         self.flowURL = flowURL
     }
 
@@ -118,7 +119,7 @@ public class DescopeFlowRunner {
 
     /// Cancels the flow run.
     ///
-    /// You can cancel any ongoing flow via the ``DescopeFlow/current`` property on the
+    /// You can cancel any ongoing flow via the `current` property on the
     /// ``Descope/flow`` object, or by holding on to the ``DescopeFlowRunner`` instance
     /// directly.  This method can be safely called multiple times.
     ///
@@ -134,10 +135,10 @@ public class DescopeFlowRunner {
     ///     // somewhere else
     ///     Descope.flow.current?.cancel()
     ///
-    /// Note that cancelling the `Task` that started the flow with ``DescopeFlow/start(runner:)``
+    /// Note that cancelling the `Task` that started the flow with `start(runner:)`
     /// has the same effect as calling this ``cancel()`` function.
     ///
-    /// In any case, when a runner is cancelled the ``DescopeFlow/start(runner:)`` call always
+    /// In any case, when a runner is cancelled the `start(runner:)` call always
     /// throws a ``DescopeError/flowCancelled`` error.
     ///
     /// - Important: Keep in mind that the cancellation is asynchronous and the calling code
@@ -149,7 +150,7 @@ public class DescopeFlowRunner {
 
     /// Returns whether this runner was cancelled.
     ///
-    /// After the flow is started by calling ``DescopeFlow/start(runner:)`` it periodically
+    /// After the flow is started by calling `start(runner:)` it periodically
     /// checks this property to see if the flow was cancelled.
     public private(set) var isCancelled: Bool = false
 

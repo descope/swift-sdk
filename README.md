@@ -138,6 +138,68 @@ You can customize how the `DescopeSessionManager` behaves by using
 your own `storage` and `lifecycle` objects. See the documentation
 for more details.
 
+## Flows
+
+We can authenticate users by building and running Flows. Flows are built in the Descope 
+[flow editor](https://app.descope.com/flows). The editor allows you to easily define both
+the behavior and the UI that take the user through their authentication journey. Read more
+about it in the Descope [getting started](https://docs.descope.com/build/guides/gettingstarted/)
+guide.
+
+### Define and host your flow
+
+Before we can run a flow, it must first be defined and hosted. Every project comes with a
+set of predefined flows out of the box. You can customize your flows to suit your needs
+and host them somewhere on the web. Follow the [getting started](https://docs.descope.com/build/guides/gettingstarted/)
+guide for more details.
+
+### Enable Universal Links for Magic Link authentication
+
+If your flows use Magic Link authentication, the user will need to be routed back to the
+app when they tap on the link in the authentication email message. If you don't intend to
+use Magic Link authentication you can skip this step. Otherwise, see Apple's [universal links](https://developer.apple.com/ios/universal-links/)
+guide to learn more.
+
+When your application delegate is notified about a universal link being triggered, you'll
+need to provide it to the flow so it can continue with the authentication. See the documentation
+for `DescopeFlow.resume(with:)` for more details.
+
+```swift
+func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    guard userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL else { return false }
+    DescopeFlow.current?.resume(with: url)
+    return true
+}
+```
+
+### Start the flow
+
+You can use either a `DescopeFlowViewController` or a `DescopeFlowView` to run a flow.
+The former provides a ready made component to present a flow modally with a few lines
+of code, while the latter can be used to show the flow however you want in your view
+hierarchy. See the documentation for both classes for more details.
+
+```swift
+fun showLoginScreen() {
+    let url = URL(string: "https://example.com/myflow")!
+    let flow = DescopeFlow(url: url)
+
+    let flowViewController = DescopeFlowViewController()
+    flowViewController.delegate = self
+    flowViewController.start(flow: flow)
+
+    navigationController?.pushViewController(flowViewController, animated: true)
+}
+
+func flowViewControllerDidFinish(_ controller: DescopeFlowViewController, response: AuthenticationResponse) {
+    let session = DescopeSession(from: response)
+    Descope.sessionManager.manageSession(session)
+    showMainScreen()
+}
+```
+
+Note that these components for displaying flows are only supported on iOS for now.
+
 ## Authentication Methods
 
 Here are some examples for how to authenticate users:
@@ -340,46 +402,47 @@ let authResponse = try await Descope.totp.verify(loginId: "andy@example.com", co
 
 ### Password Authentication
 
-Authenticate users using a password.
-
-#### Sign Up with Password
-
-To create a new user that can later sign in with a password:
+Create a new user that can later sign in with a password:
 
 ```swift
 let authResponse = try await Descope.password.signUp(loginId: "andy@example.com", password: "securePassword123!", details: SignUpDetails(
     name: "Andy Rhoads"
 ))
-```
 
-#### Sign In with Password
+// in another screen
 
-Authenticate an existing user using a password:
-
-```swift
 let authResponse = try await Descope.password.signIn(loginId: "andy@example.com", password: "securePassword123!")
 ```
 
-#### Update Password
-
-If you need to update a user's password:
+You can update the current password for a logged in user:
 
 ```swift
 try await Descope.password.update(loginId: "andy@example.com", newPassword: "newSecurePassword456!", refreshJwt: "user-refresh-jwt")
 ```
 
-#### Replace Password
-
-To replace a user's password by providing their current password:
+You can also replace the password for a user by providing both the new password and
+the current one:
 
 ```swift
 let authResponse = try await Descope.password.replace(loginId: "andy@example.com", oldPassword: "SecurePassword123!", newPassword: "NewSecurePassword456!")
 ```
 
-#### Send Password Reset Email
-
-Initiate a password reset by sending an email:
+You can also trigger a password reset email to be sent to the user:
 
 ```swift
-try await Descope.password.sendReset(loginId: "andy@example.com", redirectURL: "exampleauthschema://my-app.com/handle-reset")
+try await Descope.password.sendReset(loginId: "andy@example.com", redirectURL: "appscheme://my-app.com/handle-reset")
 ```
+
+## Support
+
+#### Contributing
+
+If anything is missing or not working correctly please open an issue or pull request.
+
+#### Learn more
+
+To learn more please see the [Descope documentation](https://docs.descope.com).
+
+#### Contact us
+
+If you need help you can hop on our [Slack community](https://www.descope.com/community) or send an email to [Descope support](mailto:support@descope.com).

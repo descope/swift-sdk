@@ -67,6 +67,7 @@ open class DescopeLogger {
     /// Override this method to customize how to handle log messages from the Descope SDK.
     ///
     /// - Parameters:
+    ///   - level: The log level of the message.
     ///   - message: This parameter is guaranteed to be a constant compile-time string, so
     ///     you can assume it doesn't contain private user data or secrets and that it can
     ///     be sent to whatever logging target or service you use.

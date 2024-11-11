@@ -56,12 +56,18 @@ public class DescopeFlow {
     /// The URL where the flow is hosted.
     public let url: URL
 
-    /// Set your own instance of ``DescopeSDK`` if you're not using the ``Descope`` singleton.
-    public var descope: DescopeSDK = Descope.sdk
+    /// An optional instance of ``DescopeSDK`` to use for running the flow.
+    ///
+    /// If you're not using the shared ``Descope`` singleton and passing around an instance of
+    /// the ``DescopeSDK`` class instead you must set this property before starting the flow.
+    public var descope: DescopeSDK?
 
     /// The id of the oauth provider that should leverage the native "Sign in with Apple"
-    /// dialog instead of opening a web browser. This will usually either be `.apple` or
-    /// the name of a custom provider that's configured for Apple.
+    /// dialog instead of opening a web browser.
+    ///
+    /// This will usually either be `.apple` or the name of a custom OAuth provider you've
+    /// created in the [Descope Console](https://app.descope.com/settings/authentication/social)
+    /// that's been configured for Apple.
     public var oauthProvider: OAuthProvider?
 
     /// An optional universal link URL to use when sending magic link emails.
@@ -113,8 +119,8 @@ public class DescopeFlow {
 
     typealias ResumeClosure = @MainActor (URL) -> ()
 
-    /// The running flow periodically checks this property to for any redirect URL from calls
-    /// to the ``handleURL(_:)`` function.
+    /// While the flow is running this is set to a closure with a weak reference to
+    /// the ``DescopeFlowCoordinator`` to provide it with the resume URL.
     var resume: ResumeClosure?
 }
 

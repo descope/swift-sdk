@@ -41,7 +41,13 @@ on the [Descope website](https://descope.com).
 ### Flows
 
 - ``DescopeFlow``
-- ``DescopeFlowRunner``
+- ``DescopeFlowState``
+- ``DescopeFlowView``
+- ``DescopeFlowViewDelegate``
+- ``DescopeFlowViewController``
+- ``DescopeFlowViewControllerDelegate``
+- ``DescopeFlowCoordinator``
+- ``DescopeFlowCoordinatorDelegate``
 
 ### Response Types
 
@@ -72,3 +78,7 @@ on the [Descope website](https://descope.com).
 - ``DescopeSessionStorage``
 - ``SessionLifecycle``
 - ``SessionStorage``
+
+### Deprecated
+
+- ``DescopeFlowRunner``

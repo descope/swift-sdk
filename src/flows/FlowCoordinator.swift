@@ -4,6 +4,7 @@
 import UIKit
 import WebKit
 
+/// A set of delegate methods for events about the flow running in a ``DescopeFlowCoordinator``.
 @MainActor
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState)
@@ -13,6 +14,12 @@ public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
 }
 
+/// A helper class for running Descope Flows.
+///
+/// You can create an instance of ``DescopeFlowCoordinator``, attach a `WKWebView` by
+/// setting the ``webView`` property, and then call ``start(flow:)``. In almost any
+/// situation though it would be more convenient to use a ``DescopeFlowViewController``
+/// ot a ``DescopeFlowView`` instead.
 @MainActor
 public class DescopeFlowCoordinator {
     private let bridge: FlowBridge
@@ -46,15 +53,18 @@ public class DescopeFlowCoordinator {
 
     private var flow: DescopeFlow? {
         didSet {
-            logger = flow?.descope.config.logger
-            bridge.logger = logger
-            flow?.resume = resumeClosure
             oldValue?.resume = nil
+            flow?.resume = resumeClosure
+            logger = flow?.config.logger
+            bridge.logger = logger
         }
     }
 
     public func start(flow: DescopeFlow) {
         logger(.info, "Starting flow authentication", flow)
+        #if DEBUG
+        precondition(flow.config.projectId != "", "The Descope singleton must be setup or an instance of DescopeSDK must be set on the flow")
+        #endif
 
         self.flow = flow
         DescopeFlow.current = flow
@@ -146,7 +156,7 @@ public class DescopeFlowCoordinator {
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
             try jwtResponse.setValues(from: data)
             let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
-            let projectId = flow?.descope.config.projectId ?? ""
+            let projectId = flow?.config.projectId ?? ""
             jwtResponse.sessionJwt = try jwtResponse.sessionJwt ?? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: projectId)
             jwtResponse.refreshJwt = try jwtResponse.refreshJwt ?? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: projectId)
             return try jwtResponse.convert()
@@ -232,7 +242,11 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     }
 }
 
-#endif
+private extension DescopeFlow {
+    var config: DescopeConfig {
+        return descope?.config ?? Descope.sdk.config
+    }
+}
 
 private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String) throws(DescopeError) -> String {
     // keep only cookies matching the required name
@@ -255,3 +269,5 @@ private func findTokenCookie(named name: String, in cookies: [HTTPCookie], proje
 
     return token.jwt
 }
+
+#endif

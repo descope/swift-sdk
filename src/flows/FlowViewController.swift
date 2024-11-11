@@ -4,8 +4,9 @@
 import UIKit
 import WebKit
 
+/// A set of delegate methods for events about the flow running in a ``DescopeFlowViewController``.
 @MainActor
-public protocol DescopeFlowViewControllerViewDelegate: AnyObject {
+public protocol DescopeFlowViewControllerDelegate: AnyObject {
     func flowViewControllerDidUpdateState(_ controller: DescopeFlowViewController, to state: DescopeFlowState, from previous: DescopeFlowState)
     func flowViewControllerDidBecomeReady(_ controller: DescopeFlowViewController)
     func flowViewControllerShouldShowURL(_ controller: DescopeFlowViewController, url: URL, external: Bool) -> Bool
@@ -14,11 +15,16 @@ public protocol DescopeFlowViewControllerViewDelegate: AnyObject {
     func flowViewControllerDidFinish(_ controller: DescopeFlowViewController, response: AuthenticationResponse)
 }
 
+/// A utility class for presenting a Descope Flow.
+///
+/// You can use an instance of ``DescopeFlowViewController`` as a standalone view controller or
+/// in a navigation controller stack. In the latter case, if the flow view controller is at the
+/// top of the stack, it shows a `Cancel` button where the back arrow usually is.
 public class DescopeFlowViewController: UIViewController {
 
     private lazy var flowView: DescopeFlowView = createFlowView()
 
-    public weak var delegate: DescopeFlowViewControllerViewDelegate?
+    public weak var delegate: DescopeFlowViewControllerDelegate?
 
     public var state: DescopeFlowState {
         return flowView.state
@@ -65,7 +71,7 @@ public class DescopeFlowViewController: UIViewController {
     }
 
     private func createFlowView() -> DescopeFlowView {
-        return DescopeCustomFlowView(frame: isViewLoaded ? view.bounds : UIScreen.main.bounds)
+        return DescopeFlowView(frame: isViewLoaded ? view.bounds : UIScreen.main.bounds)
     }
 }
 
@@ -96,18 +102,6 @@ extension DescopeFlowViewController: DescopeFlowViewDelegate {
     
     public func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse) {
         delegate?.flowViewControllerDidFinish(self, response: response)
-    }
-}
-
-private class DescopeCustomFlowView: DescopeFlowView {
-    override class var webViewClass: WKWebView.Type {
-        return DescopeCustomWebView.self
-    }
-}
-
-private class DescopeCustomWebView: WKWebView {
-    override var inputAccessoryView: UIView? {
-        return nil
     }
 }
 

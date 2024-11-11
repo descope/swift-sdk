@@ -4,12 +4,46 @@
 import UIKit
 import WebKit
 
+/// A set of delegate methods for events about the flow running in a ``DescopeFlowView``.
 @MainActor
 public protocol DescopeFlowViewDelegate: AnyObject {
+    /// Called directly after the flow state is updated.
+    ///
+    /// Where appropriate, this delegate method is always called before other delegate methods.
+    /// For example, if there's an error in the flow this method is called first to report
+    /// the state change to ``DescopeFlowState/failed`` and then the failure delegate methud
+    /// is called with the specific ``DescopeError`` value.
     func flowViewDidUpdateState(_ flowView: DescopeFlowView, to state: DescopeFlowState, from previous: DescopeFlowState)
+
+    /// Called when the flow is fully loaded and rendered and the view can be displayed.
+    ///
+    /// You can use this method to show a loading state until the flow is fully loaded,
+    /// and do a quick animatad transition to show the flow once this method is called.
     func flowViewDidBecomeReady(_ flowView: DescopeFlowView)
+
+    /// Called when the user taps on a web link in the flow.
+    ///
+    /// The `external` parameter is `true` if the link is configured to open a new
+    /// browser tab or window in a regular browser app.
+    ///
+    /// If your flow doesn't show any web links you can either use an empty implementation
+    /// or simply call `UIApplication.shared.open(url)` so that links open in the user's
+    /// default browser app.
     func flowViewDidInterceptNavigation(_ flowView: DescopeFlowView, url: URL, external: Bool)
+
+    /// Called when an error occurs in the flow.
+    ///
+    /// The most common failures are due to internet issues, in which case the `error` will
+    /// usually be ``DescopeError/networkError``.
     func flowViewDidFailAuthentication(_ flowView: DescopeFlowView, error: DescopeError)
+
+    /// Called when the flow completes the authentication successfully.
+    ///
+    /// The `response` parameter can be used to create a ``DescopeSession`` as with other
+    /// authentication methods.
+    ///
+    /// ```swift
+    /// ```
     func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse)
 }
 
@@ -78,7 +112,7 @@ open class DescopeFlowView: UIView {
 
     private let coordinator = DescopeFlowCoordinator()
 
-    private lazy var webView = createWebView()
+    private lazy var webView: WKWebView = createWebView()
 
     private lazy var delegateWrapper = CoordinatorDelegateWrapper(view: self)
 
@@ -162,12 +196,10 @@ open class DescopeFlowView: UIView {
 
     // Override points
 
-    /// Override this method if you need your ``DescopeFlowView`` subclass to use a
-    /// custom `WKWebView` subclass for its webview instance.
-    ///
-    /// The default implementation of this method returns `WKWebView.self`.
+    /// Override this method if you want your ``DescopeFlowView`` to use a spsecific
+    /// type of `WKWebView` for its webview instance.
     open class var webViewClass: WKWebView.Type {
-        return WKWebView.self
+        return DescopeCustomWebView.self
     }
 
     /// Override this method if you need to customize the webview's configuration before it's created.
@@ -205,6 +237,7 @@ open class DescopeFlowView: UIView {
     }
 }
 
+/// A helper class to hide the coordinator delegate implementations.
 private class CoordinatorDelegateWrapper: DescopeFlowCoordinatorDelegate {
     private weak var view: DescopeFlowView?
 
@@ -230,6 +263,13 @@ private class CoordinatorDelegateWrapper: DescopeFlowCoordinatorDelegate {
 
     func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
         view?.didFinishAuthentication(response: response)
+    }
+}
+
+/// A custom WKWebView subclass to hide the form navigation bar.
+private class DescopeCustomWebView: WKWebView {
+    override var inputAccessoryView: UIView? {
+        return nil
     }
 }
 

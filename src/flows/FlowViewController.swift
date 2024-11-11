@@ -20,6 +20,25 @@ public protocol DescopeFlowViewControllerDelegate: AnyObject {
 /// You can use an instance of ``DescopeFlowViewController`` as a standalone view controller or
 /// in a navigation controller stack. In the latter case, if the flow view controller is at the
 /// top of the stack, it shows a `Cancel` button where the back arrow usually is.
+///
+/// ```swift
+/// fun showLoginScreen() {
+///     let url = URL(string: "https://example.com/myflow")!
+///     let flow = DescopeFlow(url: url)
+///
+///     let flowViewController = DescopeFlowViewController()
+///     flowViewController.delegate = self
+///     flowViewController.start(flow: flow)
+///
+///     navigationController?.pushViewController(flowViewController, animated: true)
+/// }
+///
+/// func flowViewControllerDidFinish(_ controller: DescopeFlowViewController, response: AuthenticationResponse) {
+///     let session = DescopeSession(from: response)
+///     Descope.sessionManager.manageSession(session)
+///     showMainScreen()
+/// }
+/// ```
 public class DescopeFlowViewController: UIViewController {
 
     private lazy var flowView: DescopeFlowView = createFlowView()

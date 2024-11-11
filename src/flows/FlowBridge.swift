@@ -263,20 +263,10 @@ window.console.debug = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessag
 window.console.info = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'info', message: s }) }
 window.console.warn = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'warn', message: s }) }
 window.console.error = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'error', message: s }) }
+window.onerror = (message, source, lineno, colno, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
 
 // Called directly below 
 function \(namespace)_initialize() {
-    const styles = `
-        * {
-          -webkit-touch-callout: none;
-          -webkit-user-select: none;
-        }
-    `
-
-    const stylesheet = document.createElement("style")
-    stylesheet.textContent = styles
-    document.head.appendChild(stylesheet)
-
     let interval
     interval = setInterval(() => {
         let component = \(namespace)_find()
@@ -294,6 +284,17 @@ function \(namespace)_find() {
 
 // Attaches event listeners once the Descope web-component is ready
 function \(namespace)_prepare(component) {
+    const styles = `
+        * {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+        }
+    `
+
+    const stylesheet = document.createElement('style')
+    stylesheet.textContent = styles
+    document.head.appendChild(stylesheet)
+
     component.nativeOptions = {
         platform: 'ios',
         bridgeVersion: 1,

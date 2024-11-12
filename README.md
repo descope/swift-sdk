@@ -180,7 +180,7 @@ of code, while the latter can be used to show the flow however you want in your 
 hierarchy. See the documentation for both classes for more details.
 
 ```swift
-fun showLoginScreen() {
+func showLoginScreen() {
     let url = URL(string: "https://example.com/myflow")!
     let flow = DescopeFlow(url: url)
 

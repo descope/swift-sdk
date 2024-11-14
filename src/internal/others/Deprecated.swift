@@ -68,6 +68,13 @@ public extension DescopeSSO {
     }
 }
 
+public extension DescopeAuth {
+    @available(*, deprecated, message: "Call revokeSessions(.currentSession, refreshJwt: refreshJwt) instead")
+    func logout(refreshJwt: String) async throws {
+        return try await revokeSessions(.currentSession, refreshJwt: refreshJwt)
+    }
+}
+
 public extension DescopeSDK {
     @available(*, deprecated, message: "Use the DescopeSDK.init(projectId:with:) initializer instead")
     convenience init(config: DescopeConfig) {

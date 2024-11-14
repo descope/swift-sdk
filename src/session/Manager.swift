@@ -49,7 +49,7 @@ import Foundation
 /// session and clear it from the session manager:
 ///
 ///     guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
-///     try await Descope.auth.logout(refreshJwt: refreshJwt)
+///     try await Descope.auth.revokeSessions(.currentSession, refreshJwt: refreshJwt)
 ///     Descope.sessionManager.clearSession()
 ///
 /// You can customize how the ``DescopeSessionManager`` behaves by using your own

@@ -11,6 +11,22 @@ public enum DeliveryMethod: String, Sendable {
     case email
 }
 
+/// Which sessions are revoked when calling ``DescopeAuth/revokeSessions(_:refreshJwt:)``.
+public enum RevokeType: Sendable {
+    /// Revoke the session for the provided refresh JWT.
+    case currentSession
+
+    /// Revoke all other sessions for the user, not including the session for the provided refresh JWT.
+    ///
+    /// - Important: The provided refresh JWT will still be usable afterwards.
+    case otherSessions
+
+    /// Revoke all sessions for the user, including the session for the provided refresh JWT.
+    ///
+    /// - Important: The provided refresh JWT will not be usable anymore.
+    case allSessions
+}
+
 /// The provider to use in an OAuth flow.
 public struct OAuthProvider: Sendable, ExpressibleByStringLiteral {
     public static let facebook: OAuthProvider = "facebook"

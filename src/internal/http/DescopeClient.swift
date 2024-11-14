@@ -395,8 +395,15 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         return try await post("auth/refresh", headers: authorization(with: refreshJwt))
     }
     
-    func logout(refreshJwt: String) async throws {
-        try await post("auth/logout", headers: authorization(with: refreshJwt))
+    func logout(type: RevokeType, refreshJwt: String) async throws {
+        switch type {
+        case .currentSession:
+            try await post("auth/logout", headers: authorization(with: refreshJwt))
+        case .otherSessions:
+            try await post("auth/logoutprevious", headers: authorization(with: refreshJwt))
+        case .allSessions:
+            try await post("auth/logoutall", headers: authorization(with: refreshJwt))
+        }
     }
     
     // MARK: - Shared

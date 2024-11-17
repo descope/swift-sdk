@@ -29,7 +29,6 @@ import Foundation
 /// session manager. If so we ask the Descope server for the latest user details and
 /// then update the ``DescopeSession`` with them.
 public struct DescopeUser: @unchecked Sendable {
-
     /// The unique identifier for the user in Descope.
     ///
     /// This value never changes after the user is created, and it always matches

@@ -1,12 +1,21 @@
 
 import Foundation
 
+/// The ``DescopeTenant`` struct represents a tenant in Descope.
+///
+/// You can retrieve the tenants for a user after authentication by calling ``DescopeAuth/tenants(dct:tenantIds:refreshJwt:)``.
 public struct DescopeTenant: @unchecked Sendable {
-
+    /// The unique identifier for the user in the project.
+    ///
+    /// This is either an automatically generated value or a custom value that was set
+    /// when the tenant was created.
     public var tenantId: String
 
+    /// The name of the tenant.
     public var name: String
 
+    /// A mapping of any custom attributes associated with this tenant. The custom attributes
+    /// are managed via the Descope console.
     public var customAttributes: [String: Any]
 
     public init(tenantId: String, name: String, customAttributes: [String: Any] = [:]) {

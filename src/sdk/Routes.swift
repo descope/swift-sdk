@@ -10,7 +10,17 @@ public protocol DescopeAuth: Sendable {
     /// - Returns: A ``DescopeUser`` object with the user details.
     func me(refreshJwt: String) async throws -> DescopeUser
 
-    func tenants(by request: TenantsRequest, refreshJwt: String) async throws -> [DescopeTenant]
+    /// Returns the current session user tenants.
+    ///
+    /// - Parameters:
+    ///   - dct: Set this to `true` and leave `tenantIds` empty to request the current
+    ///     tenant for the user as set in the `dct` claim. This will fail if a tenant
+    ///     hasn't already been selected.
+    ///   - tenantIds: Provide a non-empty array of tenant IDs and set `dct` to `false`
+    ///     to request a specific list of tenants for the user.
+    ///
+    /// - Returns: A list of one or more ``DescopeTenant`` values.
+    func tenants(dct: Bool, tenantIds: [String], refreshJwt: String) async throws -> [DescopeTenant]
 
     /// Refreshes a ``DescopeSession``.
     ///

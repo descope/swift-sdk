@@ -10,13 +10,7 @@ final class Auth: DescopeAuth {
         return try await client.me(refreshJwt: refreshJwt).convert()
     }
 
-    func tenants(by request: TenantsRequest, refreshJwt: String) async throws -> [DescopeTenant] {
-        var dct = false
-        var tenantIds: [String] = []
-        switch request {
-        case .selected: dct = true
-        case .tenantIds(let ids): tenantIds = ids
-        }
+    func tenants(dct: Bool, tenantIds: [String], refreshJwt: String) async throws -> [DescopeTenant] {
         return try await client.tenants(dct: dct, tenantIds: tenantIds, refreshJwt: refreshJwt).convert()
     }
 

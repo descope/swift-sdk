@@ -73,6 +73,7 @@ on the [Descope website](https://descope.com).
 ### Others
 
 - ``DescopeSDK``
+- ``DescopeTenant``
 - ``DescopeToken``
 - ``DescopeSessionLifecycle``
 - ``DescopeSessionStorage``

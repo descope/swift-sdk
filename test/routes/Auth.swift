@@ -15,6 +15,26 @@ class TestAuth: XCTestCase {
         try checkUser(user)
     }
 
+    func testTenants() async throws {
+        let descope = DescopeSDK.mock()
+
+        MockHTTP.push(body: tenantsPayload) { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.absoluteString ?? "", "https://api.descope.com/v1/auth/me/tenants")
+            let body = (try! JSONSerialization.jsonObject(with: request.httpBody ?? Data())) as! [String: Any]
+            XCTAssertEqual(body.count, 2)
+            XCTAssertEqual(body["dct"] as? Bool, true)
+            XCTAssertEqual(body["ids"] as? [String], ["foo", "bar"])
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer projId:jwt")
+        }
+
+        let tenants = try await descope.auth.tenants(dct: true, tenantIds: ["foo", "bar"], refreshJwt: "jwt")
+        XCTAssertEqual(tenants.count, 1)
+        XCTAssertEqual(tenants[0].tenantId, "foo")
+        XCTAssertEqual(tenants[0].name, "Foo")
+        try checkCustomAttributes(tenants[0].customAttributes)
+    }
+
     func testAuth() async throws {
         let descope = DescopeSDK.mock()
 
@@ -38,14 +58,15 @@ class TestAuth: XCTestCase {
         XCTAssertTrue(user.isVerifiedEmail)
         XCTAssertNil(user.givenName)
 
-        // customAttributes
-        try checkDictionary(user.customAttributes)
+        try checkCustomAttributes(user.customAttributes)
+    }
 
-        // customAttributes.unnecessaryArray
-        guard let array = user.customAttributes["unnecessaryArray"] as? [Any] else { return XCTFail() }
+    func checkCustomAttributes(_ dict: [String: Any]) throws {
+        try checkDictionary(dict)
+
+        guard let array = dict["unnecessaryArray"] as? [Any] else { return XCTFail() }
         try checkArray(array)
 
-        // customAttributes.unnecessaryArray[3]
         guard let dict = array[3] as? [String: Any] else { return XCTFail() }
         try checkDictionary(dict)
     }
@@ -72,6 +93,18 @@ private let authPayload = """
 }
 """
 
+private let tenantsPayload = """
+{
+    "tenants": [
+        {
+            "id": "foo",
+            "name": "Foo",
+            "customAttributes": \(attributesPayload)
+        }
+    ]
+}
+"""
+
 private let userPayload = """
 {
     "userId": "userId",
@@ -84,21 +117,25 @@ private let userPayload = """
     "createdTime": 123,
     "middleName": "middleName",
     "familyName": "familyName",
-    "customAttributes": {
-        "a": "yes",
-        "b": true,
-        "c": 1,
-        "d": null,
-        "unnecessaryArray": [
-            "yes",
-            true,
-            1,
-            {
-                "a": "yes",
-                "b": true,
-                "c": 1,
-            }
-        ]
-    }
+    "customAttributes": \(attributesPayload)
+}
+"""
+
+private let attributesPayload = """
+{
+    "a": "yes",
+    "b": true,
+    "c": 1,
+    "d": null,
+    "unnecessaryArray": [
+        "yes",
+        true,
+        1,
+        {
+            "a": "yes",
+            "b": true,
+            "c": 1,
+        }
+    ]
 }
 """

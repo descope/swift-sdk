@@ -16,14 +16,7 @@ public enum RevokeType: Sendable {
     /// Revoke the session for the provided refresh JWT.
     case currentSession
 
-    /// Revoke all other sessions for the user, not including the session for the provided refresh JWT.
-    ///
-    /// - Important: The provided refresh JWT will still be usable afterwards.
-    case otherSessions
-
     /// Revoke all sessions for the user, including the session for the provided refresh JWT.
-    ///
-    /// - Important: The provided refresh JWT will not be usable anymore.
     case allSessions
 }
 
@@ -106,6 +99,12 @@ public enum SignInOptions: @unchecked Sendable {
     /// After the MFA authentication completes successfully the `amr` claim in both the session
     /// and refresh JWTs will be an array with an entry for each authentication method used.
     case mfa(refreshJwt: String)
+
+    /// Revoke all other active sessions for the user.
+    ///
+    /// Use this option to ensure the user only ever has one active sign in at a time, and that
+    /// refresh JWTs from previous sign ins or in other devices are revoked.
+    case revokeOtherSessions
 }
 
 /// Used to configure how users are updated.

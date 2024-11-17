@@ -399,8 +399,6 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         switch type {
         case .currentSession:
             try await post("auth/logout", headers: authorization(with: refreshJwt))
-        case .otherSessions:
-            try await post("auth/logoutprevious", headers: authorization(with: refreshJwt))
         case .allSessions:
             try await post("auth/logoutall", headers: authorization(with: refreshJwt))
         }
@@ -485,12 +483,14 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         var stepup: Bool = false
         var mfa: Bool = false
         var customClaims: [String: Any] = [:]
+        var revokeOtherSessions = false
 
         var dictValue: [String: Any?] {
             return [
                 "stepup": stepup ? true : nil,
                 "mfa": mfa ? true : nil,
                 "customClaims": customClaims.isEmpty ? nil : customClaims,
+                "revokeOtherSessions": revokeOtherSessions ? true : nil,
             ]
         }
     }

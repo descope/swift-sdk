@@ -11,6 +11,15 @@ public enum DeliveryMethod: String, Sendable {
     case email
 }
 
+/// Which sessions are revoked when calling ``DescopeAuth/revokeSessions(_:refreshJwt:)``.
+public enum RevokeType: Sendable {
+    /// Revoke the session for the provided refresh JWT.
+    case currentSession
+
+    /// Revoke all sessions for the user, including the session for the provided refresh JWT.
+    case allSessions
+}
+
 /// The provider to use in an OAuth flow.
 public struct OAuthProvider: Sendable, ExpressibleByStringLiteral {
     public static let facebook: OAuthProvider = "facebook"
@@ -90,6 +99,12 @@ public enum SignInOptions: @unchecked Sendable {
     /// After the MFA authentication completes successfully the `amr` claim in both the session
     /// and refresh JWTs will be an array with an entry for each authentication method used.
     case mfa(refreshJwt: String)
+
+    /// Revoke all other active sessions for the user.
+    ///
+    /// Use this option to ensure the user only ever has one active sign in at a time, and that
+    /// refresh JWTs from previous sign ins or in other devices are revoked.
+    case revokeOtherSessions
 }
 
 /// Used to configure how users are updated.

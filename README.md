@@ -130,7 +130,7 @@ active session and clear it from the session manager:
 
 ```swift
 guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
-try await Descope.auth.logout(refreshJwt: refreshJwt)
+try await Descope.auth.revokeSessions(.currentSession, refreshJwt: refreshJwt)
 Descope.sessionManager.clearSession()
 ```
 
@@ -360,7 +360,7 @@ you configured in the Descope console earlier.
 ```swift
 do {
     showLoading(true)
-    let authResponse = try await Descope.passkey.native(provider: .apple, options: [])
+    let authResponse = try await Descope.passkey.signUpOrIn(loginId: "andy@example.com", options: [])
     let session = DescopeSession(from: authResponse)
     Descope.sessionManager.manageSession(session)
     showHomeScreen() 

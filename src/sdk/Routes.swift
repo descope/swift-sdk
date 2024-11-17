@@ -26,10 +26,35 @@ public protocol DescopeAuth: Sendable {
     /// - Returns: A new ``RefreshResponse`` with a refreshed `sessionJwt`.
     func refreshSession(refreshJwt: String) async throws -> RefreshResponse
     
-    /// Logs out from an active ``DescopeSession``.
+    /// Revokes active sessions for the user.
     ///
-    /// - Parameter refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
-    func logout(refreshJwt: String) async throws
+    /// It's a good security practice to remove refresh JWTs from the Descope servers if
+    /// they become redundant before expiry. This function will usually be called with `.currentSession`
+    /// when the user wants to sign out of the application. For example:
+    ///
+    /// ```swift
+    /// func didPressSignOut() {
+    ///     guard let session = Descope.sessionManager.session else { return }
+    ///
+    ///     // clear the session locally from the app and spawn a background task to revoke
+    ///     // the refreshJWT from the Descope servers without waiting for the call to finish
+    ///     Descope.sessionManager.clearSession()
+    ///     Task {
+    ///         try? await Descope.auth.revokeSessions(.currentSession, refreshJwt: session.refreshJwt)
+    ///     }
+    ///
+    ///     showLaunchScreen()
+    /// }
+    /// ```
+    ///
+    /// - Important: When called with `.allSessions` the provided refresh JWT will not
+    ///     be usable anymore and the user will need to sign in again.
+    ///
+    /// - Parameters:
+    ///   - revoke: Pass `.currentSession` to revoke the session in the `refreshJwt`
+    ///     parameter or see ``RevokeType`` for more options.
+    ///   - refreshJwt: The `refreshJwt` from an active ``DescopeSession``.
+    func revokeSessions(_ revoke: RevokeType, refreshJwt: String) async throws
 }
 
 

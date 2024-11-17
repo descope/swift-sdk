@@ -97,6 +97,8 @@ extension [SignInOptions] {
             case .mfa(let value):
                 loginOptions.mfa = true
                 refreshJwt = value
+            case .revokeOtherSessions:
+                loginOptions.revokeOtherSessions = true
             }
         }
         return (refreshJwt, loginOptions)

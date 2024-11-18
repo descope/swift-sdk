@@ -43,6 +43,26 @@ public extension DescopeAuth {
         }
     }
 
+    /// Returns the current session user tenants.
+    /// 
+    /// - Parameters:
+    ///   - dct: Set this to `true` and leave `tenantIds` empty to request the current
+    ///     tenant for the user as set in the `dct` claim. This will fail if a tenant
+    ///     hasn't already been selected.
+    ///   - tenantIds: Provide a non-empty array of tenant IDs and set `dct` to `false`
+    ///     to request a specific list of tenants for the user.
+    /// 
+    /// - Returns: A list of one or more ``DescopeTenant`` values.
+    func tenants(dct: Bool, tenantIds: [String], refreshJwt: String, completion: @escaping @Sendable (Result<[DescopeTenant], Error>) -> Void) {
+        Task {
+            do {
+                completion(.success(try await tenants(dct: dct, tenantIds: tenantIds, refreshJwt: refreshJwt)))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+
     /// Refreshes a ``DescopeSession``.
     /// 
     /// This can be called at any time as long as the `refreshJwt` is still valid.

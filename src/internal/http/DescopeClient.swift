@@ -390,7 +390,14 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
     func me(refreshJwt: String) async throws -> UserResponse {
         return try await get("auth/me", headers: authorization(with: refreshJwt))
     }
-    
+
+    func tenants(dct: Bool, tenantIds: [String], refreshJwt: String) async throws -> TenantsResponse {
+        return try await post("auth/me/tenants", headers: authorization(with: refreshJwt), body: [
+            "dct": dct,
+            "ids": tenantIds,
+        ])
+    }
+
     func refresh(refreshJwt: String) async throws -> JWTResponse {
         return try await post("auth/refresh", headers: authorization(with: refreshJwt))
     }
@@ -473,7 +480,32 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
             customAttributes = attrs
         }
     }
-    
+
+    struct TenantsResponse: JSONResponse {
+        struct Tenant: Decodable {
+            var id: String
+            var name: String
+            var customAttributes: [String: Any] = [:]
+
+            // we enumerate the properties explicitly to skip over the customAttributes
+            enum CodingKeys: String, CodingKey {
+                case id, name
+            }
+        }
+
+        var tenants: [Tenant]
+
+        mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+            let objects = json["tenants"] as? [[String: Any]] ?? []
+            guard objects.count == tenants.count else { throw DescopeError.decodeError.with(message: "Unexpected mismatch in number of tenants") }
+            for (i, object) in objects.enumerated() {
+                guard let attrs = object["customAttributes"] as? [String: Any] else { continue }
+                tenants[i].customAttributes = attrs
+            }
+        }
+    }
+
     struct MaskedAddress: JSONResponse {
         var maskedEmail: String?
         var maskedPhone: String?

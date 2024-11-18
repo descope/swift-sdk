@@ -10,6 +10,10 @@ final class Auth: DescopeAuth {
         return try await client.me(refreshJwt: refreshJwt).convert()
     }
 
+    func tenants(dct: Bool, tenantIds: [String], refreshJwt: String) async throws -> [DescopeTenant] {
+        return try await client.tenants(dct: dct, tenantIds: tenantIds, refreshJwt: refreshJwt).convert()
+    }
+
     func refreshSession(refreshJwt: String) async throws -> RefreshResponse {
         return try await client.refresh(refreshJwt: refreshJwt).convert()
     }

@@ -110,10 +110,17 @@ public class DescopeFlowCoordinator {
     // Events
 
     private func handleFailure(_ error: Error) {
-        guard ensureState(.started, .ready) else { return }
+        guard ensureState(.started, .ready, .failed) else { return }
+
+        // we allow multiple failure events and swallow them here instead of showing a warning above,
+        // so that the bridge can just delegate any failures to the coordinator without having to
+        // keep its own state to ensure it only reports a single failure
+        guard state != .failed  else { return }
+
         if DescopeFlow.current === flow {
             DescopeFlow.current = nil
         }
+        
         state = .failed
         let error = error as? DescopeError ?? DescopeError.flowFailed.with(cause: error)
         delegate?.coordinatorDidFailAuthentication(self, error: error)

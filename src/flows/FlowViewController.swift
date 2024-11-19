@@ -69,8 +69,8 @@ public class DescopeFlowViewController: UIViewController {
         flowView.start(flow: flow)
     }
 
-    public override func didMove(toParent parent: UIViewController?) {
-        super.didMove(toParent: parent)
+    public override func willMove(toParent parent: UIViewController?) {
+        super.willMove(toParent: parent)
         if let navigationController, navigationController.topViewController === self, navigationController.viewControllers.count == 1 {
             navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(handleCancel))
         } else {

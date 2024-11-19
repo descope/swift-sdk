@@ -103,7 +103,7 @@ public enum SignInOptions: @unchecked Sendable {
     /// Revoke all other active sessions for the user.
     ///
     /// Use this option to ensure the user only ever has one active sign in at a time, and that
-    /// refresh JWTs from previous sign ins or in other devices are revoked.
+    /// refresh JWTs from previous sign ins and on other devices are revoked.
     case revokeOtherSessions
 }
 

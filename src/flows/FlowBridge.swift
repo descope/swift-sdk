@@ -75,11 +75,11 @@ extension FlowBridge: WKScriptMessageHandler {
         case .log:
             #if DEBUG
             if let json = message.body as? [String: Any], let tag = json["tag"] as? String, let message = json["message"] as? String {
-                logger(.debug, "Console", "\(tag): \(message)")
+                logger(.debug, "Webview console", "\(tag): \(message)")
             }
             #endif
         case .ready:
-            logger(.info, "Bridge received ready event")
+            logger(.info, "Bridge received ready event", message.body)
             delegate?.bridgeDidBecomeReady(self)
         case .bridge:
             logger(.info, "Bridge received native event")
@@ -131,12 +131,21 @@ extension FlowBridge: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        if let response = navigationResponse.response as? HTTPURLResponse, let error = HTTPError(statusCode: response.statusCode) {
+            logger(.error, "Webview failed loading page", error)
+            delegate?.bridgeDidFailLoading(self, error: DescopeError.networkError.with(message: error.description))
+            return .cancel
+        }
         logger(.info, "Webview will receive response")
         return .allow
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation, withError error: Error) {
-        logger(.error, "Webview failed loading url", error)
+        if case let error = error as NSError, error.domain == "WebKitErrorDomain", error.code == 102 { // https://developer.apple.com/documentation/webkit/1569748-webkit_loading_fail_enumeration_/webkiterrorframeloadinterruptedbypolicychange
+            logger(.info, "Webview loading was cancelled")
+        } else {
+            logger(.error, "Webview failed loading url", error)
+        }
         delegate?.bridgeDidFailLoading(self, error: DescopeError.networkError.with(cause: error))
     }
 
@@ -282,7 +291,7 @@ function \(namespace)_find() {
     return document.getElementsByTagName('descope-wc')[0]
 }
 
-// Attaches event listeners once the Descope web-component is ready
+// Attaches event listeners once the Descope web-component is found
 function \(namespace)_prepare(component) {
     const styles = `
         * {
@@ -302,13 +311,13 @@ function \(namespace)_prepare(component) {
         ssoRedirect: '\(WebAuth.redirectURL)',
     }
 
-    component.addEventListener('ready', () => {
-        if (!component.bridgeVersion) {
-            window.webkit.messageHandlers.\(FlowBridgeMessage.failure.rawValue).postMessage('The flow is using an unsupported web component version')
-        } else {
-            window.webkit.messageHandlers.\(FlowBridgeMessage.ready.rawValue).postMessage('')
-        }
-    })
+    if (document.querySelector('descope-wc')?.shadowRoot?.querySelector('descope-container')) {
+        \(namespace)_ready(component, 'immediate')
+    } else {
+        component.addEventListener('ready', () => {
+            \(namespace)_ready(component, 'event')
+        })
+    }
 
     component.addEventListener('bridge', (event) => {
         window.webkit.messageHandlers.\(FlowBridgeMessage.bridge.rawValue).postMessage(event.detail)
@@ -321,6 +330,15 @@ function \(namespace)_prepare(component) {
     component.addEventListener('success', (event) => {
         window.webkit.messageHandlers.\(FlowBridgeMessage.success.rawValue).postMessage(JSON.stringify(event.detail))
     })
+}
+
+// Called when the Descope web-component is ready to notify the bridge
+function \(namespace)_ready(component, tag) {
+    if (!component.bridgeVersion) {
+        window.webkit.messageHandlers.\(FlowBridgeMessage.failure.rawValue).postMessage('The flow is using an unsupported web component version')
+    } else {
+        window.webkit.messageHandlers.\(FlowBridgeMessage.ready.rawValue).postMessage(tag)
+    }
 }
 
 // Updates the values of native options

@@ -51,6 +51,10 @@ class FlowBridge: NSObject {
     func prepare(configuration: WKWebViewConfiguration) {
         let setup = WKUserScript(source: setupScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(setup)
+
+        let zoom = WKUserScript(source: zoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        configuration.userContentController.addUserScript(zoom)
+
         if #available(iOS 17.0, *) {
             configuration.preferences.inactiveSchedulingPolicy = .none
         }
@@ -365,6 +369,20 @@ function \(namespace)_send(type, payload) {
 
 // Performs required initializations on the page and waits for the web-component to be available
 \(namespace)_initialize()
+
+"""
+
+/// Disables two finger and double tap zooming
+private let zoomScript = """
+
+function \(namespace)_zoom() {
+    const viewport = document.createElement('meta')
+    viewport.name = 'viewport'
+    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+    document.head.appendChild(viewport)
+}
+
+\(namespace)_zoom()
 
 """
 

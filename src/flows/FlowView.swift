@@ -157,14 +157,17 @@ open class DescopeFlowView: UIView {
 
     /// Loads and displays a Descope Flow.
     ///
-    /// You can call this method while the view is hidden to prepare the flow ahead of time,
-    /// watching for updates via the delegate, and showing the view when it's ready.
+    /// The ``delegate`` property should be set before calling this function to ensure
+    /// no delegate updates are missed.
     ///
     /// ```swift
     /// let flowURL = URL(string: "https://example.com/myflow")!
     /// let flow = DescopeFlow(url: flowURL)
     /// flowView.start(flow: flow)
     /// ```
+    ///
+    /// You can call this method while the view is hidden to prepare the flow ahead of time,
+    /// watching for updates via the delegate, and showing the view when it's ready.
     public func start(flow: DescopeFlow) {
         coordinator.start(flow: flow)
     }

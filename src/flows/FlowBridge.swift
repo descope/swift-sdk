@@ -141,6 +141,9 @@ extension FlowBridge: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation, withError error: Error) {
+        // Don't print an error log if this was triggered by a non-2xx status code that was caught
+        // above and causing the delegate function to return `.cancel`. We rely on the coordinator
+        // to not notify about errors multiple times.
         if case let error = error as NSError, error.domain == "WebKitErrorDomain", error.code == 102 { // https://developer.apple.com/documentation/webkit/1569748-webkit_loading_fail_enumeration_/webkiterrorframeloadinterruptedbypolicychange
             logger(.info, "Webview loading was cancelled")
         } else {
@@ -262,8 +265,10 @@ private extension WKWebView {
     }
 }
 
+/// A namespace used to prevent collisions with symbols in the JavaScript page
 private let namespace = "_Descope_Bridge"
 
+/// Connects the bridge to the web view and prepares the Descope web-component
 private let setupScript = """
 
 // Redirect console to bridge
@@ -272,7 +277,7 @@ window.console.debug = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessag
 window.console.info = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'info', message: s }) }
 window.console.warn = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'warn', message: s }) }
 window.console.error = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'error', message: s }) }
-window.onerror = (message, source, lineno, colno, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
+window.onerror = (message, source, line, column, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
 
 // Called directly below 
 function \(namespace)_initialize() {
@@ -315,7 +320,7 @@ function \(namespace)_prepare(component) {
         \(namespace)_ready(component, 'immediate')
     } else {
         component.addEventListener('ready', () => {
-            \(namespace)_ready(component, 'event')
+            \(namespace)_ready(component, 'listener')
         })
     }
 

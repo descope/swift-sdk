@@ -297,7 +297,7 @@ function \(namespace)_initialize() {
 
 // Finds the Descope web-component in the webpage
 function \(namespace)_find() {
-    return document.getElementsByTagName('descope-wc')[0]
+    return document.querySelector('descope-wc')
 }
 
 // Attaches event listeners once the Descope web-component is found
@@ -320,7 +320,9 @@ function \(namespace)_prepare(component) {
         ssoRedirect: '\(WebAuth.redirectURL)',
     }
 
-    if (document.querySelector('descope-wc')?.shadowRoot?.querySelector('descope-container')) {
+    if (component.flowStatus === 'error') {
+        window.webkit.messageHandlers.\(FlowBridgeMessage.failure.rawValue).postMessage('The flow failed during initialization')
+    } else if (component.flowStatus === 'ready' || component.shadowRoot?.querySelector('descope-container')) {
         \(namespace)_ready(component, 'immediate')
     } else {
         component.addEventListener('ready', () => {

@@ -164,8 +164,13 @@ public class DescopeFlowCoordinator {
             try jwtResponse.setValues(from: data)
             let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
             let projectId = flow?.config.projectId ?? ""
-            jwtResponse.sessionJwt = try jwtResponse.sessionJwt ?? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: projectId)
-            jwtResponse.refreshJwt = try jwtResponse.refreshJwt ?? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: projectId)
+            jwtResponse.sessionJwt = try jwtResponse.sessionJwt?.isEmpty != false 
+                ? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: projectId) 
+                : jwtResponse.sessionJwt
+        
+            jwtResponse.refreshJwt = try jwtResponse.refreshJwt?.isEmpty != false 
+                ? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: projectId) 
+                : jwtResponse.refreshJwt
             return try jwtResponse.convert()
         } catch {
             logger(.error, "Unexpected error handling authentication response", error)

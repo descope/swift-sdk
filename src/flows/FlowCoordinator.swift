@@ -160,13 +160,14 @@ public class DescopeFlowCoordinator {
 
     private func parseAuthentication(_ data: Data) async -> AuthenticationResponse? {
         do {
-            let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
+            guard let webView else { return nil }
+            let cookies = await webView.configuration.websiteDataStore.httpCookieStore.cookies(for: webView.url)
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
             try jwtResponse.setValues(from: data, cookies: cookies, projectId: flow?.config.projectId)
             return try jwtResponse.convert()
         } catch {
             logger(.error, "Unexpected error handling authentication response", error)
-            handleFailure(error)
+            handleFailure(DescopeError.flowFailed.with(message: "No valid authentication tokens found"))
             return nil
         }
     }
@@ -249,6 +250,18 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
 private extension DescopeFlow {
     var config: DescopeConfig {
         return descope?.config ?? Descope.sdk.config
+    }
+}
+
+private extension WKHTTPCookieStore {
+    func cookies(for url: URL?) async -> [HTTPCookie] {
+        return await allCookies().filter { cookie in
+            guard let domain = url?.host else { return true }
+            if cookie.domain.hasPrefix(".") {
+                return !domain.hasSuffix(cookie.domain)
+            }
+            return domain != cookie.domain
+        }
     }
 }
 

@@ -582,11 +582,11 @@ private extension DeliveryMethod {
 private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String?) throws(DescopeError) -> String {
     // keep only cookies matching the required name
     let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
-    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value in response \(name) cookie") }
+    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value for \(name) cookie") }
 
     // try to make a deterministic choice between cookies by looking for the best matching token
     var tokens = cookies.compactMap { try? Token(jwt: $0.value) }
-    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value in response \(name) cookie") }
+    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value for \(name) cookie") }
 
     // try to find the best match by prioritizing the newest non-expired token
     tokens = tokens.sorted { a, b in
@@ -599,7 +599,7 @@ private func findTokenCookie(named name: String, in cookies: [HTTPCookie], proje
         tokens = tokens.filter { $0.projectId == projectId }
     }
 
-    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected token issuer in response \(name) cookie") }
+    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected issuer in \(name) cookie") }
 
     return token.jwt
 }

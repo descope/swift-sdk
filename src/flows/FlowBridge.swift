@@ -51,6 +51,10 @@ class FlowBridge: NSObject {
     func prepare(configuration: WKWebViewConfiguration) {
         let setup = WKUserScript(source: setupScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(setup)
+
+        let zoom = WKUserScript(source: zoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        configuration.userContentController.addUserScript(zoom)
+
         if #available(iOS 17.0, *) {
             configuration.preferences.inactiveSchedulingPolicy = .none
         }
@@ -141,6 +145,9 @@ extension FlowBridge: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation, withError error: Error) {
+        // Don't print an error log if this was triggered by a non-2xx status code that was caught
+        // above and causing the delegate function to return `.cancel`. We rely on the coordinator
+        // to not notify about errors multiple times.
         if case let error = error as NSError, error.domain == "WebKitErrorDomain", error.code == 102 { // https://developer.apple.com/documentation/webkit/1569748-webkit_loading_fail_enumeration_/webkiterrorframeloadinterruptedbypolicychange
             logger(.info, "Webview loading was cancelled")
         } else {
@@ -262,8 +269,10 @@ private extension WKWebView {
     }
 }
 
+/// A namespace used to prevent collisions with symbols in the JavaScript page
 private let namespace = "_Descope_Bridge"
 
+/// Connects the bridge to the web view and prepares the Descope web-component
 private let setupScript = """
 
 // Redirect console to bridge
@@ -272,7 +281,7 @@ window.console.debug = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessag
 window.console.info = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'info', message: s }) }
 window.console.warn = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'warn', message: s }) }
 window.console.error = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'error', message: s }) }
-window.onerror = (message, source, lineno, colno, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
+window.onerror = (message, source, line, column, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
 
 // Called directly below 
 function \(namespace)_initialize() {
@@ -288,7 +297,7 @@ function \(namespace)_initialize() {
 
 // Finds the Descope web-component in the webpage
 function \(namespace)_find() {
-    return document.getElementsByTagName('descope-wc')[0]
+    return document.querySelector('descope-wc')
 }
 
 // Attaches event listeners once the Descope web-component is found
@@ -311,11 +320,13 @@ function \(namespace)_prepare(component) {
         ssoRedirect: '\(WebAuth.redirectURL)',
     }
 
-    if (document.querySelector('descope-wc')?.shadowRoot?.querySelector('descope-container')) {
+    if (component.flowStatus === 'error') {
+        window.webkit.messageHandlers.\(FlowBridgeMessage.failure.rawValue).postMessage('The flow failed during initialization')
+    } else if (component.flowStatus === 'ready' || component.shadowRoot?.querySelector('descope-container')) {
         \(namespace)_ready(component, 'immediate')
     } else {
         component.addEventListener('ready', () => {
-            \(namespace)_ready(component, 'event')
+            \(namespace)_ready(component, 'listener')
         })
     }
 
@@ -360,6 +371,20 @@ function \(namespace)_send(type, payload) {
 
 // Performs required initializations on the page and waits for the web-component to be available
 \(namespace)_initialize()
+
+"""
+
+/// Disables two finger and double tap zooming
+private let zoomScript = """
+
+function \(namespace)_zoom() {
+    const viewport = document.createElement('meta')
+    viewport.name = 'viewport'
+    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
+    document.head.appendChild(viewport)
+}
+
+\(namespace)_zoom()
 
 """
 

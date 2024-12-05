@@ -160,21 +160,14 @@ public class DescopeFlowCoordinator {
 
     private func parseAuthentication(_ data: Data) async -> AuthenticationResponse? {
         do {
+            guard let webView else { return nil }
+            let cookies = await webView.configuration.websiteDataStore.httpCookieStore.cookies(for: webView.url)
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-            try jwtResponse.setValues(from: data)
-            let cookies = await webView?.configuration.websiteDataStore.httpCookieStore.allCookies() ?? []
-            let projectId = flow?.config.projectId ?? ""
-            jwtResponse.sessionJwt = try jwtResponse.sessionJwt?.isEmpty != false 
-                ? findTokenCookie(named: DescopeClient.sessionCookieName, in: cookies, projectId: projectId) 
-                : jwtResponse.sessionJwt
-        
-            jwtResponse.refreshJwt = try jwtResponse.refreshJwt?.isEmpty != false 
-                ? findTokenCookie(named: DescopeClient.refreshCookieName, in: cookies, projectId: projectId) 
-                : jwtResponse.refreshJwt
+            try jwtResponse.setValues(from: data, cookies: cookies, projectId: flow?.config.projectId)
             return try jwtResponse.convert()
         } catch {
             logger(.error, "Unexpected error handling authentication response", error)
-            handleFailure(error)
+            handleFailure(DescopeError.flowFailed.with(message: "No valid authentication tokens found"))
             return nil
         }
     }
@@ -260,26 +253,16 @@ private extension DescopeFlow {
     }
 }
 
-private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String) throws(DescopeError) -> String {
-    // keep only cookies matching the required name
-    let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
-    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value in flow response \(name) cookie") }
-
-    // try to make a deterministic choice between cookies by looking for the best matching token
-    var tokens = cookies.compactMap { try? Token(jwt: $0.value) }
-    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value in flow response \(name) cookie") }
-
-    // try to find the best match by prioritizing the newest non-expired token
-    tokens = tokens.sorted { a, b in
-        guard a.isExpired == b.isExpired else { return !a.isExpired }
-        return a.issuedAt > b.issuedAt
+private extension WKHTTPCookieStore {
+    func cookies(for url: URL?) async -> [HTTPCookie] {
+        return await allCookies().filter { cookie in
+            guard let domain = url?.host else { return true }
+            if cookie.domain.hasPrefix(".") {
+                return !domain.hasSuffix(cookie.domain)
+            }
+            return domain != cookie.domain
+        }
     }
-
-    // we expect the token to match the projectId
-    tokens = tokens.filter { $0.projectId == projectId }
-    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected token issuer in flow response \(name) cookie") }
-
-    return token.jwt
 }
 
 #endif

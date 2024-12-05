@@ -41,9 +41,6 @@ public protocol DescopeFlowViewDelegate: AnyObject {
     ///
     /// The `response` parameter can be used to create a ``DescopeSession`` as with other
     /// authentication methods.
-    ///
-    /// ```swift
-    /// ```
     func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse)
 }
 
@@ -114,8 +111,6 @@ open class DescopeFlowView: UIView {
 
     private lazy var webView: WKWebView = createWebView()
 
-    private lazy var delegateWrapper = CoordinatorDelegateWrapper(view: self)
-
     /// A delegate object for receiving events about the state of the flow.
     public weak var delegate: DescopeFlowViewDelegate?
 
@@ -157,14 +152,17 @@ open class DescopeFlowView: UIView {
 
     /// Loads and displays a Descope Flow.
     ///
-    /// You can call this method while the view is hidden to prepare the flow ahead of time,
-    /// watching for updates via the delegate, and showing the view when it's ready.
+    /// The ``delegate`` property should be set before calling this function to ensure
+    /// no delegate updates are missed.
     ///
     /// ```swift
     /// let flowURL = URL(string: "https://example.com/myflow")!
     /// let flow = DescopeFlow(url: flowURL)
     /// flowView.start(flow: flow)
     /// ```
+    ///
+    /// You can call this method while the view is hidden to prepare the flow ahead of time,
+    /// watching for updates via the delegate, and showing the view when it's ready.
     public func start(flow: DescopeFlow) {
         coordinator.start(flow: flow)
     }
@@ -216,6 +214,8 @@ open class DescopeFlowView: UIView {
 
     // Delegation points (not public for now)
 
+    private lazy var delegateWrapper = CoordinatorDelegateWrapper(view: self)
+
     func didUpdateState(to state: DescopeFlowState, from previous: DescopeFlowState) {
         delegate?.flowViewDidUpdateState(self, to: state, from: previous)
     }
@@ -234,6 +234,13 @@ open class DescopeFlowView: UIView {
 
     func didFinishAuthentication(response: AuthenticationResponse) {
         delegate?.flowViewDidFinishAuthentication(self, response: response)
+    }
+}
+
+/// A custom WKWebView subclass to hide the form navigation bar.
+private class DescopeCustomWebView: WKWebView {
+    override var inputAccessoryView: UIView? {
+        return nil
     }
 }
 
@@ -263,13 +270,6 @@ private class CoordinatorDelegateWrapper: DescopeFlowCoordinatorDelegate {
 
     func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
         view?.didFinishAuthentication(response: response)
-    }
-}
-
-/// A custom WKWebView subclass to hide the form navigation bar.
-private class DescopeCustomWebView: WKWebView {
-    override var inputAccessoryView: UIView? {
-        return nil
     }
 }
 

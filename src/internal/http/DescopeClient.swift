@@ -422,26 +422,25 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         var user: UserResponse?
         var firstSeen: Bool
         
-        // extract JWTs from the cookies if configured to not return them in the response body
         mutating func setValues(from data: Data, response: HTTPURLResponse) throws {
             guard let url = response.url, let fields = response.allHeaderFields as? [String: String] else { return }
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: fields, for: url)
-            for cookie in cookies where !cookie.value.isEmpty {
-                if cookie.name.caseInsensitiveCompare(sessionCookieName) == .orderedSame, sessionJwt == nil || sessionJwt == "" {
-                    sessionJwt = cookie.value
-                }
-                if cookie.name.caseInsensitiveCompare(refreshCookieName) == .orderedSame, refreshJwt == nil || refreshJwt == "" {
-                    refreshJwt = cookie.value
-                }
-            }
-            try setValues(from: data)
+            try setValues(from: data, cookies: cookies)
         }
 
-        // the UserResponse decoding takes care of all fields except customAttributes
-        mutating func setValues(from data: Data) throws {
+        // The UserResponse decoding takes care of all fields except customAttributes,
+        // and we also extract JWTs from the response or webpage cookies if the project
+        // is configured to not return them in the response
+        mutating func setValues(from data: Data, cookies: [HTTPCookie], projectId: String? = nil) throws {
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
             if let dict = json["user"] as? [String: Any] {
                 user?.setCustomAttributes(from: dict)
+            }
+            if sessionJwt == nil || sessionJwt == "" {
+                sessionJwt = try findTokenCookie(named: sessionCookieName, in: cookies, projectId: projectId)
+            }
+            if refreshJwt == nil || refreshJwt == "" {
+                refreshJwt = try findTokenCookie(named: refreshCookieName, in: cookies, projectId: projectId)
             }
         }
     }
@@ -578,4 +577,29 @@ private extension DeliveryMethod {
             throw DescopeError.invalidArguments.with(message: "Update phone can be done using SMS or WhatsApp only")
         }
     }
+}
+
+private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String?) throws(DescopeError) -> String {
+    // keep only cookies matching the required name
+    let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
+    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value in response \(name) cookie") }
+
+    // try to make a deterministic choice between cookies by looking for the best matching token
+    var tokens = cookies.compactMap { try? Token(jwt: $0.value) }
+    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value in response \(name) cookie") }
+
+    // try to find the best match by prioritizing the newest non-expired token
+    tokens = tokens.sorted { a, b in
+        guard a.isExpired == b.isExpired else { return !a.isExpired }
+        return a.issuedAt > b.issuedAt
+    }
+
+    // if we got a projectId then we're filtering webpage cookies, in which case we expect the token to match the projectId
+    if let projectId {
+        tokens = tokens.filter { $0.projectId == projectId }
+    }
+
+    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected token issuer in response \(name) cookie") }
+
+    return token.jwt
 }

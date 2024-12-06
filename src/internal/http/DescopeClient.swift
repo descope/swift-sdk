@@ -431,16 +431,16 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
         // The UserResponse decoding takes care of all fields except customAttributes,
         // and we also extract JWTs from the response or webpage cookies if the project
         // is configured to not return them in the response
-        mutating func setValues(from data: Data, cookies: [HTTPCookie], projectId: String? = nil) throws {
+        mutating func setValues(from data: Data, cookies: [HTTPCookie]) throws {
             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
             if let dict = json["user"] as? [String: Any] {
                 user?.setCustomAttributes(from: dict)
             }
             if sessionJwt == nil || sessionJwt == "" {
-                sessionJwt = try findTokenCookie(named: sessionCookieName, in: cookies, projectId: projectId)
+                sessionJwt = try findTokenCookie(named: sessionCookieName, in: cookies)
             }
             if refreshJwt == nil || refreshJwt == "" {
-                refreshJwt = try findTokenCookie(named: refreshCookieName, in: cookies, projectId: projectId)
+                refreshJwt = try findTokenCookie(named: refreshCookieName, in: cookies)
             }
         }
     }
@@ -579,27 +579,19 @@ private extension DeliveryMethod {
     }
 }
 
-private func findTokenCookie(named name: String, in cookies: [HTTPCookie], projectId: String?) throws(DescopeError) -> String {
+private func findTokenCookie(named name: String, in cookies: [HTTPCookie]) throws(DescopeError) -> String {
     // keep only cookies matching the required name
     let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
     guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value for \(name) cookie") }
 
     // try to make a deterministic choice between cookies by looking for the best matching token
-    var tokens = cookies.compactMap { try? Token(jwt: $0.value) }
-    guard !tokens.isEmpty else { throw DescopeError.decodeError.with(message: "Invalid value for \(name) cookie") }
-
-    // try to find the best match by prioritizing the newest non-expired token
-    tokens = tokens.sorted { a, b in
+    let tokens = cookies.compactMap { try? Token(jwt: $0.value) }.sorted { a, b in
         guard a.isExpired == b.isExpired else { return !a.isExpired }
         return a.issuedAt > b.issuedAt
     }
 
-    // if we got a projectId then we're filtering webpage cookies, in which case we expect the token to match the projectId
-    if let projectId {
-        tokens = tokens.filter { $0.projectId == projectId }
-    }
-
-    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Unexpected issuer in \(name) cookie") }
+    // try to find the best match by prioritizing the newest non-expired token
+    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Invalid value for \(name) cookie") }
 
     return token.jwt
 }

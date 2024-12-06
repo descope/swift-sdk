@@ -29,27 +29,20 @@ class TestJWTResponse: XCTestCase {
 
         // should find a valid refresh jwt for the right project
         var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-        try jwtResponse.setValues(from: data, cookies: [validCookie], projectId: "foo")
+        try jwtResponse.setValues(from: data, cookies: [validCookie])
         var authResponse: AuthenticationResponse = try jwtResponse.convert()
         XCTAssertFalse(authResponse.refreshToken.isExpired)
 
-        // should fail because the project doesn't match the issuer
-        jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-        do {
-            try jwtResponse.setValues(from: data, cookies: [validCookie], projectId: "bar")
-            XCTFail("Expected failure")
-        } catch { /* ok */ }
-
         // should succeed but return an expired JWT since that's all we've got
         jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-        try jwtResponse.setValues(from: data, cookies: [expiredCookie], projectId: "foo")
+        try jwtResponse.setValues(from: data, cookies: [expiredCookie])
         authResponse = try jwtResponse.convert()
         XCTAssertTrue(authResponse.refreshToken.isExpired)
 
         // should succeed and find the non-expired JWT (order shouldn't matter)
         for v in [[expiredCookie, validCookie], [validCookie, expiredCookie]] {
             jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-            try jwtResponse.setValues(from: data, cookies: v, projectId: "foo")
+            try jwtResponse.setValues(from: data, cookies: v)
             authResponse = try jwtResponse.convert()
             XCTAssertFalse(authResponse.refreshToken.isExpired)
         }
@@ -57,7 +50,7 @@ class TestJWTResponse: XCTestCase {
         // should pick the newest JWT out of all valid ones (order shouldn't matter)
         for v in [[expiredCookie, validCookie, newestCookie], [newestCookie, expiredCookie, validCookie], [validCookie, expiredCookie, newestCookie]] {
             jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-            try jwtResponse.setValues(from: data, cookies: v, projectId: "foo")
+            try jwtResponse.setValues(from: data, cookies: v)
             authResponse = try jwtResponse.convert()
             XCTAssertFalse(authResponse.refreshToken.isExpired)
             XCTAssertEqual(authResponse.refreshToken.issuedAt, Date(timeIntervalSince1970: 1526239022))
@@ -88,6 +81,6 @@ private let userPayload = """
 """
 
 private let sessionJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXIiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjE2MDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.LEcNdzkdOXlzxcVNhvlqOIoNwzgYYfcDv1_vzF3awF8"
-private let refreshJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJxdXgiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjIxMDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.ihTyqWzhdtBwjjyyJ-E5_wOVkHqBHxEtnpPGr848vYI"
+private let refreshJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJxdXgiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJodHRwczovL2FwaS5kZXNjb3BlLmNvbS9mb28iLCJleHAiOjIxMDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.ow2MV3WwUDeb8PyuJLEFlFiqHhPhvuPTL9O2gRFLMGE"
 private let expiredJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJxdXgiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjE1MjMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.ICHASqOp7uDiknXu6eINSKLMnixND3-OIAww9ZCN7qs"
 private let newestJwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJxdXgiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTI2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjIxMDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.rgnEi7rxuGEAFiWUrZnyXJvWX8giNQpiBBVVtMwHLZo"

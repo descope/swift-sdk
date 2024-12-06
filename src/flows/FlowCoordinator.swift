@@ -163,7 +163,7 @@ public class DescopeFlowCoordinator {
             guard let webView else { return nil }
             let cookies = await webView.configuration.websiteDataStore.httpCookieStore.cookies(for: webView.url)
             var jwtResponse = try JSONDecoder().decode(DescopeClient.JWTResponse.self, from: data)
-            try jwtResponse.setValues(from: data, cookies: cookies, projectId: flow?.config.projectId)
+            try jwtResponse.setValues(from: data, cookies: cookies)
             return try jwtResponse.convert()
         } catch {
             logger(.error, "Unexpected error handling authentication response", error)

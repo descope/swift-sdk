@@ -258,9 +258,9 @@ private extension WKHTTPCookieStore {
         return await allCookies().filter { cookie in
             guard let domain = url?.host else { return true }
             if cookie.domain.hasPrefix(".") {
-                return !domain.hasSuffix(cookie.domain)
+                return domain.hasSuffix(cookie.domain)
             }
-            return domain != cookie.domain
+            return domain == cookie.domain
         }
     }
 }

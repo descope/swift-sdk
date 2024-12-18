@@ -44,7 +44,7 @@ public protocol DescopeFlowViewControllerDelegate: AnyObject {
 /// a ``DescopeFlowView`` into your own view controller.
 public class DescopeFlowViewController: UIViewController {
 
-    private lazy var flowView: DescopeFlowView = createFlowView()
+    public lazy var flowView: DescopeFlowView = createDefaultFlowView()
 
     /// A delegate object for receiving events about the state of the flow.
     public weak var delegate: DescopeFlowViewControllerDelegate?
@@ -52,6 +52,12 @@ public class DescopeFlowViewController: UIViewController {
     /// The current state of the ``DescopeFlowViewController``.
     public var state: DescopeFlowState {
         return flowView.state
+    }
+
+    /// A list of hooks that customize the behavior of the flow.
+    public var hooks: [DescopeFlowHook] {
+        get { flowView.hooks }
+        set { flowView.hooks = newValue }
     }
 
     // UIViewController
@@ -109,7 +115,7 @@ public class DescopeFlowViewController: UIViewController {
         delegate?.flowViewControllerDidCancel(self)
     }
 
-    private func createFlowView() -> DescopeFlowView {
+    private func createDefaultFlowView() -> DescopeFlowView {
         return DescopeFlowView(frame: isViewLoaded ? view.bounds : UIScreen.main.bounds)
     }
 }
@@ -135,11 +141,11 @@ extension DescopeFlowViewController: DescopeFlowViewDelegate {
         }
     }
 
-    public func flowViewDidFailAuthentication(_ flowView: DescopeFlowView, error: DescopeError) {
+    public func flowViewDidFail(_ flowView: DescopeFlowView, error: DescopeError) {
         delegate?.flowViewControllerDidFail(self, error: error)
     }
     
-    public func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse) {
+    public func flowViewDidFinish(_ flowView: DescopeFlowView, response: AuthenticationResponse) {
         delegate?.flowViewControllerDidFinish(self, response: response)
     }
 }

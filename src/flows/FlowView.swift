@@ -35,13 +35,13 @@ public protocol DescopeFlowViewDelegate: AnyObject {
     ///
     /// The most common failures are due to internet issues, in which case the `error` will
     /// usually be ``DescopeError/networkError``.
-    func flowViewDidFailAuthentication(_ flowView: DescopeFlowView, error: DescopeError)
+    func flowViewDidFail(_ flowView: DescopeFlowView, error: DescopeError)
 
     /// Called when the flow completes the authentication successfully.
     ///
     /// The `response` parameter can be used to create a ``DescopeSession`` as with other
     /// authentication methods.
-    func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse)
+    func flowViewDidFinish(_ flowView: DescopeFlowView, response: AuthenticationResponse)
 }
 
 /// A view for showing authentication screens built using [Descope Flows](https://app.descope.com/flows).
@@ -85,14 +85,14 @@ public protocol DescopeFlowViewDelegate: AnyObject {
 ///         UIApplication.shared.open(url) // open any links in the user's default browser app
 ///     }
 ///
-///     public func flowViewDidFailAuthentication(_ flowView: DescopeFlowView, error: DescopeError) {
+///     public func flowViewDidFail(_ flowView: DescopeFlowView, error: DescopeError) {
 ///         // called when the flow fails, because of a network error or some other reason
 ///         let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
 ///         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
 ///         self.present(alert, animated: true)
 ///     }
 ///
-///     public func flowViewDidFinishAuthentication(_ flowView: DescopeFlowView, response: AuthenticationResponse) {
+///     public func flowViewDidFinish(_ flowView: DescopeFlowView, response: AuthenticationResponse) {
 ///         let session = DescopeSession(from: response)
 ///         Descope.sessionManager.manageSession(session)
 ///         // for example, transition the app to some other screen
@@ -107,19 +107,25 @@ public protocol DescopeFlowViewDelegate: AnyObject {
 ///     an issue or pull request [here](https://github.com/descope/swift-sdk).
 open class DescopeFlowView: UIView {
 
-    private let coordinator = DescopeFlowCoordinator()
-
-    private lazy var webView: WKWebView = createWebView()
-
     /// A delegate object for receiving events about the state of the flow.
     public weak var delegate: DescopeFlowViewDelegate?
 
-    /// The current state of the ``DescopeFlowView``.
+    /// The current state of the flow in the ``DescopeFlowView``.
     public var state: DescopeFlowState {
         return coordinator.state
     }
 
+    /// A list of hooks that customize the behavior of the flow.
+    public var hooks: [DescopeFlowHook] {
+        get { coordinator.hooks }
+        set { coordinator.hooks = newValue }
+    }
+
     // Initialization
+
+    private let coordinator = DescopeFlowCoordinator()
+
+    private lazy var proxy = FlowCoordinatorDelegateProxy(view: self)
 
     public convenience init() {
         self.init(frame: .zero)
@@ -127,16 +133,16 @@ open class DescopeFlowView: UIView {
 
     public override init(frame: CGRect) {
         super.init(frame: frame)
-        setupView()
+        prepareView()
     }
 
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-        setupView()
+        prepareView()
     }
 
-    private func setupView() {
-        coordinator.delegate = delegateWrapper
+    private func prepareView() {
+        coordinator.delegate = proxy
         coordinator.webView = webView
         addSubview(webView)
     }
@@ -169,32 +175,25 @@ open class DescopeFlowView: UIView {
 
     // WebView
 
+    private lazy var webView: WKWebView = createWebView()
+
     private func createWebView() -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        _prepareConfiguration(configuration)
+        willCreateWebView(configuration)
+        coordinator.prepare(configuration: configuration)
 
-        let webViewClass = Self.webViewClass
-        let webView = webViewClass.init(frame: bounds, configuration: configuration)
-        _prepareWebView(webView)
+        let webView = Self.webViewClass.init(frame: bounds, configuration: configuration)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.keyboardDismissMode = .interactiveWithAccessory
+        didCreateWebView(webView)
 
         return webView
     }
 
-    private func _prepareConfiguration(_ configuration: WKWebViewConfiguration) {
-        prepareConfiguration(configuration)
-        coordinator.prepare(configuration: configuration)
-    }
-
-    private func _prepareWebView(_ webView: WKWebView) {
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.keyboardDismissMode = .interactiveWithAccessory
-        prepareWebView(webView)
-    }
-
     // Override points
 
-    /// Override this method if you want your ``DescopeFlowView`` to use a spsecific
+    /// Override this method if you want your ``DescopeFlowView`` to use a specific
     /// type of `WKWebView` for its webview instance.
     open class var webViewClass: WKWebView.Type {
         return DescopeCustomWebView.self
@@ -203,49 +202,33 @@ open class DescopeFlowView: UIView {
     /// Override this method if you need to customize the webview's configuration before it's created.
     ///
     /// The default implementation of this method does nothing.
-    open func prepareConfiguration(_ configuration: WKWebViewConfiguration) {
+    open func willCreateWebView(_ configuration: WKWebViewConfiguration) {
     }
 
     /// Override this method if you need to customize the webview itself after it's created.
     ///
     /// The default implementation of this method does nothing.
-    open func prepareWebView(_ webView: WKWebView) {
+    open func didCreateWebView(_ webView: WKWebView) {
     }
 
-    // Delegation points (not public for now)
-
-    private lazy var delegateWrapper = CoordinatorDelegateWrapper(view: self)
-
-    func didUpdateState(to state: DescopeFlowState, from previous: DescopeFlowState) {
-        delegate?.flowViewDidUpdateState(self, to: state, from: previous)
+    open func didUpdateState(to state: DescopeFlowState, from previous: DescopeFlowState) {
     }
 
-    func didBecomeReady() {
-        delegate?.flowViewDidBecomeReady(self)
+    open func didBecomeReady() {
     }
 
-    func didInterceptNavigation(url: URL, external: Bool) {
-        delegate?.flowViewDidInterceptNavigation(self, url: url, external: external)
+    open func didInterceptNavigation(url: URL, external: Bool) {
     }
 
-    func didFailAuthentication(error: DescopeError) {
-        delegate?.flowViewDidFailAuthentication(self, error: error)
+    open func didFail(error: DescopeError) {
     }
 
-    func didFinishAuthentication(response: AuthenticationResponse) {
-        delegate?.flowViewDidFinishAuthentication(self, response: response)
+    open func didFinish(response: AuthenticationResponse) {
     }
 }
 
-/// A custom WKWebView subclass to hide the form navigation bar.
-private class DescopeCustomWebView: WKWebView {
-    override var inputAccessoryView: UIView? {
-        return nil
-    }
-}
-
-/// A helper class to hide the coordinator delegate implementations.
-private class CoordinatorDelegateWrapper: DescopeFlowCoordinatorDelegate {
+/// A helper class to not expose the coordinator delegate conformance.
+private class FlowCoordinatorDelegateProxy: DescopeFlowCoordinatorDelegate {
     private weak var view: DescopeFlowView?
 
     init(view: DescopeFlowView) {
@@ -253,23 +236,40 @@ private class CoordinatorDelegateWrapper: DescopeFlowCoordinatorDelegate {
     }
 
     func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState) {
-        view?.didUpdateState(to: state, from: previous)
+        guard let view else { return }
+        view.didUpdateState(to: state, from: previous)
+        view.delegate?.flowViewDidUpdateState(view, to: state, from: previous)
     }
 
     func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator) {
-        view?.didBecomeReady()
+        guard let view else { return }
+        view.didBecomeReady()
+        view.delegate?.flowViewDidBecomeReady(view)
     }
 
     func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, url: URL, external: Bool) {
-        view?.didInterceptNavigation(url: url, external: external)
+        guard let view else { return }
+        view.didInterceptNavigation(url: url, external: external)
+        view.delegate?.flowViewDidInterceptNavigation(view, url: url, external: external)
     }
 
-    func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
-        view?.didFailAuthentication(error: error)
+    func coordinatorDidFail(_ coordinator: DescopeFlowCoordinator, error: DescopeError) {
+        guard let view else { return }
+        view.didFail(error: error)
+        view.delegate?.flowViewDidFail(view, error: error)
     }
 
-    func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
-        view?.didFinishAuthentication(response: response)
+    func coordinatorDidFinish(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse) {
+        guard let view else { return }
+        view.didFinish(response: response)
+        view.delegate?.flowViewDidFinish(view, response: response)
+    }
+}
+
+/// A custom WKWebView subclass to hide the form navigation bar.
+private class DescopeCustomWebView: WKWebView {
+    override var inputAccessoryView: UIView? {
+        return nil
     }
 }
 

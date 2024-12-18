@@ -30,8 +30,10 @@ enum FlowBridgeResponse {
 
 @MainActor
 class FlowBridge: NSObject {
-    var logger: DescopeLogger? = Descope.sdk.config.logger
+    /// The coordinator sets a logger automatically.
+    var logger: DescopeLogger?
 
+    /// The coordinator sets itself as the bridge delegate.
     weak var delegate: FlowBridgeDelegate?
 
     /// This property is weak since the bridge is not considered the "owner" of the webview, and in
@@ -48,12 +50,11 @@ class FlowBridge: NSObject {
         }
     }
 
+    /// Injects the JavaScript code below that's required for the bridge to work, as well as
+    /// handlers for messages sent from the webpage to the bridge.
     func prepare(configuration: WKWebViewConfiguration) {
         let setup = WKUserScript(source: setupScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(setup)
-
-        let zoom = WKUserScript(source: zoomScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
-        configuration.userContentController.addUserScript(zoom)
 
         if #available(iOS 17.0, *) {
             configuration.preferences.inactiveSchedulingPolicy = .none
@@ -63,13 +64,24 @@ class FlowBridge: NSObject {
             configuration.userContentController.add(self, name: name.rawValue)
         }
     }
+}
 
+extension FlowBridge {
+    /// Called by the coordinator once the flow is ready to configure native specific options
     func set(oauthProvider: String?, magicLinkRedirect: String?) {
-        webView?.callJavaScript(function: "set", params: oauthProvider ?? "", magicLinkRedirect ?? "")
+        call(function: "set", params: oauthProvider ?? "", magicLinkRedirect ?? "")
     }
 
+    /// Called by the coordinator when it's done handling a bridge request
     func send(response: FlowBridgeResponse) {
-        webView?.callJavaScript(function: "send", params: response.type, response.payload)
+        call(function: "send", params: response.type, response.payload)
+    }
+
+    /// Helper method to run one of the namespaced functions with escaped string parameters
+    private func call(function: String, params: String...) {
+        let escaped = params.map { $0.javaScriptLiteralString() }.joined(separator: ", ")
+        let javascript = "\(namespace)_\(function)(\(escaped))"
+        webView?.evaluateJavaScript(javascript)
     }
 }
 
@@ -181,6 +193,33 @@ extension FlowBridge: WKUIDelegate {
     }
 }
 
+extension FlowBridge {
+    func evaluateJavaScript(_ code: String) async -> Any? {
+        return try? await webView?.evaluateJavaScript(anonymousFunction(body: code))
+    }
+
+    func runJavaScript(_ code: String) {
+        webView?.evaluateJavaScript(anonymousFunction(body: code))
+    }
+
+    func addStyles(_ css: String) {
+        runJavaScript("""
+            const styles = \(css.javaScriptLiteralString())
+            const element = document.createElement('style')
+            element.textContent = styles
+            document.head.appendChild(element)
+        """)
+    }
+
+    private func anonymousFunction(body: String) -> String {
+        return """
+            (function() {
+                \(body)
+            })()
+        """
+    }
+}
+
 private enum FlowBridgeMessage: String, CaseIterable {
     case log, ready, bridge, failure, success
 }
@@ -255,20 +294,6 @@ private extension FlowBridgeResponse {
     }
 }
 
-private extension WKWebView {
-    func callJavaScript(function: String, params: String...) {
-        let escaped = params.map(escapeWithBackticks).joined(separator: ", ")
-        let javascript = "\(namespace)_\(function)(\(escaped))"
-        evaluateJavaScript(javascript)
-    }
-
-    private func escapeWithBackticks(_ str: String) -> String {
-        return "`" + str.replacingOccurrences(of: #"\"#, with: #"\\"#)
-            .replacingOccurrences(of: #"$"#, with: #"\$"#)
-            .replacingOccurrences(of: #"`"#, with: #"\`"#) + "`"
-    }
-}
-
 /// A namespace used to prevent collisions with symbols in the JavaScript page
 private let namespace = "_Descope_Bridge"
 
@@ -302,17 +327,6 @@ function \(namespace)_find() {
 
 // Attaches event listeners once the Descope web-component is found
 function \(namespace)_prepare(component) {
-    const styles = `
-        * {
-          -webkit-touch-callout: none;
-          -webkit-user-select: none;
-        }
-    `
-
-    const stylesheet = document.createElement('style')
-    stylesheet.textContent = styles
-    document.head.appendChild(stylesheet)
-
     component.nativeOptions = {
         platform: 'ios',
         bridgeVersion: 1,
@@ -371,20 +385,6 @@ function \(namespace)_send(type, payload) {
 
 // Performs required initializations on the page and waits for the web-component to be available
 \(namespace)_initialize()
-
-"""
-
-/// Disables two finger and double tap zooming
-private let zoomScript = """
-
-function \(namespace)_zoom() {
-    const viewport = document.createElement('meta')
-    viewport.name = 'viewport'
-    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'
-    document.head.appendChild(viewport)
-}
-
-\(namespace)_zoom()
 
 """
 

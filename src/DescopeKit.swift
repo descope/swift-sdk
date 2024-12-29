@@ -1,4 +1,6 @@
 
+import Foundation
+
 /// Provides functions for working with the Descope API.
 ///
 /// This singleton object is provided as a simple way to access the Descope SDK from anywhere
@@ -92,4 +94,54 @@ public extension Descope {
     
     /// Provides functions for exchanging access keys for session tokens.
     static var accessKey: DescopeAccessKey { sdk.accessKey }
+}
+
+/// Support for working with Universal Links.
+public extension Descope {
+    /// Resumes an ongoing authentication that's waiting for Magic Link authentication.
+    ///
+    /// When a flow performs authentication with Magic Link at some point it will wait for
+    /// the user to receive an email and tap on the authentication link provided inside.
+    /// The host application is expected to intercept this URL via Universal Links and
+    /// resume the running flow with it.
+    ///
+    /// You can do this by calling this function and passing the URL from the Universal Link.
+    /// For example, in a SwiftUI application:
+    ///
+    /// ```swift
+    /// @main
+    /// struct MyApp: App {
+    ///     // ...
+    ///     var body: some Scene {
+    ///         WindowGroup {
+    ///             ContentView().onOpenURL { url in
+    ///                 Descope.handleURL(url)
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// You can pass the return value of this function directly to the `UIApplicationDelegate`
+    /// method for handling Universal Links. For example:
+    ///
+    /// ```swift
+    /// @main
+    /// class AppDelegate: UIResponder, UIApplicationDelegate {
+    ///     // ...
+    ///     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    ///         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL else { return false }
+    ///         return Descope.handleURL(url)
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// - Parameter url: The `url` to use for resuming the authentication.
+    ///
+    /// - Returns: `true` when an ongoing authentication handled the URL or `false` to
+    ///     let the caller know that the function didn't handle it.
+    @discardableResult @MainActor
+    static func handleURL(_ url: URL) -> Bool {
+        return sdk.handleURL(url)
+    }
 }

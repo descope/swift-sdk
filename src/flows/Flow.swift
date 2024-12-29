@@ -49,10 +49,6 @@ public enum DescopeFlowState: String {
 /// - SeeAlso: You can read more about Descope Flows on the [docs website](https://docs.descope.com/flows).
 @MainActor
 public class DescopeFlow {
-    /// Returns the ``DescopeFlow`` object for the current running flow or
-    /// `nil` if no flow is currently running.
-    public internal(set) static weak var current: DescopeFlow?
-
     /// The URL where the flow is hosted.
     public let url: URL
 
@@ -87,41 +83,6 @@ public class DescopeFlow {
     public init(url: URL) {
         self.url = url
     }
-
-    /// Resumes a running flow that's waiting for Magic Link authentication.
-    ///
-    /// When a flow performs authentication with Magic Link at some point it will wait
-    /// for the user to receive an email and tap on the authentication URL provided inside.
-    /// The host application is expected to intercept this URL via Universal Links and
-    /// resume the running flow with it.
-    ///
-    /// You can do this by first getting a reference to the current running flow from
-    /// the ``DescopeFlow/current`` property and then calling the ``resume(with:)`` method
-    /// with the URL from the Universal Link.
-    ///
-    ///     @main
-    ///     struct MyApp: App {
-    ///         // ...
-    ///
-    ///         var body: some Scene {
-    ///             WindowGroup {
-    ///                 ContentView().onOpenURL { url in
-    ///                     DescopeFlow.current?.resume(with: url)
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    public func resume(with url: URL) {
-        resume?(url)
-    }
-
-    // Internal
-
-    typealias ResumeClosure = @MainActor (URL) -> ()
-
-    /// While the flow is running this is set to a closure with a weak reference to
-    /// the ``DescopeFlowCoordinator`` to provide it with the resume URL.
-    var resume: ResumeClosure?
 }
 
 extension DescopeFlow: CustomStringConvertible {

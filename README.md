@@ -162,13 +162,13 @@ guide to learn more.
 
 When your application delegate is notified about a universal link being triggered, you'll
 need to provide it to the flow so it can continue with the authentication. See the documentation
-for `DescopeFlow.resume(with:)` for more details.
+for `Descope.handleURL` for more details.
 
 ```swift
 func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
     guard userActivity.activityType == NSUserActivityTypeBrowsingWeb, let url = userActivity.webpageURL else { return false }
-    DescopeFlow.current?.resume(with: url)
-    return true
+    let handled = Descope.handleURL(url)
+    return handled
 }
 ```
 

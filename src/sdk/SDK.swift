@@ -1,4 +1,6 @@
 
+import Foundation
+
 /// Provides functions for working with the Descope API.
 ///
 /// The ``Descope`` singleton object exposes the same properties as the ``DescopeSDK`` class,
@@ -96,6 +98,12 @@ public class DescopeSDK {
         self.init(config: config, client: DescopeClient(config: config))
     }
 
+    /// Resumes an ongoing authentication that's waiting for Magic Link authentication.
+    @discardableResult @MainActor
+    public func handleURL(_ url: URL) -> Bool {
+        return resume(url)
+    }
+
     // Internal
 
     /// The internal client used to perform API calls.
@@ -120,6 +128,13 @@ public class DescopeSDK {
         self.sso = SSO(client: client)
         self.accessKey = AccessKey(client: client)
     }
+
+    /// The type of the closure set in ``resume(with:)`` by SDK components.
+    typealias ResumeClosure = @MainActor (URL) -> (Bool)
+
+    /// While the flow is running this is set to a closure with a weak reference to
+    /// the ``DescopeFlowCoordinator`` to provide it with the resume URL.
+    var resume: ResumeClosure = { _ in return false }
 }
 
 /// SDK information

@@ -53,9 +53,8 @@ public class DescopeFlowCoordinator {
 
     private var flow: DescopeFlow? {
         didSet {
-            oldValue?.resume = nil
-            flow?.resume = resumeClosure
-            logger = flow?.config.logger
+            sdk.resume = resumeClosure
+            logger = sdk.config.logger
             bridge.logger = logger
         }
     }
@@ -63,11 +62,10 @@ public class DescopeFlowCoordinator {
     public func start(flow: DescopeFlow) {
         logger(.info, "Starting flow authentication", flow)
         #if DEBUG
-        precondition(flow.config.projectId != "", "The Descope singleton must be setup or an instance of DescopeSDK must be set on the flow")
+        precondition(sdk.config.projectId != "", "The Descope singleton must be setup or an instance of DescopeSDK must be set on the flow")
         #endif
 
         self.flow = flow
-        DescopeFlow.current = flow
 
         state = .started
         loadURL(flow.url)
@@ -79,6 +77,10 @@ public class DescopeFlowCoordinator {
             request.timeoutInterval = timeout
         }
         webView?.load(request)
+    }
+
+    private var sdk: DescopeSDK {
+        return flow?.descope ?? Descope.sdk
     }
 
     // State
@@ -98,13 +100,18 @@ public class DescopeFlowCoordinator {
 
     // Resume
 
-    private func resume(_ url: URL) {
+    private func resume(_ url: URL) -> Bool {
+        guard state == .ready else {
+            logger(.debug, "Ignoring resume URL", state)
+            return false
+        }
         logger(.info, "Received URL for resuming flow", url)
         sendResponse(.magicLink(url: url.absoluteString))
+        return true
     }
 
-    private lazy var resumeClosure: DescopeFlow.ResumeClosure = { [weak self] url in
-        self?.resume(url)
+    private lazy var resumeClosure: DescopeSDK.ResumeClosure = { [weak self] url in
+        return self?.resume(url) ?? false
     }
 
     // Events
@@ -117,10 +124,6 @@ public class DescopeFlowCoordinator {
         // keep its own state to ensure it only reports a single failure
         guard state != .failed  else { return }
 
-        if DescopeFlow.current === flow {
-            DescopeFlow.current = nil
-        }
-        
         state = .failed
         let error = error as? DescopeError ?? DescopeError.flowFailed.with(cause: error)
         delegate?.coordinatorDidFailAuthentication(self, error: error)
@@ -150,9 +153,6 @@ public class DescopeFlowCoordinator {
         Task {
             guard let authResponse = await parseAuthentication(data) else { return }
             guard ensureState(.ready) else { return }
-            if DescopeFlow.current === flow {
-                DescopeFlow.current = nil
-            }
             state = .finished
             delegate?.coordinatorDidFinishAuthentication(self, response: authResponse)
         }
@@ -244,12 +244,6 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
 
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data) {
         handleAuthentication(data)
-    }
-}
-
-private extension DescopeFlow {
-    var config: DescopeConfig {
-        return descope?.config ?? Descope.sdk.config
     }
 }
 

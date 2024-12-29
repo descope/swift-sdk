@@ -6,6 +6,10 @@ import Foundation
 extension DescopeError {
     init?(errorResponse data: Data) {
         guard let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        self.init(errorResponse: dict)
+    }
+
+    init?(errorResponse dict: [String: Any]) {
         guard let code = dict["errorCode"] as? String else { return nil }
         var desc = "Descope server error" // is always supposed to be overwritten below
         if let value = dict["errorDescription"] as? String, !value.isEmpty {

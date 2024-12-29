@@ -42,6 +42,14 @@ extension Data {
     }
 }
 
+extension String {
+    func javaScriptLiteralString() -> String {
+        return "`" + replacingOccurrences(of: #"\"#, with: #"\\"#)
+            .replacingOccurrences(of: #"$"#, with: #"\$"#)
+            .replacingOccurrences(of: #"`"#, with: #"\`"#) + "`"
+    }
+}
+
 class DefaultPresentationContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding, ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         return presentationAnchor

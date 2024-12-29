@@ -1,57 +1,65 @@
 
-#if os(iOS)
-
-import UIKit
 import WebKit
 
 /// A set of delegate methods for events about the flow running in a ``DescopeFlowCoordinator``.
 @MainActor
 public protocol DescopeFlowCoordinatorDelegate: AnyObject {
+    /// Called directly after the flow state is updated.
+    ///
+    /// Where appropriate, this delegate method is always called before other delegate methods.
+    /// For example, if there's an error in the flow this method is called first to report the
+    /// state change to ``DescopeFlowState/failed`` and then the failure delegate method is
+    /// called with the specific ``DescopeError`` value.
     func coordinatorDidUpdateState(_ coordinator: DescopeFlowCoordinator, to state: DescopeFlowState, from previous: DescopeFlowState)
+
+    /// Called when the flow is fully loaded and rendered and is ready to be displayed.
+    ///
+    /// You can use this method to show a loading state until the flow is fully loaded,
+    /// and do a quick animatad transition to show the flow once this method is called.
     func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
+
+    /// Called when the user taps on a web link in the flow.
+    ///
+    /// The `external` parameter is `true` if the link would open in a new browser tab
+    /// if the flow was runnning in a regular browser app.
+    ///
+    /// If your flow doesn't show any web links you can either use an empty implementation
+    /// or simply call `UIApplication.shared.open(url)` so that links open in the user's
+    /// default browser app.
     func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, url: URL, external: Bool)
-    func coordinatorDidFailAuthentication(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
-    func coordinatorDidFinishAuthentication(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
+
+    /// Called when an error occurs in the flow.
+    ///
+    /// The most common failures are due to internet issues, in which case the `error` will
+    /// usually be ``DescopeError/networkError``.
+    func coordinatorDidFail(_ coordinator: DescopeFlowCoordinator, error: DescopeError)
+
+    /// Called when the flow completes the authentication successfully.
+    ///
+    /// The `response` parameter can be used to create a ``DescopeSession`` as with other
+    /// authentication methods.
+    func coordinatorDidFinish(_ coordinator: DescopeFlowCoordinator, response: AuthenticationResponse)
 }
 
 /// A helper class for running Descope Flows.
 ///
-/// You can create an instance of ``DescopeFlowCoordinator``, attach a `WKWebView` by
-/// setting the ``webView`` property, and then call ``start(flow:)``. In almost any
-/// situation though it would be more convenient to use a ``DescopeFlowViewController``
-/// ot a ``DescopeFlowView`` instead.
+/// You can use a ``DescopeFlowCoordinator`` to run a flow in a `WKWebView` that was created
+/// manually and attached to the coordinator, but in almost all scenarios it should be more
+/// convenient to use a ``DescopeFlowViewController`` or a ``DescopeFlowView`` instead.
+///
+/// To start a flow in a ``DescopeFlowCoordinator``, first create a `WKWebViewConfiguration`
+/// object and bootstrap it by calling the coordinator's ``prepare(configuration:)`` method.
+/// Create an instance of `WKWebView` and pass the bootstrapped configuration object to the
+/// initializer. Attach the webview to the coordinator by setting the ``webView`` property,
+/// and finally call the ``start(flow:)`` function.
 @MainActor
 public class DescopeFlowCoordinator {
-    private let bridge: FlowBridge
 
-    private var logger: DescopeLogger?
-
+    /// A delegate object for receiving events about the state of the flow.
     public weak var delegate: DescopeFlowCoordinatorDelegate?
 
-    public private(set) var state: DescopeFlowState = .initial {
-        didSet {
-            delegate?.coordinatorDidUpdateState(self, to: state, from: oldValue)
-        }
-    }
-
-    public var webView: WKWebView? {
-        didSet {
-            bridge.webView = webView
-        }
-    }
-
-    public init() {
-        bridge = FlowBridge()
-        bridge.delegate = self
-    }
-
-    public func prepare(configuration: WKWebViewConfiguration) {
-        bridge.prepare(configuration: configuration)
-    }
-
-    // Flow
-
-    private var flow: DescopeFlow? {
+    /// The flow that's currently running in the ``DescopeFlowCoordinator``.
+    public private(set) var flow: DescopeFlow? {
         didSet {
             sdk.resume = resumeClosure
             logger = sdk.config.logger
@@ -59,19 +67,63 @@ public class DescopeFlowCoordinator {
         }
     }
 
+    /// The current state of the flow in the ``DescopeFlowCoordinator``.
+    public private(set) var state: DescopeFlowState = .initial {
+        didSet {
+            delegate?.coordinatorDidUpdateState(self, to: state, from: oldValue)
+        }
+    }
+
+    /// The instance of `WKWebView` that was attached to the coordinator.
+    ///
+    /// When using a ``DescopeFlowView`` or ``DescopeFlowViewController`` this property
+    /// is set automatically to the webview created by them.
+    public var webView: WKWebView? {
+        didSet {
+            bridge.webView = webView
+            updateLayoutObserver()
+        }
+    }
+
+    // Initialization
+
+    private let bridge: FlowBridge
+
+    private var logger: DescopeLogger?
+
+    /// Creates a new ``DescopeFlowCoordinator`` object.
+    public init() {
+        bridge = FlowBridge()
+        bridge.delegate = self
+    }
+
+    /// This method must be called on the `WKWebViewConfiguration` instance that's used
+    /// when calling the initializer when creating this coordinator's `WKWebView`.
+    public func prepare(configuration: WKWebViewConfiguration) {
+        bridge.prepare(configuration: configuration)
+    }
+
+    // Flow
+
+    /// Loads and displays a Descope Flow.
+    ///
+    /// The ``delegate`` property should be set before calling this function to ensure
+    /// no delegate updates are missed.
     public func start(flow: DescopeFlow) {
-        logger(.info, "Starting flow authentication", flow)
         #if DEBUG
+        precondition(webView != nil, "The flow coordinator's webView property must be set before starting the flow")
         precondition(sdk.config.projectId != "", "The Descope singleton must be setup or an instance of DescopeSDK must be set on the flow")
         #endif
 
+        logger(.info, "Starting flow authentication", flow)
         self.flow = flow
+        handleStarted()
 
-        state = .started
         loadURL(flow.url)
     }
 
-    private func loadURL(_ url: URL) {
+    private func loadURL(_ url: String) {
+        let url = URL(string: url) ?? URL(string: "invalid://")!
         var request = URLRequest(url: url)
         if let timeout = flow?.requestTimeoutInterval {
             request.timeoutInterval = timeout
@@ -81,6 +133,68 @@ public class DescopeFlowCoordinator {
 
     private var sdk: DescopeSDK {
         return flow?.descope ?? Descope.sdk
+    }
+
+    // WebView
+    
+    /// Adds the specified raw CSS to the flow page.
+    ///
+    /// ```swift
+    /// func updateMargins() {
+    ///     flowCoordinator.addStyles("body { margin: 16px; }")
+    /// }
+    /// ```
+    ///
+    /// - Parameter css: The raw CSS to add, e.g., `".footer { display: none; }"`.
+    public func addStyles(_ css: String) {
+        bridge.addStyles(css)
+    }
+    
+    /// Runs the specified JavaScript code on the flow page.
+    ///
+    /// The code is implicitly wrapped in an immediately invoked function expression, so you
+    /// can safely declare variables and not worry about polluting the global namespace.
+    ///
+    /// ```swift
+    /// func removeFooter() {
+    ///     flowCoordinator.runJavaScript("""
+    ///         const footer = document.querySelector('#footer')
+    ///         footer?.remove()
+    ///     """)
+    /// }
+    /// ```
+    ///
+    /// - Parameter code: The JavaScript code to run, e.g., `"console.log('Hello world')"`.
+    public func runJavaScript(_ code: String) {
+        bridge.runJavaScript(code)
+    }
+
+    // Hooks
+
+    private func executeHooks(event: DescopeFlowHook.Event) {
+        var hooks = DescopeFlowHook.defaults
+        if let flow {
+            hooks.append(contentsOf: flow.hooks)
+        }
+        for hook in hooks where hook.events.contains(event) {
+            hook.execute(event: event, coordinator: self)
+        }
+    }
+
+    // Layout
+
+    private var layoutObserver: WebViewLayoutObserver?
+
+    private func updateLayoutObserver() {
+        if let webView {
+            layoutObserver = WebViewLayoutObserver(webView: webView, handler: { [weak self] in self?.handleLayoutChange() })
+        } else {
+            layoutObserver = nil
+        }
+    }
+
+    private func handleLayoutChange() {
+        executeHooks(event: .layout)
     }
 
     // State
@@ -116,23 +230,27 @@ public class DescopeFlowCoordinator {
 
     // Events
 
-    private func handleFailure(_ error: Error) {
-        guard ensureState(.started, .ready, .failed) else { return }
+    private func handleStarted() {
+        guard ensureState(.initial) else { return }
+        state = .started
+        executeHooks(event: .started)
+    }
 
-        // we allow multiple failure events and swallow them here instead of showing a warning above,
-        // so that the bridge can just delegate any failures to the coordinator without having to
-        // keep its own state to ensure it only reports a single failure
-        guard state != .failed  else { return }
+    private func handleLoading() {
+        guard ensureState(.started) else { return }
+        executeHooks(event: .loading)
+    }
 
-        state = .failed
-        let error = error as? DescopeError ?? DescopeError.flowFailed.with(cause: error)
-        delegate?.coordinatorDidFailAuthentication(self, error: error)
+    private func handleLoaded() {
+        guard ensureState(.started) else { return }
+        executeHooks(event: .loaded)
     }
 
     private func handleReady() {
         guard ensureState(.started) else { return }
-        bridge.set(oauthProvider: flow?.oauthProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect?.absoluteString)
+        bridge.set(oauthProvider: flow?.oauthProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect)
         state = .ready
+        executeHooks(event: .ready)
         delegate?.coordinatorDidBecomeReady(self)
     }
 
@@ -146,15 +264,31 @@ public class DescopeFlowCoordinator {
         }
     }
 
+    private func handleError(_ error: DescopeError) {
+        guard ensureState(.started, .ready, .failed) else { return }
+
+        // we allow multiple failure events and swallow them here instead of showing a warning above,
+        // so that the bridge can just delegate any failures to the coordinator without having to
+        // keep its own state to ensure it only reports a single failure
+        guard state != .failed  else { return }
+
+        state = .failed
+        delegate?.coordinatorDidFail(self, error: error)
+    }
+
+    private func handleSuccess(_ authResponse: AuthenticationResponse) {
+        guard ensureState(.ready) else { return }
+        state = .finished
+        delegate?.coordinatorDidFinish(self, response: authResponse)
+    }
+
     // Authentication
 
     private func handleAuthentication(_ data: Data) {
         logger(.info, "Finishing flow authentication")
         Task {
             guard let authResponse = await parseAuthentication(data) else { return }
-            guard ensureState(.ready) else { return }
-            state = .finished
-            delegate?.coordinatorDidFinishAuthentication(self, response: authResponse)
+            handleSuccess(authResponse)
         }
     }
 
@@ -167,7 +301,7 @@ public class DescopeFlowCoordinator {
             return try jwtResponse.convert()
         } catch {
             logger(.error, "Unexpected error handling authentication response", error)
-            handleFailure(DescopeError.flowFailed.with(message: "No valid authentication tokens found"))
+            handleError(DescopeError.flowFailed.with(message: "No valid authentication tokens found"))
             return nil
         }
     }
@@ -215,15 +349,15 @@ public class DescopeFlowCoordinator {
 
 extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidStartLoading(_ bridge: FlowBridge) {
-        // nothing
+        handleLoading()
     }
 
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError) {
-        handleFailure(error)
+        handleError(error)
     }
 
     func bridgeDidFinishLoading(_ bridge: FlowBridge) {
-        // nothing
+        handleLoaded()
     }
 
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
@@ -239,7 +373,7 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     }
 
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError) {
-        handleFailure(error)
+        handleError(error)
     }
 
     func bridgeDidFinishAuthentication(_ bridge: FlowBridge, data: Data) {
@@ -259,4 +393,19 @@ private extension WKHTTPCookieStore {
     }
 }
 
-#endif
+@MainActor
+private class WebViewLayoutObserver: NSObject {
+    @objc let webView: WKWebView
+    var observation: NSKeyValueObservation?
+
+    init(webView: WKWebView, handler: @escaping @MainActor () -> Void) {
+        self.webView = webView
+        super.init()
+
+        observation = observe(\.webView.frame, changeHandler: { observer, change in
+            Task { @MainActor in
+                handler()
+            }
+        })
+    }
+}

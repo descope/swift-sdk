@@ -181,8 +181,7 @@ hierarchy. See the documentation for both classes for more details.
 
 ```swift
 func showLoginScreen() {
-    let url = URL(string: "https://example.com/myflow")!
-    let flow = DescopeFlow(url: url)
+    let flow = DescopeFlow(url: "https://example.com/myflow")
 
     let flowViewController = DescopeFlowViewController()
     flowViewController.delegate = self
@@ -198,7 +197,22 @@ func flowViewControllerDidFinish(_ controller: DescopeFlowViewController, respon
 }
 ```
 
-Note that these components for displaying flows are only supported on iOS for now.
+### Customizing the flow
+
+You can use hooks to customize how the flow page looks or behaves when running as
+a native flow. For example, these hooks will override the flow page to have a
+transparent background and set a margin on the body element.
+
+```swift
+let flow = DescopeFlow(url: "https://example.com/myflow")
+flow.hooks = [
+    .setTransparentBody,
+    .addStyles(selector: "body", rules: ["margin: 16px"]),
+]
+```
+
+See the documentation for `DescopeFlowHook` for more examples on using hooks and how
+to create your own.
 
 ## Authentication Methods
 

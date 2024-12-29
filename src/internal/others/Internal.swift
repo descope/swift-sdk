@@ -27,9 +27,7 @@ extension DescopeLogger? {
 
 extension Data {
     init?(base64URLEncoded base64URLString: String, options: Base64DecodingOptions = []) {
-        var str = base64URLString
-            .replacingOccurrences(of: "-", with: "+")
-            .replacingOccurrences(of: "_", with: "/")
+        var str = base64URLString.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
         if str.count % 4 > 0 {
             str.append(String(repeating: "=", count: 4 - str.count % 4))
         }

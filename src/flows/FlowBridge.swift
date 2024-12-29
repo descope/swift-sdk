@@ -95,7 +95,11 @@ extension FlowBridge: WKScriptMessageHandler {
             delegate?.bridgeDidReceiveRequest(self, request: request)
         case .failure:
             logger(.error, "Bridge received failure event", message.body)
-            delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Unexpected authentication failure [\(message.body)]"))
+            if let dict = message.body as? [String: Any], let error = DescopeError(errorResponse: dict) {
+                delegate?.bridgeDidFailAuthentication(self, error: error)
+            } else {
+                delegate?.bridgeDidFailAuthentication(self, error: DescopeError.flowFailed.with(message: "Unexpected authentication failure"))
+            }
         case .success:
             logger(.info, "Bridge received success event")
             guard let json = message.body as? String, case let data = Data(json.utf8) else {
@@ -148,7 +152,7 @@ extension FlowBridge: WKNavigationDelegate {
         // Don't print an error log if this was triggered by a non-2xx status code that was caught
         // above and causing the delegate function to return `.cancel`. We rely on the coordinator
         // to not notify about errors multiple times.
-        if case let error = error as NSError, error.domain == "WebKitErrorDomain", error.code == 102 { // https://developer.apple.com/documentation/webkit/1569748-webkit_loading_fail_enumeration_/webkiterrorframeloadinterruptedbypolicychange
+        if case let error = error as NSError, error.domain == "WebKitErrorDomain", error.code == 102 { // https://chromium.googlesource.com/chromium/src/+/2233628f5f5b32c7b458428f8d5cfbd0a18be82e/ios/web/public/web_kit_constants.h#25
             logger(.info, "Webview loading was cancelled")
         } else {
             logger(.error, "Webview failed loading url", error)

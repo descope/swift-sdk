@@ -1,8 +1,5 @@
 
 import Foundation
-#if os(iOS)
-import UIKit
-#endif
 
 /// The delivery method for an OTP or Magic Link message.
 public enum DeliveryMethod: String, Sendable {

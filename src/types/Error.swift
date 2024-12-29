@@ -148,7 +148,7 @@ extension DescopeError: LocalizedError {
     public var errorDescription: String? {
         var str = "\(desc)"
         if let cause = cause as? NSError {
-            str += ": \(cause.localizedDescription) [\(code): \(cause.code)]"
+            str += ": \(cause.localizedDescription) [\(cause.code)]"
         } else if let message {
             str += ": \(message) [\(code)]"
         } else {

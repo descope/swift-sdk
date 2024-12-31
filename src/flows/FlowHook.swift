@@ -42,7 +42,7 @@ import WebKit
 /// ```
 ///
 /// You can also implement your own hooks by subclassing ``DescopeFlowHook`` and
-/// overriding the ``execute(coordinator:)`` method.
+/// overriding the ``execute(event:coordinator:)`` method.
 @MainActor
 open class DescopeFlowHook {
     
@@ -222,7 +222,7 @@ extension DescopeFlowHook {
     /// }
     /// ```
     ///
-    /// - Parameter setup: A closure that receives the `UIScrollView` instance as its only parameter.
+    /// - Parameter closure: A closure that receives the `UIScrollView` instance as its only parameter.
     ///
     /// - Returns: A ``DescopeFlowHook`` object that can be added to the ``DescopeFlow/hooks`` array.
     public static func setupScrollView(_ closure: @escaping (UIScrollView) -> Void) -> DescopeFlowHook {
@@ -233,7 +233,7 @@ extension DescopeFlowHook {
     /// Creates a hook that will run the provided closure when the flow is started
     /// on the `WKWebView` used to display it.
     ///
-    /// - Parameter setup: A closure that receives the `WKWebView` instance as its only parameter.
+    /// - Parameter closure: A closure that receives the `WKWebView` instance as its only parameter.
     ///
     /// - Returns: A ``DescopeFlowHook`` object that can be added to the ``DescopeFlow/hooks`` array.
     public static func setupWebView(_ closure: @escaping (WKWebView) -> Void) -> DescopeFlowHook {

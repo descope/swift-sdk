@@ -18,6 +18,7 @@ public protocol DescopeAuth: Sendable {
     ///     hasn't already been selected.
     ///   - tenantIds: Provide a non-empty array of tenant IDs and set `dct` to `false`
     ///     to request a specific list of tenants for the user.
+    ///   - refreshJwt: the `refreshJwt` from an active ``DescopeSession``.
     ///
     /// - Returns: A list of one or more ``DescopeTenant`` values.
     func tenants(dct: Bool, tenantIds: [String], refreshJwt: String) async throws -> [DescopeTenant]

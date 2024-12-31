@@ -42,6 +42,7 @@ on the [Descope website](https://descope.com).
 
 - ``DescopeFlow``
 - ``DescopeFlowState``
+- ``DescopeFlowHook``
 - ``DescopeFlowView``
 - ``DescopeFlowViewDelegate``
 - ``DescopeFlowViewController``
@@ -64,6 +65,7 @@ on the [Descope website](https://descope.com).
 - ``UpdateOptions``
 - ``DeliveryMethod``
 - ``OAuthProvider``
+- ``RevokeType``
 
 ### Development
 

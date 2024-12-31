@@ -61,7 +61,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private var timer: Timer?
 
     private func resetTimer() {
-        if session != nil && stalenessCheckFrequency > 0 {
+        if stalenessCheckFrequency > 0, let refreshToken = session?.refreshToken, !refreshToken.isExpired {
             startTimer()
         } else {
             stopTimer()
@@ -85,9 +85,11 @@ public class SessionLifecycle: DescopeSessionLifecycle {
 
     private func periodicRefresh() async {
         do {
-            try await refreshSessionIfNeeded()
+            _ = try await refreshSessionIfNeeded()
+        } catch DescopeError.networkError {
+            // allow retries on network errors
         } catch {
-            // TODO check for refresh failure to not try again and again after expiry
+            stopTimer()
         }
     }
 }

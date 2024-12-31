@@ -131,9 +131,9 @@ public class DescopeSessionManager {
     /// - Note: When using a custom ``DescopeSessionManager`` object the exact behavior
     ///     here depends on the `storage` and `lifecycle` objects.
     public func refreshSessionIfNeeded() async throws {
-        try await lifecycle.refreshSessionIfNeeded()
-        if let session {
-            storage.saveSession(session)
+        let refreshed = try await lifecycle.refreshSessionIfNeeded()
+        if refreshed {
+            saveSession()
         }
     }
     
@@ -152,9 +152,7 @@ public class DescopeSessionManager {
     ///     ``DescopeSessionStorage`` protocol.
     public func updateTokens(with refreshResponse: RefreshResponse) {
         lifecycle.session?.updateTokens(with: refreshResponse)
-        if let session {
-            storage.saveSession(session)
-        }
+        saveSession()
     }
     
     /// Updates the active session's user details.
@@ -170,8 +168,14 @@ public class DescopeSessionManager {
     /// but this can be overridden with a custom ``DescopeSessionStorage`` object.
     public func updateUser(with user: DescopeUser) {
         lifecycle.session?.updateUser(with: user)
-        if let session {
-            storage.saveSession(session)
-        }
+        saveSession()
+    }
+
+    // Internal
+
+    /// Saves the latest session value to the storage.
+    private func saveSession() {
+        guard let session else { return }
+        storage.saveSession(session)
     }
 }

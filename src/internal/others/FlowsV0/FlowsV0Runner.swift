@@ -97,10 +97,6 @@ public class DescopeFlowRunner {
     /// The host application is expected to intercept this URL via Universal Links and
     /// resume the running flow with it.
     ///
-    /// You can do this by first getting a reference to the current running flow from
-    /// the ``DescopeFlow/current`` property and then calling the ``resume(with:)`` method
-    /// with the URL from the Universal Link.
-    ///
     ///     @main
     ///     struct MyApp: App {
     ///         // ...

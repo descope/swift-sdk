@@ -5,11 +5,11 @@ import Foundation
 /// manages its ``DescopeSession`` while the application is running.
 @MainActor
 public protocol DescopeSessionLifecycle: AnyObject {
-    /// Set by the session manager whenever the current active session changes.
+    /// Holds the latest session value for the session manager.
     var session: DescopeSession? { get set }
     
-    /// Called the session manager to conditionally refresh the active session.
-    func refreshSessionIfNeeded() async throws
+    /// Called by the session manager to conditionally refresh the active session.
+    func refreshSessionIfNeeded() async throws -> Bool
 }
 
 /// The default implementation of the ``DescopeSessionLifecycle`` protocol.
@@ -43,10 +43,11 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         }
     }
     
-    public func refreshSessionIfNeeded() async throws {
-        guard let current = session, shouldRefresh(current) else { return }
+    public func refreshSessionIfNeeded() async throws -> Bool {
+        guard let current = session, shouldRefresh(current) else { return false }
         let response = try await auth.refreshSession(refreshJwt: current.refreshJwt)
         session?.updateTokens(with: response)
+        return true
     }
     
     // Conditional refresh
@@ -60,7 +61,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private var timer: Timer?
 
     private func resetTimer() {
-        if session != nil && stalenessCheckFrequency > 0 {
+        if stalenessCheckFrequency > 0, let refreshToken = session?.refreshToken, !refreshToken.isExpired {
             startTimer()
         } else {
             stopTimer()
@@ -84,9 +85,11 @@ public class SessionLifecycle: DescopeSessionLifecycle {
 
     private func periodicRefresh() async {
         do {
-            try await refreshSessionIfNeeded()
+            _ = try await refreshSessionIfNeeded()
+        } catch DescopeError.networkError {
+            // allow retries on network errors
         } catch {
-            // TODO check for refresh failure to not try again and again after expiry
+            stopTimer()
         }
     }
 }

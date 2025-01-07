@@ -52,6 +52,20 @@ class TestAuth: XCTestCase {
         try checkUser(authResponse.user)
     }
 
+    func testRefresh() async throws {
+        let descope = DescopeSDK.mock()
+
+        MockHTTP.push(body: authNoRefreshPayload) { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.absoluteString ?? "", "https://api.descope.com/v1/auth/refresh")
+            XCTAssertEqual(request.allHTTPHeaderFields?["Authorization"], "Bearer projId:foo")
+        }
+
+        let refreshResponse = try await descope.auth.refreshSession(refreshJwt: "foo")
+        XCTAssertEqual("bar", refreshResponse.sessionToken.entityId)
+        XCTAssertNil(refreshResponse.refreshToken)
+    }
+
     func checkUser(_ user: DescopeUser) throws {
         XCTAssertEqual("userId", user.userId)
         XCTAssertFalse(user.isVerifiedPhone)
@@ -90,6 +104,15 @@ private let authPayload = """
     "refreshJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJxdXgiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjE2MDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.kgsfovgtFXwlr7Ev6XZ_BFMBSFNgTraw_G9WqAj78AA",
     "user": \(userPayload),
     "firstSeen": true
+}
+"""
+
+private let authNoRefreshPayload = """
+{
+    "sessionJwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiYXIiLCJuYW1lIjoiU3dpZnR5IE1jQXBwbGVzIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJmb28iLCJleHAiOjE2MDMxNzY2MTQsInBlcm1pc3Npb25zIjpbImQiLCJlIl0sInJvbGVzIjpbInVzZXIiXSwidGVuYW50cyI6eyJ0ZW5hbnQiOnsicGVybWlzc2lvbnMiOlsiYSIsImIiLCJjIl0sInJvbGVzIjpbImFkbWluIl19fX0.LEcNdzkdOXlzxcVNhvlqOIoNwzgYYfcDv1_vzF3awF8",
+    "refreshJwt": "",
+    "user": \(userPayload),
+    "firstSeen": false
 }
 """
 

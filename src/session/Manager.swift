@@ -102,7 +102,7 @@ public class DescopeSessionManager {
     ///     each other's saved sessions.
     public func manageSession(_ session: DescopeSession) {
         lifecycle.session = session
-        storage.saveSession(session)
+        saveSession()
     }
 
     /// Clears any active ``DescopeSession`` from this manager and removes it
@@ -122,6 +122,17 @@ public class DescopeSessionManager {
         storage.removeSession()
     }
     
+    /// Saves the active ``DescopeSession`` to the storage.
+    ///
+    /// - Important: There is usually no need to call this method directly.
+    ///     The session is automatically saved when it's refreshed or updated,
+    ///     unless you're using a session manager with custom `stroage` and
+    ///     `lifecycle` objects.
+    public func saveSession() {
+        guard let session else { return }
+        storage.saveSession(session)
+    }
+
     /// Ensures that the session is valid and refreshes it if needed.
     ///
     /// The session manager checks whether there's an active ``DescopeSession`` and if
@@ -169,13 +180,5 @@ public class DescopeSessionManager {
     public func updateUser(with user: DescopeUser) {
         lifecycle.session?.updateUser(with: user)
         saveSession()
-    }
-
-    // Internal
-
-    /// Saves the latest session value to the storage.
-    private func saveSession() {
-        guard let session else { return }
-        storage.saveSession(session)
     }
 }

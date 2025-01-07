@@ -32,7 +32,7 @@ public struct DescopeConfig {
     /// This property can be useful to test code that uses the Descope SDK without any
     /// network requests actually taking place. In most other cases there shouldn't be
     /// any need to use it.
-    public var networkClient: DescopeNetworkClient? = nil
+    public var networkClient: DescopeNetworkClient?
 }
 
 /// The ``DescopeLogger`` class can be used to customize logging functionality in the Descope SDK.

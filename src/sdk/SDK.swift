@@ -81,7 +81,7 @@ public class DescopeSDK {
     /// override the ``DescopeSDK`` object's default networking client with one that always
     /// fails, using code such as this (see ``DescopeNetworkClient``):
     ///
-    ///     let descope = DescopeSDK(projectId: "") { config in
+    ///     let descope = DescopeSDK(projectId: "test") { config in
     ///         config.networkClient = FailingNetworkClient()
     ///     }
     ///     testOTPNetworkError(descope)
@@ -143,7 +143,7 @@ public extension DescopeSDK {
     static let name = "DescopeKit"
     
     /// The Descope SDK version
-    static let version = "0.9.10"
+    static let version = "0.9.11"
 }
 
 // Internal
@@ -151,7 +151,7 @@ public extension DescopeSDK {
 private extension DescopeSessionManager {
     convenience init(sdk: DescopeSDK) {
         let storage = SessionStorage(projectId: sdk.config.projectId)
-        let lifecycle = SessionLifecycle(auth: sdk.auth)
+        let lifecycle = SessionLifecycle(auth: sdk.auth, storage: storage, logger: sdk.config.logger)
         self.init(storage: storage, lifecycle: lifecycle)
     }
 }

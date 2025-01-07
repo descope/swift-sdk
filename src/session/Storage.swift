@@ -35,7 +35,7 @@ public class SessionStorage: DescopeSessionStorage {
     public let projectId: String
     public let store: Store
     
-    private var lastValue: Value?
+    private var lastSaved: EncodedSession?
 
     public init(projectId: String, store: Store = .keychain) {
         self.projectId = projectId
@@ -43,23 +43,23 @@ public class SessionStorage: DescopeSessionStorage {
     }
     
     public func saveSession(_ session: DescopeSession) {
-        let value = Value(sessionJwt: session.sessionJwt, refreshJwt: session.refreshJwt, user: session.user)
-        guard value != lastValue else { return }
-        guard let data = try? JSONEncoder().encode(value) else { return }
+        let encoded = EncodedSession(sessionJwt: session.sessionJwt, refreshJwt: session.refreshJwt, user: session.user)
+        guard lastSaved != encoded else { return }
+        guard let data = try? JSONEncoder().encode(encoded) else { return }
         try? store.saveItem(key: projectId, data: data)
-        lastValue = value
+        lastSaved = encoded
     }
     
     public func loadSession() -> DescopeSession? {
         guard let data = try? store.loadItem(key: projectId) else { return nil }
-        guard let value = try? JSONDecoder().decode(Value.self, from: data) else { return nil }
-        let session = try? DescopeSession(sessionJwt: value.sessionJwt, refreshJwt: value.refreshJwt, user: value.user)
-        lastValue = value
+        guard let encoded = try? JSONDecoder().decode(EncodedSession.self, from: data) else { return nil }
+        let session = try? DescopeSession(sessionJwt: encoded.sessionJwt, refreshJwt: encoded.refreshJwt, user: encoded.user)
+        lastSaved = encoded
         return session
     }
     
     public func removeSession() {
-        lastValue = nil
+        lastSaved = nil
         try? store.removeItem(key: projectId)
     }
     
@@ -80,23 +80,35 @@ public class SessionStorage: DescopeSessionStorage {
     }
     
     /// A helper struct for serializing the ``DescopeSession`` data.
-    private struct Value: Codable, Equatable {
+    private struct EncodedSession: Codable, Equatable {
         var sessionJwt: String
         var refreshJwt: String
         var user: DescopeUser
     }
 }
 
-public extension SessionStorage.Store {
+extension SessionStorage.Store {
     /// A store that does nothing.
-    static let none = SessionStorage.Store()
-    
+    public static let none = SessionStorage.Store()
+
     /// A store that saves the session data to the keychain.
-    static let keychain = SessionStorage.KeychainStore()
+    public static let keychain = SessionStorage.KeychainStore()
 }
 
-public extension SessionStorage {
-    class KeychainStore: Store {
+extension SessionStorage {
+    public class KeychainStore: Store {
+        #if os(iOS)
+        private let accessibility: String
+
+        public override init() {
+            self.accessibility = kSecAttrAccessibleAfterFirstUnlock as String
+        }
+
+        public init(accessibility: String) {
+            self.accessibility = accessibility
+        }
+        #endif
+
         public override func loadItem(key: String) -> Data? {
             var query = queryForItem(key: key)
             query[kSecReturnData as String] = true
@@ -115,7 +127,7 @@ public extension SessionStorage {
             #if os(macOS)
             values[kSecAttrAccess as String] = SecAccessCreateWithOwnerAndACL(getuid(), 0, SecAccessOwnerType(kSecUseOnlyUID), nil, nil)
             #else
-            values[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            values[kSecAttrAccessible as String] = accessibility
             #endif
 
             let query = queryForItem(key: key)

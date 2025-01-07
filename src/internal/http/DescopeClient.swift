@@ -437,10 +437,10 @@ final class DescopeClient: HTTPClient, @unchecked Sendable {
                 user?.setCustomAttributes(from: dict)
             }
             if sessionJwt == nil || sessionJwt == "" {
-                sessionJwt = try findTokenCookie(named: sessionCookieName, in: cookies)
+                sessionJwt = findTokenCookie(named: sessionCookieName, in: cookies)
             }
             if refreshJwt == nil || refreshJwt == "" {
-                refreshJwt = try findTokenCookie(named: refreshCookieName, in: cookies)
+                refreshJwt = findTokenCookie(named: refreshCookieName, in: cookies)
             }
         }
     }
@@ -579,10 +579,10 @@ private extension DeliveryMethod {
     }
 }
 
-private func findTokenCookie(named name: String, in cookies: [HTTPCookie]) throws(DescopeError) -> String {
+private func findTokenCookie(named name: String, in cookies: [HTTPCookie]) -> String? {
     // keep only cookies matching the required name
     let cookies = cookies.filter { name.caseInsensitiveCompare($0.name) == .orderedSame }
-    guard !cookies.isEmpty else { throw DescopeError.decodeError.with(message: "Missing value for \(name) cookie") }
+    guard !cookies.isEmpty else { return nil }
 
     // try to make a deterministic choice between cookies by looking for the best matching token
     let tokens = cookies.compactMap { try? Token(jwt: $0.value) }.sorted { a, b in
@@ -591,7 +591,7 @@ private func findTokenCookie(named name: String, in cookies: [HTTPCookie]) throw
     }
 
     // try to find the best match by prioritizing the newest non-expired token
-    guard let token = tokens.first else { throw DescopeError.decodeError.with(message: "Invalid value for \(name) cookie") }
+    guard let token = tokens.first else { return nil }
 
     return token.jwt
 }

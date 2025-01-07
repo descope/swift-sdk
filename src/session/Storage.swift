@@ -97,6 +97,18 @@ extension SessionStorage.Store {
 
 extension SessionStorage {
     public class KeychainStore: Store {
+        #if os(iOS)
+        private let accessibility: String
+
+        public override init() {
+            self.accessibility = kSecAttrAccessibleAfterFirstUnlock as String
+        }
+
+        public init(accessibility: String) {
+            self.accessibility = accessibility
+        }
+        #endif
+
         public override func loadItem(key: String) -> Data? {
             var query = queryForItem(key: key)
             query[kSecReturnData as String] = true
@@ -115,7 +127,7 @@ extension SessionStorage {
             #if os(macOS)
             values[kSecAttrAccess as String] = SecAccessCreateWithOwnerAndACL(getuid(), 0, SecAccessOwnerType(kSecUseOnlyUID), nil, nil)
             #else
-            values[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            values[kSecAttrAccessible as String] = accessibility
             #endif
 
             let query = queryForItem(key: key)

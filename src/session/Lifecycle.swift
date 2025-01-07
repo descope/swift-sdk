@@ -20,32 +20,49 @@ public protocol DescopeSessionLifecycle: AnyObject {
 /// or if it's already expired.
 public class SessionLifecycle: DescopeSessionLifecycle {
     public let auth: DescopeAuth
+    public let storage: DescopeSessionStorage
+    public let logger: DescopeLogger?
 
-    public init(auth: DescopeAuth) {
+    public init(auth: DescopeAuth, storage: DescopeSessionStorage, logger: DescopeLogger?) {
         self.auth = auth
+        self.storage = storage
+        self.logger = logger
     }
 
     public var stalenessAllowedInterval: TimeInterval = 60 /* seconds */
     
-    public var stalenessCheckFrequency: TimeInterval = 30 /* seconds */ {
+    public var periodicCheckFrequency: TimeInterval = 30 /* seconds */ {
         didSet {
-            if stalenessCheckFrequency != oldValue {
+            if periodicCheckFrequency != oldValue {
                 resetTimer()
             }
         }
     }
+
+    public var shouldSaveAfterPeriodicRefresh: Bool = true
 
     public var session: DescopeSession? {
         didSet {
             if session?.refreshJwt != oldValue?.refreshJwt {
                 resetTimer()
             }
+            if let session, session.refreshToken.isExpired {
+                logger(.debug, "Session has an expired refresh token", session.refreshToken.expiresAt)
+            }
         }
     }
     
     public func refreshSessionIfNeeded() async throws -> Bool {
         guard let current = session, shouldRefresh(current) else { return false }
+
+        logger(.info, "Refreshing session that is about to expire", current.sessionToken.expiresAt.timeIntervalSinceNow)
         let response = try await auth.refreshSession(refreshJwt: current.refreshJwt)
+
+        guard session?.sessionJwt == current.sessionJwt else {
+            logger(.info, "Skipping refresh because session has changed in the meantime")
+            return false
+        }
+
         session?.updateTokens(with: response)
         return true
     }
@@ -61,7 +78,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     private var timer: Timer?
 
     private func resetTimer() {
-        if stalenessCheckFrequency > 0, let refreshToken = session?.refreshToken, !refreshToken.isExpired {
+        if periodicCheckFrequency > 0, let refreshToken = session?.refreshToken, !refreshToken.isExpired {
             startTimer()
         } else {
             stopTimer()
@@ -70,9 +87,9 @@ public class SessionLifecycle: DescopeSessionLifecycle {
 
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: stalenessCheckFrequency, repeats: true) { [weak self] timer in
+        timer = Timer.scheduledTimer(withTimeInterval: periodicCheckFrequency, repeats: true) { [weak self] timer in
             guard let lifecycle = self else { return timer.invalidate() }
-            Task { @MainActor in
+            Task {
                 await lifecycle.periodicRefresh()
             }
         }
@@ -84,11 +101,22 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     }
 
     private func periodicRefresh() async {
+        if let refreshToken = session?.refreshToken, refreshToken.isExpired {
+            logger(.debug, "Stopping periodic refresh for session with expired refresh token")
+            stopTimer()
+            return
+        }
+
         do {
-            _ = try await refreshSessionIfNeeded()
+            let refreshed = try await refreshSessionIfNeeded()
+            if refreshed, shouldSaveAfterPeriodicRefresh, let session {
+                logger(.debug, "Saving refresh session after periodic refresh")
+                storage.saveSession(session)
+            }
         } catch DescopeError.networkError {
-            // allow retries on network errors
+            logger(.debug, "Ignoring network error in periodic refresh")
         } catch {
+            logger(.error, "Stopping periodic refresh after failure", error)
             stopTimer()
         }
     }

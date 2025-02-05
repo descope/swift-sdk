@@ -7,6 +7,8 @@ protocol FlowBridgeDelegate: AnyObject {
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishLoading(_ bridge: FlowBridge)
     func bridgeDidBecomeReady(_ bridge: FlowBridge)
+//    func bridgeShouldShowScreen(_ bridge: FlowBridge, screenId: String) -> Bool
+//    func bridgeDidShowScreen(_ bridge: FlowBridge, screenId: String)
     func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool)
     func bridgeDidReceiveRequest(_ bridge: FlowBridge, request: FlowBridgeRequest)
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError)
@@ -16,12 +18,16 @@ protocol FlowBridgeDelegate: AnyObject {
 enum FlowBridgeRequest {
     case oauthNative(clientId: String, stateId: String, nonce: String, implicit: Bool)
     case webAuth(variant: String, startURL: URL, finishURL: URL?)
+    case beforeScreen(screenId: String)
+    case afterScreen(screenId: String)
 }
 
 enum FlowBridgeResponse {
     case oauthNative(stateId: String, authorizationCode: String?, identityToken: String?, user: String?)
     case webAuth(variant: String, exchangeCode: String)
     case magicLink(url: String)
+    case beforeScreen(override: Bool)
+    case resumeScreen(interactionId: String, form: [String: Any])
     case failure(String)
 }
 
@@ -52,6 +58,9 @@ class FlowBridge: NSObject {
     func prepare(configuration: WKWebViewConfiguration) {
         let setup = WKUserScript(source: setupScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         configuration.userContentController.addUserScript(setup)
+
+        let initialize = WKUserScript(source: initScript, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+        configuration.userContentController.addUserScript(initialize)
 
         if #available(iOS 17.0, macOS 14.0, *) {
             configuration.preferences.inactiveSchedulingPolicy = .none
@@ -238,6 +247,12 @@ private extension FlowBridgeRequest {
                 finishURL = url
             }
             self = .webAuth(variant: type, startURL: startURL, finishURL: finishURL)
+        case "beforeScreen":
+            guard let screenId = payload["screenId"] as? String else { return nil }
+            self = .beforeScreen(screenId: screenId)
+        case "afterScreen":
+            guard let screenId = payload["screenId"] as? String else { return nil }
+            self = .afterScreen(screenId: screenId)
         default:
             return nil
         }
@@ -250,6 +265,8 @@ private extension FlowBridgeResponse {
         case .oauthNative: return "oauthNative"
         case .webAuth(let variant, _): return variant
         case .magicLink: return "magicLink"
+        case .beforeScreen: return "beforeScreen"
+        case .resumeScreen: return "resumeScreen"
         case .failure: return "failure"
         }
     }
@@ -284,6 +301,15 @@ private extension FlowBridgeResponse {
             return [
                 "url": url
             ]
+        case let .beforeScreen(override):
+            return [
+                "override": override
+            ]
+        case let .resumeScreen(interactionId, form):
+            return [
+                "interactionId": interactionId,
+                "form": form,
+            ]
         case let .failure(failure):
             return [
                 "failure": failure
@@ -298,6 +324,9 @@ private let namespace = "_Descope_Bridge"
 /// Connects the bridge to the web view and prepares the Descope web-component
 private let setupScript = """
 
+// Signal to other subsystems that they're running inside a bridge-enabled webview 
+window.IsDescopeBridge = true
+
 // Redirect console to bridge
 window.console.log = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'log', message: s }) }
 window.console.debug = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'debug', message: s }) }
@@ -306,9 +335,20 @@ window.console.warn = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage
 window.console.error = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'error', message: s }) }
 window.onerror = (message, source, line, column, error) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'fail', message: `${message}, ${source || '-'}, ${error || '-'}` }) }
 
-// Called directly below 
+"""
+
+private let initScript = """
+
+// Called directly below
 function \(namespace)_initialize() {
     let interval
+
+    let component = \(namespace)_find()
+    if (component) {
+        \(namespace)_prepare(component)
+        return
+    }
+
     interval = setInterval(() => {
         let component = \(namespace)_find()
         if (component) {
@@ -353,6 +393,37 @@ function \(namespace)_prepare(component) {
     component.addEventListener('success', (event) => {
         window.webkit.messageHandlers.\(FlowBridgeMessage.success.rawValue).postMessage(JSON.stringify(event.detail))
     })
+
+    component.addEventListener('page-updated', (event) => {
+        window.webkit.messageHandlers.\(FlowBridgeMessage.bridge.rawValue).postMessage({
+            type: 'afterScreen',
+            payload: {
+                screenId: 'todo',
+            },
+        })
+    })
+
+    const previousPageUpdate = component.onPageUpdate
+    component.onPageUpdate = async (state, ref) => {
+        const promise = new Promise((resolve, reject) => {
+            console.log(`onPageUpdate: ${JSON.stringify(state)}`)
+            window.webkit.messageHandlers.\(FlowBridgeMessage.bridge.rawValue).postMessage({
+                type: 'beforeScreen',
+                payload: {
+                    screenId: state.screenId,
+                },
+            })
+            component.pendingNext = state.next
+            component.pendingResolve = resolve
+        })
+        const shouldOverride = await promise
+        if (!shouldOverride && previousPageUpdate) {
+            return await previousPageUpdate(state, ref)
+        }
+        return shouldOverride
+    }
+
+    component.lazyInit()
 }
 
 // Called when the Descope web-component is ready to notify the bridge
@@ -377,7 +448,23 @@ function \(namespace)_set(oauthProvider, magicLinkRedirect) {
 function \(namespace)_send(type, payload) {
     let component = \(namespace)_find()
     if (component) {
-        component.nativeResume(type, payload)
+        if (type === 'beforeScreen') {
+            const json = JSON.parse(payload)
+            const resolve = component.pendingResolve
+            component.pendingResolve = null
+            if (!json.override) {
+                component.pendingNext = null
+            }
+            resolve(json.override)
+        } else if (type === 'resumeScreen') {
+            console.log(`resume: ${payload}`)
+            const json = JSON.parse(payload)
+            const next = component.pendingNext
+            component.pendingNext = null
+            next(json.interactionId, json.form)
+        } else {
+            component.nativeResume(type, payload)
+        }
     }
 }
 

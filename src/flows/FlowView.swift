@@ -20,6 +20,10 @@ public protocol DescopeFlowViewDelegate: AnyObject {
     /// and do a quick animatad transition to show the flow once this method is called.
     func flowViewDidBecomeReady(_ flowView: DescopeFlowView)
 
+    func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screenId: String) -> Bool
+
+    func flowViewDidShowScreen(_ flowView: DescopeFlowView, screenId: String)
+
     /// Called when the user taps on a web link in the flow.
     ///
     /// The `external` parameter is `true` if the link would open in a new browser tab
@@ -169,6 +173,12 @@ open class DescopeFlowView: UIView {
         coordinator.start(flow: flow)
     }
 
+    // Custom Screens
+
+    public func resumeScreen(interactionId: String, form: [String: Any]) {
+        coordinator.resumeScreen(interactionId: interactionId, form: form)
+    }
+
     // WebView
 
     private lazy var webView: WKWebView = createWebView()
@@ -261,6 +271,16 @@ private class FlowCoordinatorDelegateProxy: DescopeFlowCoordinatorDelegate {
         guard let view else { return }
         view.didBecomeReady()
         view.delegate?.flowViewDidBecomeReady(view)
+    }
+
+    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) -> Bool {
+        guard let view, let delegate = view.delegate else { return true }
+        return delegate.flowViewShouldShowScreen(view, screenId: screenId)
+    }
+
+    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) {
+        guard let view else { return }
+        view.delegate?.flowViewDidShowScreen(view, screenId: screenId)
     }
 
     func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, url: URL, external: Bool) {

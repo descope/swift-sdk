@@ -176,6 +176,14 @@ open class DescopeFlowViewController: UIViewController {
 }
 
 extension DescopeFlowViewController: DescopeFlowViewDelegate {
+    public func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screenId: String) -> Bool {
+        return true // TODO
+    }
+    
+    public func flowViewDidShowScreen(_ flowView: DescopeFlowView, screenId: String) {
+        // TODO
+    }
+    
     public func flowViewDidUpdateState(_ flowView: DescopeFlowView, to state: DescopeFlowState, from previous: DescopeFlowState) {
         if state == .started {
             activityView.startAnimating()

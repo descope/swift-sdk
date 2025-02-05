@@ -18,6 +18,10 @@ public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     /// and do a quick animatad transition to show the flow once this method is called.
     func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
 
+    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) -> Bool
+
+    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String)
+
     /// Called when the user taps on a web link in the flow.
     ///
     /// The `external` parameter is `true` if the link would open in a new browser tab
@@ -124,8 +128,8 @@ public class DescopeFlowCoordinator {
 
     private func loadURL(_ url: String) {
         let url = URL(string: url) ?? URL(string: "invalid://")!
-        var request = URLRequest(url: url)
-        if let timeout = flow?.requestTimeoutInterval {
+        var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalAndRemoteCacheData)
+        if let timeout = flow?.timeout {
             request.timeoutInterval = timeout
         }
         webView?.load(request)
@@ -167,6 +171,13 @@ public class DescopeFlowCoordinator {
     /// - Parameter code: The JavaScript code to run, e.g., `"console.log('Hello world')"`.
     public func runJavaScript(_ code: String) {
         bridge.runJavaScript(code)
+    }
+
+    // Custom Screens
+
+    public func resumeScreen(interactionId: String, form: [String: Any]) {
+        logger(.info, "Resuming screen")
+        bridge.send(response: .resumeScreen(interactionId: interactionId, form: form))
     }
 
     // Hooks
@@ -255,12 +266,22 @@ public class DescopeFlowCoordinator {
     }
 
     private func handleRequest(_ request: FlowBridgeRequest) {
-        guard ensureState(.ready) else { return }
+        guard ensureState(.started, .ready) else { return }
         switch request {
         case let .oauthNative(clientId, stateId, nonce, implicit):
             handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
         case let .webAuth(variant, startURL, finishURL):
             handleWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
+        case let .beforeScreen(screenId):
+            logger(.info, "Should show screen", screenId)
+            var show = true
+            if let delegate {
+                show = delegate.coordinatorShouldShowScreen(self, screenId: screenId)
+            }
+            bridge.send(response: .beforeScreen(override: !show))
+        case let .afterScreen(screenId):
+            logger(.info, "Did show screen", screenId)
+            delegate?.coordinatorDidShowScreen(self, screenId: screenId)
         }
     }
 
@@ -363,6 +384,12 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
         handleReady()
     }
+
+//    func bridgeShouldShowScreen(_ bridge: FlowBridge, screenId: String) -> Bool {
+//    }
+
+//    func bridgeDidShowScreen(_ bridge: FlowBridge, screenId: String) {
+//    }
 
     func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool) {
         delegate?.coordinatorDidInterceptNavigation(self, url: url, external: external)

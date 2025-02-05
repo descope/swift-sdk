@@ -105,9 +105,9 @@ public class DescopeFlow {
     /// be configured for universal links using the same redirect URL as on the web.
     public var magicLinkRedirect: String?
 
-    /// An optional timeout interval to set on the `URLRequest` object used for loading
-    /// the flow webpage. If this is not set the platform default value is be used.
-    public var requestTimeoutInterval: TimeInterval?
+    /// An optional timeout to set on the `URLRequest` object used for loading the
+    /// flow webpage. If this is not set the platform default value is be used.
+    public var timeout: TimeInterval?
 
     /// Creates a new ``DescopeFlow`` object that encapsulates a single flow run.
     ///

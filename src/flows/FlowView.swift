@@ -20,9 +20,9 @@ public protocol DescopeFlowViewDelegate: AnyObject {
     /// and do a quick animatad transition to show the flow once this method is called.
     func flowViewDidBecomeReady(_ flowView: DescopeFlowView)
 
-    func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screenId: String) -> Bool
+    func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screen: String, data: [String: Any]) -> Bool
 
-    func flowViewDidShowScreen(_ flowView: DescopeFlowView, screenId: String)
+    func flowViewDidShowScreen(_ flowView: DescopeFlowView, screen: String)
 
     /// Called when the user taps on a web link in the flow.
     ///
@@ -273,14 +273,14 @@ private class FlowCoordinatorDelegateProxy: DescopeFlowCoordinatorDelegate {
         view.delegate?.flowViewDidBecomeReady(view)
     }
 
-    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) -> Bool {
+    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screen: String, data: [String: Any]) -> Bool {
         guard let view, let delegate = view.delegate else { return true }
-        return delegate.flowViewShouldShowScreen(view, screenId: screenId)
+        return delegate.flowViewShouldShowScreen(view, screen: screen, data: data)
     }
 
-    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) {
+    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screen: String) {
         guard let view else { return }
-        view.delegate?.flowViewDidShowScreen(view, screenId: screenId)
+        view.delegate?.flowViewDidShowScreen(view, screen: screen)
     }
 
     func coordinatorDidInterceptNavigation(_ coordinator: DescopeFlowCoordinator, url: URL, external: Bool) {

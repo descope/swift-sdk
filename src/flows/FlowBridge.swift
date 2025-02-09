@@ -7,8 +7,6 @@ protocol FlowBridgeDelegate: AnyObject {
     func bridgeDidFailLoading(_ bridge: FlowBridge, error: DescopeError)
     func bridgeDidFinishLoading(_ bridge: FlowBridge)
     func bridgeDidBecomeReady(_ bridge: FlowBridge)
-//    func bridgeShouldShowScreen(_ bridge: FlowBridge, screenId: String) -> Bool
-//    func bridgeDidShowScreen(_ bridge: FlowBridge, screenId: String)
     func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool)
     func bridgeDidReceiveRequest(_ bridge: FlowBridge, request: FlowBridgeRequest)
     func bridgeDidFailAuthentication(_ bridge: FlowBridge, error: DescopeError)
@@ -18,8 +16,8 @@ protocol FlowBridgeDelegate: AnyObject {
 enum FlowBridgeRequest {
     case oauthNative(clientId: String, stateId: String, nonce: String, implicit: Bool)
     case webAuth(variant: String, startURL: URL, finishURL: URL?)
-    case beforeScreen(screenId: String)
-    case afterScreen(screenId: String)
+    case beforeScreen(screen: String, data: [String: Any])
+    case afterScreen(screen: String)
 }
 
 enum FlowBridgeResponse {
@@ -248,11 +246,11 @@ private extension FlowBridgeRequest {
             }
             self = .webAuth(variant: type, startURL: startURL, finishURL: finishURL)
         case "beforeScreen":
-            guard let screenId = payload["screenId"] as? String else { return nil }
-            self = .beforeScreen(screenId: screenId)
+            guard let screen = payload["screen"] as? String, let data = payload["data"] as? [String: Any] else { return nil }
+            self = .beforeScreen(screen: screen, data: data)
         case "afterScreen":
-            guard let screenId = payload["screenId"] as? String else { return nil }
-            self = .afterScreen(screenId: screenId)
+            guard let screen = payload["screen"] as? String else { return nil }
+            self = .afterScreen(screen: screen)
         default:
             return nil
         }
@@ -325,7 +323,7 @@ private let namespace = "_Descope_Bridge"
 private let setupScript = """
 
 // Signal to other subsystems that they're running inside a bridge-enabled webview 
-window.IsDescopeBridge = true
+window.isDescopeBridge = true
 
 // Redirect console to bridge
 window.console.log = (s) => { window.webkit.messageHandlers.\(FlowBridgeMessage.log.rawValue).postMessage({ tag: 'log', message: s }) }
@@ -341,14 +339,13 @@ private let initScript = """
 
 // Called directly below
 function \(namespace)_initialize() {
-    let interval
-
     let component = \(namespace)_find()
     if (component) {
         \(namespace)_prepare(component)
         return
     }
 
+    let interval
     interval = setInterval(() => {
         let component = \(namespace)_find()
         if (component) {
@@ -394,36 +391,44 @@ function \(namespace)_prepare(component) {
         window.webkit.messageHandlers.\(FlowBridgeMessage.success.rawValue).postMessage(JSON.stringify(event.detail))
     })
 
-    component.addEventListener('page-updated', (event) => {
+    component.addEventListener('screen-updated', (event) => {
+        if (!event.detail.screenName) {
+            return false
+        }
         window.webkit.messageHandlers.\(FlowBridgeMessage.bridge.rawValue).postMessage({
             type: 'afterScreen',
             payload: {
-                screenId: 'todo',
+                screen: event.detail.screenName,
             },
         })
     })
 
-    const previousPageUpdate = component.onPageUpdate
-    component.onPageUpdate = async (state, ref) => {
+    const previousScreenUpdate = component.onScreenUpdate
+    component.onScreenUpdate = async (screen, data, next, ref) => {
+        if (!screen) {
+            return false
+        }
         const promise = new Promise((resolve, reject) => {
-            console.log(`onPageUpdate: ${JSON.stringify(state)}`)
+            console.log(`onScreenUpdate: ${screen}, ${JSON.stringify(data)}`)
             window.webkit.messageHandlers.\(FlowBridgeMessage.bridge.rawValue).postMessage({
                 type: 'beforeScreen',
                 payload: {
-                    screenId: state.screenId,
+                    screen,
+                    data,
                 },
             })
-            component.pendingNext = state.next
+            component.pendingNext = next
             component.pendingResolve = resolve
         })
         const shouldOverride = await promise
-        if (!shouldOverride && previousPageUpdate) {
-            return await previousPageUpdate(state, ref)
+        if (!shouldOverride && previousScreenUpdate) {
+            return await previousScreenUpdate(screen, data, next, ref)
         }
         return shouldOverride
     }
 
-    component.lazyInit()
+    // ensure we support old web-components without this function
+    component.lazyInit?.()
 }
 
 // Called when the Descope web-component is ready to notify the bridge

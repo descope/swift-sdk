@@ -168,9 +168,10 @@ private struct RegisterOptions {
     init(from options: String) throws {
         guard let root = try? JSONDecoder().decode(Root.self, from: Data(options.utf8)) else { throw DescopeError.decodeError.with(message: "Invalid passkey register options") }
         guard let challengeData = Data(base64URLEncoded: root.publicKey.challenge) else { throw DescopeError.decodeError.with(message: "Invalid passkey challenge") }
+        guard let userId = Data(base64URLEncoded: root.publicKey.user.id) else { throw DescopeError.decodeError.with(message: "Invalid passkey user id") }
         challenge = challengeData
         rpId = root.publicKey.rp.id
-        user = (id: Data(root.publicKey.user.id.utf8), name: root.publicKey.user.name, displayName: root.publicKey.user.displayName)
+        user = (id: userId, name: root.publicKey.user.name, displayName: root.publicKey.user.displayName)
     }
     
     private struct Root: Codable {
@@ -272,7 +273,7 @@ private struct AssertionFinish: Codable {
         let credentialId = assertion.credentialID.base64URLEncodedString()
         let authenticatorData = assertion.rawAuthenticatorData.base64URLEncodedString()
         let clientDataJSON = assertion.rawClientDataJSON.base64URLEncodedString()
-        guard let userHandle = String(bytes: assertion.userID, encoding: .utf8) else { throw DescopeError.passkeyFailed.with(message: "Invalid user handle") }
+        let userHandle = try parseUserHandle(assertion.userID)
         let signature = assertion.signature.base64URLEncodedString()
         
         let response = Response(authenticatorData: authenticatorData, clientDataJSON: clientDataJSON, signature: signature, userHandle: userHandle)
@@ -280,5 +281,13 @@ private struct AssertionFinish: Codable {
         
         guard let encodedObject = try? JSONEncoder().encode(object), let encoded = String(bytes: encodedObject, encoding: .utf8) else { throw DescopeError.encodeError.with(message: "Invalid assertion finish object") }
         return encoded
+    }
+
+    static func parseUserHandle(_ value: Data) throws -> String {
+        guard let stringValue = String(bytes: value, encoding: .utf8) else { throw DescopeError.passkeyFailed.with(message: "Invalid user handle") }
+        if stringValue.count >= 30, stringValue.hasPrefix("V") {
+            return stringValue
+        }
+        return value.base64URLEncodedString()
     }
 }

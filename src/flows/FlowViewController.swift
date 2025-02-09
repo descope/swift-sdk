@@ -176,11 +176,11 @@ open class DescopeFlowViewController: UIViewController {
 }
 
 extension DescopeFlowViewController: DescopeFlowViewDelegate {
-    public func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screenId: String) -> Bool {
+    public func flowViewShouldShowScreen(_ flowView: DescopeFlowView, screen: String, data: [String: Any]) -> Bool {
         return true // TODO
     }
     
-    public func flowViewDidShowScreen(_ flowView: DescopeFlowView, screenId: String) {
+    public func flowViewDidShowScreen(_ flowView: DescopeFlowView, screen: String) {
         // TODO
     }
     

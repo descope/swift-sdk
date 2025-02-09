@@ -18,9 +18,9 @@ public protocol DescopeFlowCoordinatorDelegate: AnyObject {
     /// and do a quick animatad transition to show the flow once this method is called.
     func coordinatorDidBecomeReady(_ coordinator: DescopeFlowCoordinator)
 
-    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String) -> Bool
+    func coordinatorShouldShowScreen(_ coordinator: DescopeFlowCoordinator, screen: String, data: [String: Any]) -> Bool
 
-    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screenId: String)
+    func coordinatorDidShowScreen(_ coordinator: DescopeFlowCoordinator, screen: String)
 
     /// Called when the user taps on a web link in the flow.
     ///
@@ -272,16 +272,16 @@ public class DescopeFlowCoordinator {
             handleOAuthNative(clientId: clientId, stateId: stateId, nonce: nonce, implicit: implicit)
         case let .webAuth(variant, startURL, finishURL):
             handleWebAuth(variant: variant, startURL: startURL, finishURL: finishURL)
-        case let .beforeScreen(screenId):
-            logger(.info, "Should show screen", screenId)
+        case let .beforeScreen(screen, data):
+            logger(.info, "Should show screen", screen)
             var show = true
             if let delegate {
-                show = delegate.coordinatorShouldShowScreen(self, screenId: screenId)
+                show = delegate.coordinatorShouldShowScreen(self, screen: screen, data: data)
             }
             bridge.send(response: .beforeScreen(override: !show))
-        case let .afterScreen(screenId):
-            logger(.info, "Did show screen", screenId)
-            delegate?.coordinatorDidShowScreen(self, screenId: screenId)
+        case let .afterScreen(screen):
+            logger(.info, "Did show screen", screen)
+            delegate?.coordinatorDidShowScreen(self, screen: screen)
         }
     }
 
@@ -384,12 +384,6 @@ extension DescopeFlowCoordinator: FlowBridgeDelegate {
     func bridgeDidBecomeReady(_ bridge: FlowBridge) {
         handleReady()
     }
-
-//    func bridgeShouldShowScreen(_ bridge: FlowBridge, screenId: String) -> Bool {
-//    }
-
-//    func bridgeDidShowScreen(_ bridge: FlowBridge, screenId: String) {
-//    }
 
     func bridgeDidInterceptNavigation(_ bridge: FlowBridge, url: URL, external: Bool) {
         delegate?.coordinatorDidInterceptNavigation(self, url: url, external: external)

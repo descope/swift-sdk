@@ -143,7 +143,7 @@ public extension DescopeSDK {
     static let name = "DescopeKit"
     
     /// The Descope SDK version
-    static let version = "0.9.11"
+    static let version = "0.9.12"
 }
 
 // Internal

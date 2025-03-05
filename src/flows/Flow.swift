@@ -96,7 +96,7 @@ public class DescopeFlow {
     /// This will usually either be `.apple` or the name of a custom OAuth provider you've
     /// created in the [Descope Console](https://app.descope.com/settings/authentication/social)
     /// that's been configured for Apple.
-    public var oauthProvider: OAuthProvider?
+    public var oauthNativeProvider: OAuthProvider?
 
     /// An optional universal link URL to use when sending magic link emails.
     ///

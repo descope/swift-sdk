@@ -84,7 +84,6 @@ public extension DescopeSDK {
 
 public extension Descope {
     static var projectId: String {
-        @available(*, deprecated, message: "Use Descope.config.projectId instead")
         get { Descope.sdk.config.projectId }
         @available(*, deprecated, message: "Use the setup() function to initialize the Descope singleton")
         set { Descope.sdk = DescopeSDK(projectId: newValue) }
@@ -103,5 +102,13 @@ public extension DescopeConfig {
         self.projectId = projectId
         self.baseURL = baseURL
         self.logger = logger
+    }
+}
+
+public extension DescopeFlow {
+    @available(*, deprecated, renamed: "oauthNativeProvider")
+    var oauthProvider: OAuthProvider? {
+        get { oauthNativeProvider }
+        set { oauthNativeProvider = newValue }
     }
 }

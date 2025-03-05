@@ -29,7 +29,7 @@ public class SessionLifecycle: DescopeSessionLifecycle {
         self.logger = logger
     }
 
-    public var stalenessAllowedInterval: TimeInterval = 60 /* seconds */
+    public var refreshTriggerInterval: TimeInterval = 60 /* seconds */
     
     public var periodicCheckFrequency: TimeInterval = 30 /* seconds */ {
         didSet {
@@ -70,7 +70,13 @@ public class SessionLifecycle: DescopeSessionLifecycle {
     // Conditional refresh
     
     private func shouldRefresh(_ session: DescopeSession) -> Bool {
-        return session.sessionToken.expiresAt.timeIntervalSinceNow <= stalenessAllowedInterval
+        // don't bother trying to refresh if according to device time the refresh token is already expired
+        guard !session.refreshToken.isExpired else { return false }
+        // only bother refreshing if we're close enough to the session token expiration
+        guard session.sessionToken.expiresAt.timeIntervalSinceNow <= refreshTriggerInterval else { return false }
+        // don't bother trying to refresh if the new session token will just have the same expiration
+        guard session.refreshToken.expiresAt.timeIntervalSince(session.sessionToken.expiresAt) >= 1 else { return false }
+        return true
     }
     
     // Periodic refresh

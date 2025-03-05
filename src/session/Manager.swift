@@ -39,18 +39,21 @@ import Foundation
 ///
 ///     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 ///         Descope.setup(projectId: "...")
-///         if let session = Descope.sessionManager.session {
+///         if let session = Descope.sessionManager.session, !session.refreshToken.isExpired {
 ///             print("User is logged in: \(session)")
 ///         }
 ///         return true
 ///     }
 ///
-/// When the user wants to sign out of the application we revoke the active
-/// session and clear it from the session manager:
+/// When the user wants to sign out of the application you only need to call
+/// the `clearSession()` method to make the session manager clear its session
+/// and also delete it from the keychain.
 ///
-///     guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
-///     try await Descope.auth.revokeSessions(.currentSession, refreshJwt: refreshJwt)
 ///     Descope.sessionManager.clearSession()
+///
+/// You can also remove remove the user's refresh JWT from the Descope servers once
+/// it becomes redundant. See the documentation for the ``DescopeAuth/revokeSessions(_:refreshJwt:)``
+/// function for more details.
 ///
 /// You can customize how the ``DescopeSessionManager`` behaves by using your own
 /// `storage` and `lifecycle` objects. See the documentation for the ``init(storage:lifecycle:)``

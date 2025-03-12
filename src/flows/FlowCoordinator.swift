@@ -248,7 +248,7 @@ public class DescopeFlowCoordinator {
 
     private func handleReady() {
         guard ensureState(.started) else { return }
-        bridge.set(oauthProvider: flow?.oauthProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect)
+        bridge.set(oauthProvider: flow?.oauthNativeProvider?.name, magicLinkRedirect: flow?.magicLinkRedirect)
         state = .ready
         executeHooks(event: .ready)
         delegate?.coordinatorDidBecomeReady(self)

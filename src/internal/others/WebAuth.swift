@@ -17,7 +17,7 @@ private func presentWebAuthentication(url: URL, accessSharedUserData: Bool, logg
     let contextProvider = DefaultPresentationContextProvider()
     var cancellation: @MainActor () -> Void = {}
 
-    #if canImport(React)
+    #if os(iOS) && canImport(React)
     await contextProvider.waitKeyWindow()
     #endif
 

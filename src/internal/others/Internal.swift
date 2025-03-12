@@ -67,7 +67,7 @@ class DefaultPresentationContextProvider: NSObject, ASWebAuthenticationPresentat
         #endif
     }
 
-    #if canImport(React)
+    #if os(iOS) && canImport(React)
     func waitKeyWindow() async {
         for _ in 1...10 {
             guard findKeyWindow() == nil else { return }
@@ -106,3 +106,27 @@ class AuthorizationDelegate: NSObject, ASAuthorizationControllerDelegate {
         completion = nil
     }
 }
+
+#if os(iOS) && canImport(React)
+extension AuthenticationResponse: Codable {
+    enum CodingKeys: CodingKey {
+        case sessionToken, refreshToken, user, isFirstAuthentication
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        sessionToken = try Token(jwt: values.decode(String.self, forKey: .sessionToken))
+        refreshToken = try Token(jwt: values.decode(String.self, forKey: .refreshToken))
+        user = try values.decode(DescopeUser.self, forKey: .user)
+        isFirstAuthentication = try values.decode(Bool.self, forKey: .isFirstAuthentication)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(sessionToken.jwt, forKey: .sessionToken)
+        try values.encode(refreshToken.jwt, forKey: .refreshToken)
+        try values.encode(user, forKey: .user)
+        try values.encode(isFirstAuthentication, forKey: .isFirstAuthentication)
+    }
+}
+#endif

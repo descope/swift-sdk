@@ -17,6 +17,10 @@ private func presentWebAuthentication(url: URL, accessSharedUserData: Bool, logg
     let contextProvider = DefaultPresentationContextProvider()
     var cancellation: @MainActor () -> Void = {}
 
+    #if canImport(React)
+    await contextProvider.waitKeyWindow()
+    #endif
+
     let result: Result<URL?, Error> = await withTaskCancellationHandler {
         return await withCheckedContinuation { continuation in
             let session = ASWebAuthenticationSession(url: url, callbackURLScheme: WebAuth.redirectScheme) { callbackURL, error in

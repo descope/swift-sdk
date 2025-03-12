@@ -58,22 +58,37 @@ class DefaultPresentationContextProvider: NSObject, ASWebAuthenticationPresentat
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         return presentationAnchor
     }
-    
+
     private var presentationAnchor: ASPresentationAnchor {
-#if os(macOS)
+        #if os(iOS)
+        return findKeyWindow() ?? ASPresentationAnchor()
+        #else
         return ASPresentationAnchor()
-#else
+        #endif
+    }
+
+    #if canImport(React)
+    func waitKeyWindow() async {
+        for _ in 1...10 {
+            guard findKeyWindow() == nil else { return }
+            try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
+        }
+    }
+    #endif
+
+    #if os(iOS)
+    private func findKeyWindow() -> UIWindow? {
         let scene = UIApplication.shared.connectedScenes
             .filter { $0.activationState == .foregroundActive }
             .compactMap { $0 as? UIWindowScene }
             .first
-        
-        let keyWindow = scene?.windows
+
+        let window = scene?.windows
             .first { $0.isKeyWindow }
-        
-        return keyWindow ?? ASPresentationAnchor()
-#endif
+
+        return window
     }
+    #endif
 }
 
 class AuthorizationDelegate: NSObject, ASAuthorizationControllerDelegate {

@@ -12,45 +12,58 @@ import Foundation
 /// Once the user completes a sign in flow successfully you should set the
 /// ``DescopeSession`` object as the active session of the session manager.
 ///
-///     let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
-///     let session = DescopeSession(from: authResponse)
-///     Descope.sessionManager.manageSession(session)
+/// ```swift
+/// let authResponse = try await Descope.otp.verify(with: .email, loginId: "andy@example.com", code: "123456")
+/// let session = DescopeSession(from: authResponse)
+/// Descope.sessionManager.manageSession(session)
+/// ```
 ///
 /// The session manager can then be used at any time to ensure the session
 /// is valid and to authenticate outgoing requests to your backend with a
 /// bearer token authorization header.
 ///
-///     var request = URLRequest(url: url)
-///     try await request.setAuthorizationHTTPHeaderField(from: Descope.sessionManager)
-///     let (data, response) = try await URLSession.shared.data(for: request)
+/// ```swift
+/// var request = URLRequest(url: url)
+/// try await request.setAuthorizationHTTPHeaderField(from: Descope.sessionManager)
+/// let (data, response) = try await URLSession.shared.data(for: request)
+/// ```
 ///
 /// If your backend uses a different authorization mechanism you can of course
 /// use the session JWT directly instead of the extension function. You can either
 /// add another extension function on `URLRequest` such as the one above, or you
 /// can do the following.
 ///
-///     try await Descope.sessionManager.refreshSessionIfNeeded()
-///     guard let sessionJwt = Descope.sessionManager.session?.sessionJwt else { throw ServerError.unauthorized }
-///     request.setValue(sessionJwt, forHTTPHeaderField: "X-Auth-Token")
+/// ```swift
+/// try await Descope.sessionManager.refreshSessionIfNeeded()
+/// guard let sessionJwt = Descope.sessionManager.session?.sessionJwt else { throw ServerError.unauthorized }
+/// request.setValue(sessionJwt, forHTTPHeaderField: "X-Auth-Token")
+/// ```
 ///
 /// When the application is relaunched the ``DescopeSessionManager`` loads any
 /// existing session automatically, so you can check straight away if there's
 /// an authenticated user.
 ///
-///     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-///         Descope.setup(projectId: "...")
-///         if let session = Descope.sessionManager.session {
-///             print("User is logged in: \(session)")
-///         }
-///         return true
+/// ```swift
+/// func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+///     Descope.setup(projectId: "...")
+///     if let session = Descope.sessionManager.session, !session.refreshToken.isExpired {
+///         print("User is logged in: \(session)")
 ///     }
+///     return true
+/// }
+/// ```
 ///
-/// When the user wants to sign out of the application we revoke the active
-/// session and clear it from the session manager:
+/// When the user wants to sign out of the application you only need to call
+/// the `clearSession()` method to make the session manager clear its session
+/// and also delete it from the keychain.
 ///
-///     guard let refreshJwt = Descope.sessionManager.session?.refreshJwt else { return }
-///     try await Descope.auth.revokeSessions(.currentSession, refreshJwt: refreshJwt)
-///     Descope.sessionManager.clearSession()
+/// ```swift
+/// Descope.sessionManager.clearSession()
+/// ```
+///
+/// You can also remove remove the user's refresh JWT from the Descope servers once
+/// it becomes redundant. See the documentation for the ``DescopeAuth/revokeSessions(_:refreshJwt:)``
+/// function for more details.
 ///
 /// You can customize how the ``DescopeSessionManager`` behaves by using your own
 /// `storage` and `lifecycle` objects. See the documentation for the ``init(storage:lifecycle:)``
@@ -172,8 +185,10 @@ public class DescopeSessionManager {
     /// calls to `Descope.auth.me`. The manager saves the updated session to the
     /// keychain before returning.
     ///
-    ///     let userResponse = try await Descope.auth.me(refreshJwt: session.refreshJwt)
-    ///     Descope.sessionManager.updateUser(with: userResponse)
+    /// ```swift
+    /// let userResponse = try await Descope.auth.me(refreshJwt: session.refreshJwt)
+    /// Descope.sessionManager.updateUser(with: userResponse)
+    /// ```
     ///
     /// By default, the manager saves the updated session to the keychain before returning,
     /// but this can be overridden with a custom ``DescopeSessionStorage`` object.

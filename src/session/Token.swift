@@ -26,7 +26,7 @@ public protocol DescopeToken: Sendable {
     /// after which the JWT expires.
     var expiresAt: Date { get }
     
-    /// Whether the JWT expiry time  has already passed.
+    /// Whether the JWT expiry time has already passed.
     var isExpired: Bool { get }
     
     /// A map with all the custom claims in the JWT value. It includes

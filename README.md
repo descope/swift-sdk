@@ -6,7 +6,13 @@ written in Swift. You can read more on the [Descope Website](https://descope.com
 
 ## Setup
 
-Add the `DescopeKit` package using the [Swift package manager](https://www.swift.org/package-manager/).
+Add the `DescopeKit` package using the Swift package manager. Within Xcode,
+go to `File` > `Add Package Dependencies` and enter the URL of the repo in
+the search box at the top of the dialog:
+
+```
+https://github.com/descope/descope-swift
+```
 
 The SDK supports iOS 13 and above, and macOS 12 and above.
 

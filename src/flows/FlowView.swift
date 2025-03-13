@@ -102,7 +102,7 @@ public protocol DescopeFlowViewDelegate: AnyObject {
 ///     the various `UIKit` properties on the view itself and the various CSS rules in
 ///     the flow webpage being displayed. If you need any additional customization
 ///     options that are not currently exposed by ``DescopeFlowView`` you can open
-///     an issue or pull request [here](https://github.com/descope/swift-sdk).
+///     an issue or pull request [here](https://github.com/descope/descope-swift).
 open class DescopeFlowView: UIView {
 
     /// A delegate object for receiving events about the state of the flow.

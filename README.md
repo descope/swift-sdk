@@ -14,7 +14,12 @@ the search box at the top of the dialog:
 https://github.com/descope/descope-swift
 ```
 
-The SDK supports iOS 13 and above, and macOS 12 and above.
+Set the dependency rule as appropriate and press the `Copy Dependency` button
+to confirm. The project navigator panel will show `DescopeKit` under package
+dependencies and you can `import DescopeKit` in your code.
+
+Note that the Descope SDK supports projects with a deployment target of iOS 13
+and above and macOS 12 and above.
 
 ## Quickstart 
 
